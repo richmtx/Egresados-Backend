@@ -1,0 +1,263 @@
+
+/* Estilos para el LogIn */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* PANEL IZQUIERDO */
+.left-panel {
+    flex: 1.2;
+    background: linear-gradient(135deg, #611232, #7a1c3f, #5a0f2d);
+    background-size: 200% 200%;
+    animation: gradientMove 8s ease infinite;
+
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px;
+}
+
+@keyframes gradientMove {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.left-panel .content {
+    max-width: 400px;
+}
+
+.logos {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.logos img {
+    width: 180px;
+    height: auto;
+}
+
+.left-panel h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.left-panel p {
+    font-size: 18px;
+    opacity: 0.8;
+}
+
+/* PANEL DERECHO */
+.right-panel {
+    flex: 0.8;
+    background: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-box {
+    width: 100%;
+    max-width: 420px;
+}
+
+.login-box h2 {
+    font-size: 32px;
+    margin-bottom: 2px;
+    color: #333;
+}
+
+.subtitle {
+    margin-bottom: 30px;
+    color: #777;
+    font-size: 16px;
+}
+
+.input-group {
+    margin-bottom: 24px;
+}
+
+.input-group label {
+    font-size: 15px;
+    color: #444;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 14px;
+    margin-top: 6px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    font-size: 15px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.input-group input:focus {
+    border-color: #611232;
+    box-shadow: 0 0 5px rgba(106,27,45,0.3);
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    background: #611232;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 17px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #4e1321;
+}
+
+/************************************/
+/******** DISEÑO RESPONISVO *********/
+/************************************/
+@media (max-width: 1024px) {
+
+    .container {
+        flex-direction: column;
+    }
+
+    .left-panel {
+        flex: none;
+        height: 45%;
+        padding: 30px;
+    }
+
+    .right-panel {
+        flex: none;
+        height: 55%;
+        padding: 20px;
+    }
+
+    .logos img {
+        width: 140px;
+    }
+
+    .left-panel h1 {
+        font-size: 26px;
+    }
+
+    .left-panel p {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .left-panel {
+        height: 35%;
+        padding: 20px;
+    }
+
+    .right-panel {
+        height: 65%;
+        padding: 20px;
+    }
+
+    .logos {
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .logos img {
+        width: 100px;
+    }
+
+    .left-panel h1 {
+        font-size: 22px;
+    }
+
+    .left-panel p {
+        font-size: 14px;
+    }
+
+    .login-box {
+        max-width: 100%;
+    }
+
+    .login-box h2 {
+        font-size: 26px;
+    }
+
+    .subtitle {
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+
+    .input-group input {
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    button {
+        padding: 12px;
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .left-panel {
+        height: 30%;
+    }
+
+    .right-panel {
+        height: 70%;
+    }
+
+    .logos img {
+        width: 80px;
+    }
+
+    .left-panel h1 {
+        font-size: 18px;
+    }
+
+    .left-panel p {
+        font-size: 13px;
+    }
+
+    .login-box h2 {
+        font-size: 22px;
+    }
+
+    .input-group {
+        margin-bottom: 18px;
+    }
+}
+
+@media (max-width: 768px) {
+    .right-panel {
+        align-items: flex-start;
+    }
+
+    .login-box {
+        margin-top: 20px;
+    }
+}
