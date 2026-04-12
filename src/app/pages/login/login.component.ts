@@ -8,4 +8,10 @@ import { Component } from '@angular/core';
 })
 export class LoginComponent {
 
+ // mostrarPassword: boolean = false;
+
+  //togglePassword() {
+  //  this.mostrarPassword = !this.mostrarPassword;
+  //}
+
 }
