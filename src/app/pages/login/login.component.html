@@ -1,36 +1,121 @@
 
-<!-- LogIn-->
+<!-- LogIn -->
 <div class="container">
 
     <div class="left-panel">
         <div class="content">
-            <div class="logos">
-                <img src="/assets/LogoITD.png">
+
+            <div class="itd-badge">
+                <img src="assets/LogoITD.png" alt="Logo ITD">
             </div>
 
-            <h1>Seguimiento de Egresados</h1>
-            <p>Instituto Tecnológico de Durango</p>
+            <div class="brand-text">
+                <p class="brand-eyebrow">Sistema de</p>
+                <h1>Seguimiento de<br>Egresados</h1>
+                <div class="brand-divider"></div>
+                <p class="brand-sub">Instituto Tecnológico de Durango</p>
+            </div>
+
+            <div class="features">
+                <div class="feature-item">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="5" r="3.5" stroke="rgba(255,255,255,0.5)" stroke-width="1.2" />
+                        <path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="rgba(255,255,255,0.5)"
+                            stroke-width="1.2" stroke-linecap="round" />
+                    </svg>
+                    <span>Control de egresados</span>
+                </div>
+                <div class="feature-item">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                        <rect x="2" y="6" width="12" height="9" rx="2" stroke="rgba(255,255,255,0.5)"
+                            stroke-width="1.2" />
+                        <path d="M5 6V4.5a3 3 0 016 0V6" stroke="rgba(255,255,255,0.5)" stroke-width="1.2"
+                            stroke-linecap="round" />
+                    </svg>
+                    <span>Acceso seguro</span>
+                </div>
+                <div class="feature-item">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                        <path d="M8 2l1.5 3.5H14l-3.5 2.5 1.5 3.5L8 9.5 4 11.5l1.5-3.5L2 5.5h4.5L8 2z"
+                            stroke="rgba(255,255,255,0.5)" stroke-width="1.2" stroke-linejoin="round" />
+                    </svg>
+                    <span>Datos verificados</span>
+                </div>
+            </div>
+
         </div>
     </div>
 
     <div class="right-panel">
         <div class="login-box">
 
-            <h2>Iniciar Sesión</h2>
-            <p class="subtitle">Accede a tu cuenta</p>
+            <div class="login-header">
+                <div class="header-eyebrow">
+                    <div class="dot"></div>
+                    <p>Bienvenido</p>
+                </div>
+                <h2>Iniciar sesión</h2>
+                <p class="subtitle">Ingresa tus credenciales para continuar</p>
+            </div>
 
-            <form>
+            <form (ngSubmit)="onSubmit()">
+
                 <div class="input-group">
-                    <label>Usuario</label>
-                    <input type="text" placeholder="Ingresa tu usuario">
+                    <label for="usuario">Usuario</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" width="15" height="15" viewBox="0 0 16 16" fill="none">
+                            <circle cx="8" cy="5.5" r="3" stroke="currentColor" stroke-width="1.2" />
+                            <path d="M2 14c0-3 2.5-4.5 6-4.5s6 1.5 6 4.5" stroke="currentColor" stroke-width="1.2"
+                                stroke-linecap="round" />
+                        </svg>
+                        <input id="usuario" type="text" placeholder="Nombre de usuario" [(ngModel)]="usuario"
+                            name="usuario">
+                    </div>
                 </div>
 
                 <div class="input-group">
-                    <label>Contraseña</label>
-                    <input type="password" placeholder="Ingresa tu contraseña">
+                    <div class="label-row">
+                        <label for="contrasena">Contraseña</label>
+                    </div>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" width="15" height="15" viewBox="0 0 16 16" fill="none">
+                            <rect x="3" y="7" width="10" height="8" rx="1.5" stroke="currentColor" stroke-width="1.2" />
+                            <path d="M5.5 7V5a2.5 2.5 0 015 0v2" stroke="currentColor" stroke-width="1.2"
+                                stroke-linecap="round" />
+                        </svg>
+                        <input id="contrasena" [type]="mostrarPassword ? 'text' : 'password'" placeholder="••••••••"
+                            [(ngModel)]="contrasena" name="contrasena">
+                        <button type="button" class="toggle-pass" (click)="togglePassword()">
+                            <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                                <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor"
+                                    stroke-width="1.2" />
+                                <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.2" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
-                <button type="submit">Ingresar</button>
+                <!-- ✅ Mensaje de error -->
+                @if (errorMensaje) {
+                <div class="error-message">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2" />
+                        <path d="M8 5v4M8 11v.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+                    </svg>
+                    {{ errorMensaje }}
+                </div>
+                }
+
+                <div class="remember-row">
+                    <input type="checkbox" id="remember">
+                    <label for="remember">Recordar sesión</label>
+                </div>
+
+                <!-- ✅ Botón con estado de carga -->
+                <button type="submit" class="btn-login" [disabled]="cargando">
+                    {{ cargando ? 'Verificando...' : 'Ingresar' }}
+                </button>
+
             </form>
 
         </div>
