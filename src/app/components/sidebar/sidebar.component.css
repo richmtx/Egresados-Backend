@@ -454,3 +454,34 @@
   width: 14px;
   height: 14px;
 }
+
+/* ── Fix colapso del brand header ───────────────── */
+.sidebar.collapsed .sidebar-brand {
+  padding: 20px 0 18px;
+  justify-content: center;
+  gap: 0;
+  flex-wrap: nowrap;
+}
+
+.sidebar.collapsed .brand-logo {
+  margin: 0 auto;
+  flex-shrink: 0;
+}
+
+/* Forzar que expand-btn sea visible y centrado */
+.sidebar.collapsed .expand-btn {
+  display: flex !important;
+  position: static;
+  margin: 0 auto;
+  flex-shrink: 0;
+}
+
+/* Ocultar completamente brand-text para que no ocupe espacio */
+.sidebar.collapsed .brand-text {
+  display: none;
+}
+
+/* Ocultar collapse-btn definitivamente */
+.sidebar.collapsed .collapse-btn {
+  display: none !important;
+}

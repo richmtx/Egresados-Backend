@@ -1,4 +1,4 @@
-import { Component, HostBinding } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -11,17 +11,11 @@ export class SidebarComponent {
   isCollapsed = false;
   activeRoute = 'dashboard';
 
-  @HostBinding('class.collapsed')
-  get collapsed() {
-    return this.isCollapsed;
-  }
-
   toggleSidebar(): void {
     this.isCollapsed = !this.isCollapsed;
   }
 
   setRoute(route: string): void {
     this.activeRoute = route;
-    // this.router.navigate([`/admin/${route}`]);
   }
 }
