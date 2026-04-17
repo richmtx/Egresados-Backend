@@ -44,7 +44,8 @@
                 <span class="nav-label">Dashboard</span>
             </a>
 
-            <a class="nav-item" [class.active]="activeRoute === 'egresados'" (click)="setRoute('egresados')">
+            <a class="nav-item" [class.active]="activeRoute === 'egresados'" (click)="setRoute('egresados')"
+                [routerLink]="['/egresados']">
                 <span class="nav-icon">
                     <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
                         stroke-linejoin="round">
@@ -130,6 +131,31 @@
                 <span class="nav-label">Empleabilidad</span>
             </a>
 
+            <a class="nav-item" [class.active]="activeRoute === 'titulacion'" (click)="setRoute('titulacion')">
+                <span class="nav-icon">
+                    <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M9 2L2 6l7 4 7-4-7-4z" />
+                        <path d="M2 10l7 4 7-4" />
+                    </svg>
+                </span>
+                <span class="nav-label">Titulación</span>
+            </a>
+
+            <a class="nav-item" [class.active]="activeRoute === 'vinculacion'" (click)="setRoute('vinculacion')">
+                <span class="nav-icon">
+                    <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="5" cy="9" r="2.5" />
+                        <circle cx="13" cy="9" r="2.5" />
+                        <path d="M7.5 9h3" />
+                        <path d="M3 5c0-1.1.9-2 2-2s2 .9 2 2" />
+                        <path d="M11 5c0-1.1.9-2 2-2s2 .9 2 2" />
+                    </svg>
+                </span>
+                <span class="nav-label">Vinculación</span>
+            </a>
+
             <a class="nav-item" [class.active]="activeRoute === 'comparativas'" (click)="setRoute('comparativas')">
                 <span class="nav-icon">
                     <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
@@ -175,7 +201,20 @@
                 </span>
                 <span class="nav-label">Exportar datos</span>
             </a>
+
+            <a class="nav-item" [class.active]="activeRoute === 'consentimientos'"
+                (click)="setRoute('consentimientos')">
+                <span class="nav-icon">
+                    <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M4 9l3 3 7-7" />
+                        <rect x="2" y="2" width="14" height="14" rx="2" />
+                    </svg>
+                </span>
+                <span class="nav-label">Consentimientos</span>
+            </a>
         </div>
+
 
         <!-- CONFIGURACIÓN -->
         <div class="nav-section">
