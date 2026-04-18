@@ -1,1 +1,237 @@
-<app-sidebar></app-sidebar>
+<div class="page-layout">
+    <app-sidebar></app-sidebar>
+
+    <main class="main-content">
+
+        <!-- HEADER -->
+        <div class="page-header">
+            <div class="header-left">
+                <h1 class="page-title">Egresados</h1>
+                <p class="page-subtitle">
+                    {{ egresadosFiltrados.length }} de {{ egresados.length }} egresados registrados
+                </p>
+            </div>
+            <button class="btn-export">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                    <path d="M3 12v2a1 1 0 001 1h8a1 1 0 001-1v-2M8 2v9M5 8l3 3 3-3" />
+                </svg>
+                Exportar
+            </button>
+        </div>
+
+        <!-- ESTADO: CARGANDO -->
+        <div class="state-box" *ngIf="cargando">
+            <div class="spinner"></div>
+            <p>Cargando egresados...</p>
+        </div>
+
+        <!-- ESTADO: ERROR -->
+        <div class="state-box state-error" *ngIf="error && !cargando">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 8v4M12 16h.01" />
+            </svg>
+            <p>{{ error }}</p>
+        </div>
+
+        <ng-container *ngIf="!cargando && !error">
+
+            <!-- TARJETAS DE MÉTRICAS -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <span class="metric-label">Total registrados</span>
+                    <span class="metric-value">{{ egresados.length }}</span>
+                    <span class="metric-sub">todas las generaciones</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Autorizaron contacto</span>
+                    <span class="metric-value">{{ getTotalContacto() }}</span>
+                    <span class="metric-sub">para oportunidades lab.</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Empleados</span>
+                    <span class="metric-value">{{ getTotalEmpleados() }}</span>
+                    <span class="metric-sub">con actividad laboral</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Satisfacción promedio</span>
+                    <span class="metric-value">
+                        {{ satisfaccionPromedio }}
+                        <span class="metric-unit">/ 5</span>
+                    </span>
+                    <span class="metric-sub">formación académica</span>
+                </div>
+            </div>
+
+            <!-- FILTROS -->
+            <div class="filters-bar">
+                <div class="search-wrap">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round">
+                        <circle cx="7" cy="7" r="4" />
+                        <path d="M10 10l3 3" />
+                    </svg>
+                    <input type="text" placeholder="Buscar por nombre, carrera, empresa…"
+                        (input)="onBusqueda($event)" />
+                </div>
+
+                <select (change)="onFiltroCarrera($event)">
+                    <option value="">Todas las carreras</option>
+                    <option *ngFor="let c of carreras" [value]="c">{{ c }}</option>
+                </select>
+
+                <select (change)="onFiltroAnio($event)">
+                    <option value="">Todos los años</option>
+                    <option *ngFor="let a of anios" [value]="a">{{ a }}</option>
+                </select>
+
+                <select (change)="onFiltroSituacion($event)">
+                    <option value="">Situación laboral</option>
+                    <option *ngFor="let s of situaciones" [value]="s">{{ s }}</option>
+                </select>
+
+                <div class="chip-filters">
+                    <button class="chip-btn" [class.active]="filtroChip === 'todos'"
+                        (click)="onFiltroChip('todos')">Todos</button>
+                    <button class="chip-btn" [class.active]="filtroChip === 'contacto'"
+                        (click)="onFiltroChip('contacto')">Autorizó contacto</button>
+                    <button class="chip-btn" [class.active]="filtroChip === 'titulado'"
+                        (click)="onFiltroChip('titulado')">Titulados</button>
+                </div>
+            </div>
+
+            <!-- TABLA -->
+            <div class="table-card">
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="col-nombre">Egresado</th>
+                                <th class="col-carrera">Carrera</th>
+                                <th class="col-anio">Año</th>
+                                <th class="col-situacion">Situación laboral</th>
+                                <th class="col-titulacion">Titulación</th>
+                                <th class="col-ingles">Inglés</th>
+                                <th class="col-estado">Estado</th>
+                                <th class="col-acciones"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            <!-- SIN RESULTADOS -->
+                            <tr *ngIf="egresadosFiltrados.length === 0">
+                                <td colspan="8" class="empty-row">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                        stroke-linecap="round">
+                                        <circle cx="11" cy="11" r="8" />
+                                        <path d="M21 21l-4.35-4.35" />
+                                    </svg>
+                                    <span>No se encontraron egresados con esos filtros</span>
+                                </td>
+                            </tr>
+
+                            <!-- FILAS -->
+                            <tr *ngFor="let e of egresadosFiltrados" class="table-row">
+
+                                <!-- Nombre -->
+                                <td>
+                                    <div class="name-cell">
+                                        <div class="avatar" [class.avatar-f]="e.genero === 'Femenino'">
+                                            {{ getIniciales(e.nombre_completo) }}
+                                        </div>
+                                        <div class="name-info">
+                                            <span class="name-text">{{ e.nombre_completo }}</span>
+                                            <span class="name-sub">{{ e.empresa || '—' }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- Carrera -->
+                                <td class="cell-secondary">{{ e.nombre_carrera }}</td>
+
+                                <!-- Año -->
+                                <td class="cell-center">{{ e.anio_egreso }}</td>
+
+                                <!-- Situación laboral -->
+                                <td>
+                                    <span class="chip" [ngClass]="getSituacionClass(e.situacion_laboral)">
+                                        {{ e.situacion_laboral }}
+                                    </span>
+                                </td>
+
+                                <!-- Titulación -->
+                                <td>
+                                    <span class="chip" [ngClass]="getTitulacionClass(e.estatus_titulacion)">
+                                        {{ getTitulacionLabel(e.estatus_titulacion) }}
+                                    </span>
+                                </td>
+
+                                <!-- Inglés -->
+                                <td class="cell-secondary">{{ e.nivel_ingles }}</td>
+
+                                <!-- Estado (dots) -->
+                                <td>
+                                    <div class="status-dots">
+                                        <span class="dot" [class.dot-green]="e.autorizo_contacto"
+                                            [class.dot-gray]="!e.autorizo_contacto"
+                                            [title]="e.autorizo_contacto ? 'Contacto autorizado' : 'Contacto no autorizado'">
+                                        </span>
+                                        <span class="dot" [class.dot-green]="e.autorizo_estadisticas"
+                                            [class.dot-gray]="!e.autorizo_estadisticas"
+                                            [title]="e.autorizo_estadisticas ? 'Estadísticas autorizadas' : 'Estadísticas no autorizadas'">
+                                        </span>
+                                        <span class="dot" [class.dot-green]="e.autorizo_eventos"
+                                            [class.dot-gray]="!e.autorizo_eventos"
+                                            [title]="e.autorizo_eventos ? 'Eventos autorizado' : 'Eventos no autorizado'">
+                                        </span>
+                                    </div>
+                                </td>
+
+                                <!-- Acciones -->
+                                <td>
+                                    <div class="row-actions">
+                                        <button class="action-btn" title="Ver perfil completo">
+                                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                                                stroke-width="1.5" stroke-linecap="round">
+                                                <circle cx="8" cy="5" r="2.5" />
+                                                <path d="M2 14c0-3 2.7-5 6-5s6 2 6 5" />
+                                            </svg>
+                                        </button>
+                                        <button class="action-btn action-btn-danger" title="Eliminar egresado"
+                                            (click)="eliminarEgresado(e.id_egresado)">
+                                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                                                stroke-width="1.5" stroke-linecap="round">
+                                                <path d="M3 4h10M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- FOOTER TABLA -->
+                <div class="table-footer">
+                    <span class="footer-info">
+                        Mostrando {{ egresadosFiltrados.length }}
+                        resultado{{ egresadosFiltrados.length !== 1 ? 's' : '' }}
+                    </span>
+                    <div class="footer-legend">
+                        <span class="legend-item">
+                            <span class="dot dot-green"></span> Autorizado
+                        </span>
+                        <span class="legend-item">
+                            <span class="dot dot-gray"></span> No autorizado
+                        </span>
+                        <span class="legend-sep">·</span>
+                        <span class="legend-item legend-hint">Contacto · Estadísticas · Eventos</span>
+                    </div>
+                </div>
+
+            </div>
+        </ng-container>
+
+    </main>
+</div>
