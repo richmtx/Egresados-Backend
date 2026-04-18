@@ -1,27 +1,22 @@
-/* ================================================
-   SIDEBAR COMPONENT — Sistema de Egresados
-   Paleta: #611232 (guinda) | #003366 (azul) | #fff
-   ================================================ */
-
 :host {
   display: block;
   height: 100%;
 }
 
-/* ── Variables ─────────────────────────────────── */
+/* Variables */
 .sidebar {
-  --sb-bg:           #003366;
-  --sb-bg-deep:      #00254d;
-  --sb-accent:       #611232;
+  --sb-bg: #003366;
+  --sb-bg-deep: #00254d;
+  --sb-accent: #611232;
   --sb-accent-light: rgba(97, 18, 50, 0.18);
-  --sb-text:         rgba(255, 255, 255, 0.72);
-  --sb-text-dim:     rgba(255, 255, 255, 0.38);
-  --sb-text-bright:  #ffffff;
-  --sb-border:       rgba(255, 255, 255, 0.08);
-  --sb-hover:        rgba(255, 255, 255, 0.07);
-  --sb-width:        232px;
-  --sb-width-col:    68px;
-  --sb-transition:   0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --sb-text: rgba(255, 255, 255, 0.72);
+  --sb-text-dim: rgba(255, 255, 255, 0.38);
+  --sb-text-bright: #ffffff;
+  --sb-border: rgba(255, 255, 255, 0.08);
+  --sb-hover: rgba(255, 255, 255, 0.07);
+  --sb-width: 232px;
+  --sb-width-col: 68px;
+  --sb-transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
   width: var(--sb-width);
   height: 100%;
@@ -37,7 +32,7 @@
   border-right: 1px solid var(--sb-border);
 }
 
-/* ── Estado colapsado ───────────────────────────── */
+/* Estado colapsado */
 .sidebar.collapsed {
   width: var(--sb-width-col);
 }
@@ -75,6 +70,7 @@
 .collapse-btn {
   display: flex;
 }
+
 .sidebar.collapsed .collapse-btn {
   display: none;
 }
@@ -96,19 +92,22 @@
   padding: 0;
   margin: 0 auto;
 }
+
 .sidebar.collapsed .expand-btn {
   display: flex;
 }
+
 .expand-btn:hover {
   background: var(--sb-hover);
   color: var(--sb-text-bright);
 }
+
 .expand-btn svg {
   width: 14px;
   height: 14px;
 }
 
-/* ── Brand / Logo ──────────────────────────────── */
+/* Brand / Logo */
 .sidebar-brand {
   display: flex;
   align-items: center;
@@ -195,7 +194,7 @@
   transition: transform var(--sb-transition);
 }
 
-/* ── Navigation ────────────────────────────────── */
+/* Navigation */
 .sidebar-nav {
   flex: 1;
   overflow-y: auto;
@@ -349,11 +348,20 @@
 }
 
 @keyframes pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.6; transform: scale(0.8); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(0.8);
+  }
 }
 
-/* ── Footer / Perfil de usuario ─────────────────── */
+/* Footer / Perfil de usuario */
 .sidebar-footer {
   flex-shrink: 0;
   border-top: 1px solid var(--sb-border);
@@ -455,7 +463,7 @@
   height: 14px;
 }
 
-/* ── Fix colapso del brand header ───────────────── */
+/* Fix colapso del brand header */
 .sidebar.collapsed .sidebar-brand {
   padding: 20px 0 18px;
   justify-content: center;

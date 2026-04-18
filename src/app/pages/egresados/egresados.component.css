@@ -1,5 +1,5 @@
 
-/* ── Layout ─────────────────────────────────────── */
+/* Layout */
 .page-layout {
   display: flex;
   height: 100vh;
@@ -17,7 +17,7 @@
   min-width: 0;
 }
 
-/* ── Header ─────────────────────────────────────── */
+/* Header */
 .page-header {
   display: flex;
   align-items: flex-start;
@@ -63,7 +63,7 @@
   flex-shrink: 0;
 }
 
-/* ── Estados cargando / error ───────────────────── */
+/* Estados cargando / error */
 .state-box {
   display: flex;
   flex-direction: column;
@@ -89,7 +89,7 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Métricas ───────────────────────────────────── */
+/* Métricas */
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -129,7 +129,7 @@
   color: #9ca3af;
 }
 
-/* ── Filtros ────────────────────────────────────── */
+/* Filtros */
 .filters-bar {
   background: #fff;
   border: 0.5px solid #e5e7eb;
@@ -215,7 +215,7 @@
   border-color: #611232;
 }
 
-/* ── Tabla ──────────────────────────────────────── */
+/* Tabla */
 .table-card {
   background: #fff;
   border: 0.5px solid #e5e7eb;
@@ -275,7 +275,7 @@ tr:last-child td { border-bottom: none; }
 
 .cell-center { text-align: center; }
 
-/* ── Avatar ─────────────────────────────────────── */
+/* Avatar */
 .name-cell {
   display: flex;
   align-items: center;
@@ -322,7 +322,7 @@ tr:last-child td { border-bottom: none; }
   margin-top: 1px;
 }
 
-/* ── Chips ──────────────────────────────────────── */
+/* Chips */
 .chip {
   display: inline-block;
   padding: 3px 9px;
@@ -343,7 +343,7 @@ tr:last-child td { border-bottom: none; }
 .chip-purple { background: #EEEDFE; color: #3C3489; }
 .chip-teal   { background: #E1F5EE; color: #085041; }
 
-/* ── Dots de estado ─────────────────────────────── */
+/* Dots de estado */
 .status-dots {
   display: flex;
   gap: 5px;
@@ -360,7 +360,7 @@ tr:last-child td { border-bottom: none; }
 .dot-green { background: #639922; }
 .dot-gray  { background: #d1d5db; }
 
-/* ── Acciones ───────────────────────────────────── */
+/* Acciones */
 .row-actions {
   display: flex;
   gap: 5px;
@@ -398,7 +398,7 @@ tr:last-child td { border-bottom: none; }
   color: #b91c1c;
 }
 
-/* ── Fila vacía ─────────────────────────────────── */
+/* Fila vacía */
 .empty-row {
   text-align: center;
   padding: 48px 20px;
@@ -413,7 +413,7 @@ tr:last-child td { border-bottom: none; }
   margin-inline: auto;
 }
 
-/* ── Footer tabla ───────────────────────────────── */
+/* Footer tabla */
 .table-footer {
   display: flex;
   align-items: center;
@@ -447,7 +447,7 @@ tr:last-child td { border-bottom: none; }
 
 .legend-hint { font-style: italic; }
 
-/* ── Responsive ─────────────────────────────────── */
+/* Responsive */
 @media (max-width: 1024px) {
   .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .main-content { padding: 20px 16px; }
