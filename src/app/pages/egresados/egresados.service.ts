@@ -39,7 +39,7 @@ export class EgresadosService {
   constructor(private http: HttpClient) { }
 
   getEgresadosDetalle(): Observable<EgresadoDetalle[]> {
-    return this.http.get<EgresadoDetalle[]>(`${this.apiUrl}/egresados/detalle`);
+    return this.http.get<EgresadoDetalle[]>(`${this.apiUrl}/egresados/detalles`);
   }
 
   deleteEgresado(id: number): Observable<void> {
