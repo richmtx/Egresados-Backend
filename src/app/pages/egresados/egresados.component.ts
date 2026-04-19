@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SidebarComponent } from "../../components/sidebar/sidebar.component";
-import { EgresadosService, EgresadoDetalle } from './egresados.service';
+import { EgresadosService, EgresadoDetalle, EgresadoPerfil } from './egresados.service';
 
 @Component({
   selector: 'app-egresados',
@@ -11,10 +11,22 @@ import { EgresadosService, EgresadoDetalle } from './egresados.service';
 })
 export class EgresadosComponent implements OnInit {
 
+  // Modal y toast
+  modalVisible = false;
+  egresadoPendiente: EgresadoDetalle | null = null;
+  toastVisible = false;
+  toastMensaje = '';
+  toastError = false;
+  private toastTimer: any;
+
   egresados: EgresadoDetalle[] = [];
   egresadosFiltrados: EgresadoDetalle[] = [];
   cargando = true;
   error = '';
+
+  drawerVisible = false;
+  perfilCargando = false;
+  perfilSeleccionado: EgresadoPerfil | null = null;
 
   // Filtros
   busqueda = '';
@@ -120,23 +132,59 @@ export class EgresadosComponent implements OnInit {
     return this.egresados.filter(e => e.autorizo_contacto).length;
   }
 
+  // Abre el modal — ya NO llama confirm()
   eliminarEgresado(id: number): void {
-    if (!confirm('¿Estás seguro de eliminar este egresado?')) return;
+    const egresado = this.egresados.find(e => e.id_egresado === id) ?? null;
+    this.egresadoPendiente = egresado;
+    this.modalVisible = true;
+  }
+
+  cancelarEliminar(): void {
+    this.modalVisible = false;
+    this.egresadoPendiente = null;
+    this.mostrarToast('Eliminación cancelada', false);
+  }
+
+  confirmarEliminar(): void {
+    if (!this.egresadoPendiente) return;
+    const id = this.egresadoPendiente.id_egresado;
+    const nombre = this.egresadoPendiente.nombre_completo;
+
+    this.modalVisible = false;
+    this.egresadoPendiente = null;
+
     this.egresadosService.deleteEgresado(id).subscribe({
       next: () => {
         this.egresados = this.egresados.filter(e => e.id_egresado !== id);
         this.aplicarFiltros();
+        this.mostrarToast(`${nombre} fue eliminado correctamente`, false);
       },
-      error: (err) => console.error(err)
+      error: (err) => {
+        console.error(err);
+        this.mostrarToast('Error al eliminar. Intenta de nuevo.', true);
+      }
     });
+  }
+
+  mostrarToast(mensaje: string, esError: boolean): void {
+    clearTimeout(this.toastTimer);
+    this.toastMensaje = mensaje;
+    this.toastError = esError;
+    this.toastVisible = true;
+    this.toastTimer = setTimeout(() => this.toastVisible = false, 3200);
   }
 
   getSituacionClass(situacion: string): string {
     if (!situacion) return 'chip-gray';
     const s = situacion.toLowerCase();
-    if (s.includes('empleado') || s.includes('empresa') || s.includes('freelance')) return 'chip-green';
+
+    if (s.includes('sector privado')) return 'chip-green';
+    if (s.includes('sector público') || s.includes('publico')) return 'chip-teal';
+    if (s.includes('empresario') || s.includes('freelance') || s.includes('cuenta propia')) return 'chip-amber';
     if (s.includes('desempleado') || s.includes('buscando')) return 'chip-red';
     if (s.includes('estudi')) return 'chip-purple';
+    if (s.includes('hogar') || s.includes('otras actividades')) return 'chip-gray';
+
     return 'chip-gray';
   }
 
@@ -161,4 +209,52 @@ export class EgresadosComponent implements OnInit {
     return map[estatus] ?? estatus;
   }
 
+  // Métodos nuevos
+  abrirPerfil(id: number): void {
+    this.drawerVisible = true;
+    this.perfilCargando = true;
+    this.perfilSeleccionado = null;
+
+    this.egresadosService.getPerfilEgresado(id).subscribe({
+      next: (data) => {
+        this.perfilSeleccionado = data;
+        this.perfilCargando = false;
+      },
+      error: () => {
+        this.perfilCargando = false;
+        this.drawerVisible = false;
+        this.mostrarToast('No se pudo cargar el perfil.', true);
+      }
+    });
+  }
+
+  cerrarPerfil(): void {
+    this.drawerVisible = false;
+    this.perfilSeleccionado = null;
+  }
+
+  getEstrellas(valor: number): boolean[] {
+    return [1, 2, 3, 4, 5].map(i => i <= Math.round(valor));
+  }
+
+  todasHabilidades(): string[] {
+    if (!this.perfilSeleccionado) return [];
+    return [
+      ...this.perfilSeleccionado.habilidades,
+      ...this.perfilSeleccionado.habilidades_otro
+    ];
+  }
+
+  todasColaboraciones(): string[] {
+    if (!this.perfilSeleccionado) return [];
+    return [
+      ...this.perfilSeleccionado.colaboraciones,
+      ...this.perfilSeleccionado.colaboraciones_otro
+    ];
+  }
+
+  exportarPDF(): void {
+    // Implementación pendiente
+    this.mostrarToast('Función de exportar PDF próximamente.', false);
+  }
 }

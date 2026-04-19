@@ -29,6 +29,23 @@ export interface EgresadoDetalle {
   autorizo_eventos: boolean;
 }
 
+export interface EgresadoPerfil extends EgresadoDetalle {
+  linkedin: string;
+  certificacion_vigente: string;
+  certificaciones: string[];
+  habilidades: string[];
+  habilidades_otro: string[];
+  colaboraciones: string[];
+  colaboraciones_otro: string[];
+  coincidencia_laboral: string;
+  antiguedad_empleo: string;
+  puesto_trabajo: string;
+  ciudad_trabajo: string;
+  numero_control: string;
+  telefono: string;
+  ciudad_residencia: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -42,7 +59,11 @@ export class EgresadosService {
     return this.http.get<EgresadoDetalle[]>(`${this.apiUrl}/egresados/detalles`);
   }
 
-  deleteEgresado(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/egresados/${id}`);
+  getPerfilEgresado(id: number): Observable<EgresadoPerfil> {
+    return this.http.get<EgresadoPerfil>(`${this.apiUrl}/egresados/${id}/perfil`);
+  }
+
+  deleteEgresado(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/egresados/${id}`);
   }
 }
