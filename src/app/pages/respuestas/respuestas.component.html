@@ -1,0 +1,406 @@
+<div class="page-layout">
+  <app-sidebar></app-sidebar>
+
+  <main class="main-content">
+
+    <!-- HEADER -->
+    <div class="page-header">
+      <div class="header-left">
+        <h1 class="page-title">Respuestas</h1>
+        <p class="page-subtitle">{{ totalRespuestas }} de {{ totalRespuestas }} egresados registrados</p>
+      </div>
+      <button class="btn-export" (click)="exportar()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M3 12v2a1 1 0 001 1h8a1 1 0 001-1v-2M8 2v9M5 8l3 3 3-3" />
+        </svg>
+        Exportar
+      </button>
+    </div>
+
+    <!-- ESTADO: CARGANDO -->
+    <div class="state-box" *ngIf="cargando">
+      <div class="spinner"></div>
+      <p>Cargando respuestas...</p>
+    </div>
+
+    <ng-container *ngIf="!cargando">
+
+      <!-- MÉTRICAS -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <span class="metric-label">Total registrados</span>
+          <span class="metric-value">{{ totalRespuestas }}</span>
+          <span class="metric-sub">todas las generaciones</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Autorizaron contacto</span>
+          <span class="metric-value">{{ autorizaronContacto }}</span>
+          <span class="metric-sub">para oportunidades lab.</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Revisadas</span>
+          <span class="metric-value">{{ revisadas }}</span>
+          <span class="metric-sub">perfiles revisados</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Sin revisar</span>
+          <span class="metric-value">{{ sinRevisar }}</span>
+          <span class="metric-sub">pendientes de revisión</span>
+        </div>
+      </div>
+
+      <!-- FILTROS -->
+      <div class="filters-bar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <circle cx="7" cy="7" r="4" />
+            <path d="M10 10l3 3" />
+          </svg>
+          <input type="text" placeholder="Buscar por nombre, carrera, empresa..." [(ngModel)]="searchTerm"
+            (input)="aplicarFiltros()" />
+        </div>
+        <select [(ngModel)]="filtroCarrera" (change)="aplicarFiltros()">
+          <option value="">Todas las carreras</option>
+          <option *ngFor="let carrera of carreras" [value]="carrera">{{ carrera }}</option>
+        </select>
+        <select [(ngModel)]="filtroAnio" (change)="aplicarFiltros()">
+          <option value="">Todos los años</option>
+          <option *ngFor="let anio of anios" [value]="anio">{{ anio }}</option>
+        </select>
+        <select [(ngModel)]="filtroRevisado" (change)="aplicarFiltros()">
+          <option value="">Estado revisión</option>
+          <option value="revisado">Revisado</option>
+          <option value="sin_revisar">Sin revisar</option>
+        </select>
+      </div>
+
+      <!-- TABLA -->
+      <div class="table-card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="col-nombre">Egresado</th>
+                <th class="col-carrera">Carrera</th>
+                <th class="col-fecha">Fecha</th>
+                <th class="col-situacion">Situación laboral</th>
+                <th class="col-titulacion">Titulación</th>
+                <th class="col-ingles">Inglés</th>
+                <th class="col-estado">Estado</th>
+                <th class="col-acciones"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="respuestasFiltradas.length === 0">
+                <td colspan="8" class="empty-row">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="M21 21l-4.35-4.35" />
+                  </svg>
+                  <span>No se encontraron resultados</span>
+                </td>
+              </tr>
+              <tr *ngFor="let r of respuestasFiltradas" class="table-row">
+                <td>
+                  <div class="name-cell">
+                    <div class="avatar" [class.avatar-f]="r.genero === 'Femenino'">
+                      {{ getInitials(r.nombre_completo) }}
+                    </div>
+                    <div class="name-info">
+                      <span class="name-text">{{ r.nombre_completo }}</span>
+                      <span class="name-sub">{{ r.empresa || '—' }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="cell-secondary">{{ r.nombre_carrera }}</td>
+                <td class="cell-secondary">{{ formatFecha(r.fecha_registro) }}</td>
+                <td>
+                  <span class="chip" [ngClass]="getSituacionClass(r.situacion_laboral)">
+                    {{ r.situacion_laboral }}
+                  </span>
+                </td>
+                <td>
+                  <span class="chip" [ngClass]="getTitulacionClass(r.estatus_titulacion)">
+                    {{ getTitulacionLabel(r.estatus_titulacion) }}
+                  </span>
+                </td>
+                <td class="cell-secondary">{{ r.nivel_ingles }}</td>
+                <td>
+                  <div class="estado-cell">
+                    <span class="chip-estado" [class.chip-revisado]="r.revisado" [class.chip-sin-revisar]="!r.revisado">
+                      {{ r.revisado ? 'Revisado' : 'Sin revisar' }}
+                    </span>
+                  </div>
+                </td>
+                <td>
+                  <div class="row-actions">
+                    <button class="action-btn" title="Ver perfil completo" (click)="abrirPerfil(r.id_egresado, r)">
+                      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round">
+                        <circle cx="8" cy="5" r="2.5" />
+                        <path d="M2 14c0-3 2.7-5 6-5s6 2 6 5" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <span class="footer-info">Mostrando {{ respuestasFiltradas.length }} resultado{{ respuestasFiltradas.length
+            !== 1 ? 's' : '' }}</span>
+          <div class="footer-legend">
+            <span class="legend-item"><span class="chip-estado chip-revisado">Revisado</span></span>
+            <span class="legend-item"><span class="chip-estado chip-sin-revisar">Sin revisar</span></span>
+          </div>
+        </div>
+      </div>
+
+    </ng-container>
+
+    <!-- OVERLAY DRAWER -->
+    <div class="drawer-overlay" *ngIf="drawerVisible" (click)="cerrarPerfil()"></div>
+
+    <!-- DRAWER PERFIL -->
+    <div class="drawer" [class.drawer-open]="drawerVisible">
+
+      <!-- CARGANDO -->
+      <div class="drawer-loading" *ngIf="perfilCargando">
+        <div class="spinner"></div>
+        <p>Cargando perfil...</p>
+      </div>
+
+      <ng-container *ngIf="!perfilCargando && perfilSeleccionado">
+
+        <!-- HEADER DRAWER -->
+        <div class="drawer-head">
+          <div class="drawer-head-top">
+            <span class="drawer-label">Perfil del egresado</span>
+            <button class="drawer-close" (click)="cerrarPerfil()">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <path d="M1 1l10 10M11 1L1 11" />
+              </svg>
+            </button>
+          </div>
+          <div class="drawer-hero">
+            <div class="drawer-avatar" [class.drawer-avatar-f]="perfilSeleccionado.genero === 'Femenino'">
+              {{ getInitials(perfilSeleccionado.nombre_completo) }}
+            </div>
+            <div>
+              <div class="drawer-name">{{ perfilSeleccionado.nombre_completo }}</div>
+              <div class="drawer-sub">
+                {{ perfilSeleccionado.empresa || '—' }}
+                <ng-container *ngIf="perfilSeleccionado.puesto_trabajo">
+                  · {{ perfilSeleccionado.puesto_trabajo }}
+                </ng-container>
+              </div>
+              <div class="drawer-chips">
+                <span class="chip" [ngClass]="getSituacionClass(perfilSeleccionado.situacion_laboral)">
+                  {{ perfilSeleccionado.situacion_laboral }}
+                </span>
+                <span class="chip" [ngClass]="getTitulacionClass(perfilSeleccionado.estatus_titulacion)">
+                  {{ getTitulacionLabel(perfilSeleccionado.estatus_titulacion) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BODY DRAWER -->
+        <div class="drawer-body">
+
+          <!-- Datos personales -->
+          <div class="drawer-section">
+            <span class="drawer-section-label">Datos personales</span>
+            <div class="drawer-fields">
+              <div class="drawer-field">
+                <span class="df-label">No. control</span>
+                <span class="df-val">{{ perfilSeleccionado.numero_control || '—' }}</span>
+              </div>
+              <div class="drawer-field">
+                <span class="df-label">Año de egreso</span>
+                <span class="df-val">{{ perfilSeleccionado.anio_egreso }}</span>
+              </div>
+              <div class="drawer-field full">
+                <span class="df-label">Correo electrónico</span>
+                <span class="df-val df-link">{{ perfilSeleccionado.correo }}</span>
+              </div>
+              <div class="drawer-field">
+                <span class="df-label">Teléfono</span>
+                <span class="df-val">{{ perfilSeleccionado.telefono || '—' }}</span>
+              </div>
+              <div class="drawer-field">
+                <span class="df-label">Ciudad</span>
+                <span class="df-val">{{ perfilSeleccionado.ciudad_residencia || '—' }}</span>
+              </div>
+              <div class="drawer-field full" *ngIf="perfilSeleccionado.linkedin">
+                <span class="df-label">LinkedIn</span>
+                <a class="df-val df-link df-linkedin" [href]="perfilSeleccionado.linkedin" target="_blank"
+                  rel="noopener">
+                  <svg viewBox="0 0 16 16" fill="currentColor">
+                    <path
+                      d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854zm4.943 12.248V6.169H2.542v7.225zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248S2.4 3.226 2.4 3.934c0 .694.521 1.248 1.327 1.248zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225z" />
+                  </svg>
+                  Ver perfil
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="drawer-divider"></div>
+
+          <!-- Datos académicos -->
+          <div class="drawer-section">
+            <span class="drawer-section-label">Datos académicos</span>
+            <div class="drawer-fields">
+              <div class="drawer-field full">
+                <span class="df-label">Carrera</span>
+                <span class="df-val">{{ perfilSeleccionado.nombre_carrera }}</span>
+              </div>
+              <div class="drawer-field">
+                <span class="df-label">Nivel de inglés</span>
+                <span class="df-val">{{ perfilSeleccionado.nivel_ingles }}</span>
+              </div>
+              <div class="drawer-field">
+                <span class="df-label">Titulación</span>
+                <span class="df-val">{{ getTitulacionLabel(perfilSeleccionado.estatus_titulacion) }}</span>
+              </div>
+              <div class="drawer-field full">
+                <span class="df-label">Satisfacción con la formación</span>
+                <div class="df-stars">
+                  <span *ngFor="let llena of getEstrellas(perfilSeleccionado.satisfaccion_formacion)" class="star"
+                    [class.star-on]="llena">★</span>
+                  <span class="df-stars-val">{{ perfilSeleccionado.satisfaccion_formacion }} / 5</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="drawer-divider"></div>
+
+          <!-- Certificaciones -->
+          <div class="drawer-section">
+            <span class="drawer-section-label">Certificaciones</span>
+            <div class="drawer-fields">
+              <div class="drawer-field full">
+                <span class="df-label">¿Cuenta con certificación vigente?</span>
+                <span class="df-val">{{ perfilSeleccionado.certificacion_vigente }}</span>
+              </div>
+              <div class="drawer-field full"
+                *ngIf="perfilSeleccionado && perfilSeleccionado.certificaciones && perfilSeleccionado.certificaciones.length > 0">
+                <span class="df-label">Certificaciones obtenidas</span>
+                <div class="tag-list">
+                  <span class="tag tag-blue" *ngFor="let c of perfilSeleccionado.certificaciones">{{ c }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="drawer-divider"></div>
+
+          <!-- Situación laboral -->
+          <div class="drawer-section">
+            <span class="drawer-section-label">Situación laboral</span>
+            <div class="drawer-fields">
+              <div class="drawer-field full">
+                <span class="df-label">Empresa</span>
+                <span class="df-val">{{ perfilSeleccionado.empresa || '—' }}</span>
+              </div>
+              <div class="drawer-field full">
+                <span class="df-label">Puesto</span>
+                <span class="df-val">{{ perfilSeleccionado.puesto_trabajo || '—' }}</span>
+              </div>
+              <div class="drawer-field">
+                <span class="df-label">Ciudad de trabajo</span>
+                <span class="df-val">{{ perfilSeleccionado.ciudad_trabajo || '—' }}</span>
+              </div>
+              <div class="drawer-field">
+                <span class="df-label">Antigüedad</span>
+                <span class="df-val">{{ perfilSeleccionado.antiguedad_empleo || '—' }}</span>
+              </div>
+              <div class="drawer-field full">
+                <span class="df-label">Coincidencia con carrera</span>
+                <span class="df-val">{{ perfilSeleccionado.coincidencia_laboral || '—' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="drawer-divider"></div>
+
+          <!-- Habilidades -->
+          <div class="drawer-section">
+            <span class="drawer-section-label">Habilidades a reforzar</span>
+            <div class="tag-list" *ngIf="todasHabilidades().length > 0; else sinHab">
+              <span class="tag tag-amber" *ngFor="let h of todasHabilidades()">{{ h }}</span>
+            </div>
+            <ng-template #sinHab><span class="df-empty">No registradas</span></ng-template>
+          </div>
+
+          <div class="drawer-divider"></div>
+
+          <!-- Colaboraciones -->
+          <div class="drawer-section">
+            <span class="drawer-section-label">Interés en colaborar</span>
+            <div class="tag-list" *ngIf="todasColaboraciones().length > 0; else sinColab">
+              <span class="tag tag-teal" *ngFor="let c of todasColaboraciones()">{{ c }}</span>
+            </div>
+            <ng-template #sinColab><span class="df-empty">No registradas</span></ng-template>
+          </div>
+
+          <div class="drawer-divider"></div>
+
+          <!-- Autorizaciones -->
+          <div class="drawer-section">
+            <span class="drawer-section-label">Autorizaciones</span>
+            <div class="auth-list">
+              <div class="auth-item">
+                <span class="auth-name">Estadísticas</span>
+                <span class="chip" [class.chip-teal]="perfilSeleccionado.autorizo_estadisticas"
+                  [class.chip-gray]="!perfilSeleccionado.autorizo_estadisticas">
+                  {{ perfilSeleccionado.autorizo_estadisticas ? 'Autorizado' : 'No autorizado' }}
+                </span>
+              </div>
+              <div class="auth-item">
+                <span class="auth-name">Contacto</span>
+                <span class="chip" [class.chip-teal]="perfilSeleccionado.autorizo_contacto"
+                  [class.chip-gray]="!perfilSeleccionado.autorizo_contacto">
+                  {{ perfilSeleccionado.autorizo_contacto ? 'Autorizado' : 'No autorizado' }}
+                </span>
+              </div>
+              <div class="auth-item">
+                <span class="auth-name">Eventos</span>
+                <span class="chip" [class.chip-teal]="perfilSeleccionado.autorizo_eventos"
+                  [class.chip-gray]="!perfilSeleccionado.autorizo_eventos">
+                  {{ perfilSeleccionado.autorizo_eventos ? 'Autorizado' : 'No autorizado' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- FOOTER DRAWER -->
+        <div class="drawer-foot">
+          <button class="btn-pdf" (click)="exportarPDF()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <path d="M3 12v2a1 1 0 001 1h8a1 1 0 001-1v-2M8 2v9M5 8l3 3 3-3" />
+            </svg>
+            Exportar PDF
+          </button>
+        </div>
+
+      </ng-container>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" [class.toast-visible]="toastVisible" [class.toast-error]="toastError">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path *ngIf="!toastError" d="M3 8l3 3 7-7" />
+        <path *ngIf="toastError" d="M4 4l8 8M12 4l-8 8" />
+      </svg>
+      {{ toastMensaje }}
+    </div>
+
+  </main>
+</div>
