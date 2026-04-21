@@ -7,6 +7,7 @@ import { EstadisticasComponent } from './pages/estadisticas/estadisticas.compone
 import { EmpleabilidadComponent } from './pages/empleabilidad/empleabilidad.component';
 import { DistribucionComponent } from './pages/distribucion/distribucion.component';
 import { TitulacionComponent } from './pages/titulacion/titulacion.component';
+import { NotificacionesComponent } from './pages/notificaciones/notificaciones.component';
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -17,4 +18,5 @@ export const routes: Routes = [
   { path: 'empleabilidad', component: EmpleabilidadComponent},
   { path: 'distribucion', component: DistribucionComponent},
   { path: 'titulacion', component: TitulacionComponent},
+  { path: 'notificaciones', component: NotificacionesComponent},
 ];

@@ -1,0 +1,120 @@
+<div class="page-layout">
+  <app-sidebar></app-sidebar>
+
+  <main class="main-content">
+
+    <!-- HEADER -->
+    <div class="page-header">
+      <div class="header-left">
+        <h1 class="page-title">Notificaciones</h1>
+        <p class="page-subtitle">
+          {{ conteos.recientes }} notificación{{ conteos.recientes !== 1 ? 'es' : '' }} sin leer
+        </p>
+      </div>
+      <button class="btn-outline" [disabled]="!tieneNoLeidas()" (click)="marcarTodasLeidas()">
+        Marcar todo como leído
+      </button>
+    </div>
+
+    <!-- TABS -->
+    <div class="notif-tabs">
+      <button class="tab" [class.active]="tabActiva === 'recientes'" (click)="cambiarTab('recientes')">
+        Recientes
+        <span class="tab-badge" *ngIf="conteos.recientes > 0">{{ conteos.recientes }}</span>
+      </button>
+      <button class="tab" [class.active]="tabActiva === 'encuestas'" (click)="cambiarTab('encuestas')">
+        Encuestas
+        <span class="tab-badge gray" *ngIf="conteos.encuestas > 0">{{ conteos.encuestas }}</span>
+      </button>
+      <button class="tab" [class.active]="tabActiva === 'sistema'" (click)="cambiarTab('sistema')">
+        Sistema
+        <span class="tab-badge gray" *ngIf="conteos.sistema > 0">{{ conteos.sistema }}</span>
+      </button>
+    </div>
+
+    <!-- LISTA -->
+    <div class="notif-list-wrap">
+
+      <ng-container *ngIf="filtradas.length > 0; else vacio">
+        <ng-container *ngFor="let grupo of getGrupos()">
+
+          <p class="grupo-label">{{ grupo.label }}</p>
+
+          <div
+            *ngFor="let n of grupo.items"
+            class="notif-card"
+            [class.unread-blue]="  !n.leida && n.tipo === 'nueva_encuesta'"
+            [class.unread-green]=" !n.leida && (n.tipo === 'contacto' || n.tipo === 'exportacion')"
+            [class.unread-purple]="!n.leida && n.tipo === 'eventos'"
+            [class.unread-amber]=" !n.leida && n.tipo === 'actualizacion'"
+            [class.unread-red]="   !n.leida && !['nueva_encuesta','contacto','eventos','exportacion','actualizacion'].includes(n.tipo)"
+            (click)="marcarLeida(n)">
+
+            <!-- Ícono -->
+            <div class="notif-icon" [ngClass]="getIconClass(n.tipo)">
+              <svg *ngIf="n.tipo === 'nueva_encuesta'" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <path d="M2 4h12v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4z"/>
+                <path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/>
+              </svg>
+              <svg *ngIf="n.tipo === 'contacto'" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <path d="M2 8l4 4 8-8"/>
+              </svg>
+              <svg *ngIf="n.tipo === 'eventos'" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <rect x="2" y="3" width="12" height="11" rx="1.5"/>
+                <path d="M5 1v3M11 1v3M2 7h12"/>
+              </svg>
+              <svg *ngIf="n.tipo === 'exportacion'" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <rect x="2" y="2" width="12" height="12" rx="2"/>
+                <path d="M8 5v6M5 8l3 3 3-3"/>
+              </svg>
+              <svg *ngIf="n.tipo === 'actualizacion'" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <path d="M2 8a6 6 0 1110.93-3M14 2v4h-4"/>
+              </svg>
+              <svg *ngIf="!['nueva_encuesta','contacto','eventos','exportacion','actualizacion'].includes(n.tipo)" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <path d="M8 2a5 5 0 015 5v2l1 2H2l1-2V7a5 5 0 015-5z"/>
+                <path d="M6.5 13a1.5 1.5 0 003 0"/>
+              </svg>
+            </div>
+
+            <!-- Contenido -->
+            <div class="notif-body">
+              <p class="notif-titulo">{{ n.titulo }}</p>
+              <p class="notif-desc">{{ n.descripcion }}</p>
+              <div class="notif-meta">
+                <span class="notif-tag" [ngClass]="getTagClass(n.tipo)">
+                  {{ getTagLabel(n.tipo) }}
+                </span>
+                <span class="notif-time">{{ getFechaRelativa(n.fecha_creacion) }}</span>
+              </div>
+            </div>
+
+            <!-- Punto + eliminar -->
+            <div class="notif-actions">
+              <span class="dot-unread" *ngIf="!n.leida" [ngClass]="getIconClass(n.tipo)"></span>
+              <button class="btn-delete" (click)="eliminar(n.id_notificacion, $event)" title="Eliminar">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                  <path d="M3 4h10M6 4V3h4v1M5 4v8a1 1 0 001 1h4a1 1 0 001-1V4"/>
+                </svg>
+              </button>
+            </div>
+
+          </div>
+
+        </ng-container>
+      </ng-container>
+
+      <!-- Estado vacío -->
+      <ng-template #vacio>
+        <div class="state-box">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <path d="M24 6a14 14 0 0114 14v6l3 6H7l3-6v-6A14 14 0 0124 6z"/>
+            <path d="M20 38a4 4 0 008 0"/>
+          </svg>
+          <p>No hay notificaciones en esta sección</p>
+        </div>
+      </ng-template>
+
+    </div>
+
+  </main>
+</div>

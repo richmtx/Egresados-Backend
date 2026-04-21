@@ -1,0 +1,373 @@
+/* ── Layout principal — idéntico al de egresados ─────────────── */
+.page-layout {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    background: #f0f2f5;
+}
+
+.main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+}
+
+/* ── Header ───────────────────────────────────────────────────── */
+.page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.page-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: #003366;
+    margin: 0;
+}
+
+.page-subtitle {
+    font-size: 13px;
+    color: #6b7280;
+    margin: 3px 0 0;
+}
+
+.btn-outline {
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 0.5px solid #d1d5db;
+    background: #ffffff;
+    color: #003366;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-outline:hover:not(:disabled) {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+.btn-outline:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* ── Tabs ─────────────────────────────────────────────────────── */
+.notif-tabs {
+    display: flex;
+    background: #ffffff;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 0 16px;
+    flex-shrink: 0;
+}
+
+.tab {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 12px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6b7280;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.tab:hover {
+    color: #003366;
+}
+
+.tab.active {
+    color: #c0392b;
+    border-bottom-color: #c0392b;
+}
+
+.tab-badge {
+    background: #fee2e2;
+    color: #c0392b;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 10px;
+}
+
+.tab-badge.gray {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+/* ── Contenedor lista ─────────────────────────────────────────── */
+.notif-list-wrap {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* ── Separador de grupo ───────────────────────────────────────── */
+.grupo-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin: 12px 0 8px;
+}
+
+.grupo-label:first-child {
+    margin-top: 0;
+}
+
+/* ── Card ─────────────────────────────────────────────────────── */
+.notif-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: #ffffff;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 13px 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.notif-card:hover {
+    border-color: #94a3b8;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.notif-card.unread-blue {
+    border-left: 3px solid #2563eb;
+    background: #f0f6ff;
+}
+
+.notif-card.unread-green {
+    border-left: 3px solid #16a34a;
+    background: #f0fdf4;
+}
+
+.notif-card.unread-amber {
+    border-left: 3px solid #d97706;
+    background: #fffbeb;
+}
+
+.notif-card.unread-red {
+    border-left: 3px solid #c0392b;
+    background: #fff9f9;
+}
+
+/* ── Ícono ────────────────────────────────────────────────────── */
+.notif-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.notif-icon svg {
+    width: 15px;
+    height: 15px;
+}
+
+.icon-blue {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.icon-green {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.icon-amber {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.icon-gray {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+/* ── Cuerpo ───────────────────────────────────────────────────── */
+.notif-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.notif-titulo {
+    font-size: 13px;
+    font-weight: 500;
+    color: #111827;
+    margin: 0 0 3px;
+}
+
+.notif-desc {
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.5;
+    margin: 0 0 7px;
+}
+
+.notif-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ── Tags ─────────────────────────────────────────────────────── */
+.notif-tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 8px;
+}
+
+.tag-blue {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.tag-green {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.tag-amber {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.tag-gray {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.notif-time {
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+/* ── Acciones ─────────────────────────────────────────────────── */
+.notif-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.dot-unread {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.dot-unread.icon-blue {
+    background: #2563eb;
+}
+
+.dot-unread.icon-green {
+    background: #16a34a;
+}
+
+.dot-unread.icon-amber {
+    background: #d97706;
+}
+
+.dot-unread.icon-gray {
+    background: #c0392b;
+}
+
+.btn-delete {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: #9ca3af;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s, color 0.15s;
+}
+
+.btn-delete svg {
+    width: 13px;
+    height: 13px;
+}
+
+.notif-card:hover .btn-delete {
+    opacity: 1;
+}
+
+.btn-delete:hover {
+    background: #fee2e2;
+    color: #c0392b;
+}
+
+/* ── Estado vacío ─────────────────────────────────────────────── */
+.state-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 60px 20px;
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+.state-box svg {
+    width: 40px;
+    height: 40px;
+    stroke: #d1d5db;
+}
+
+/* ── Tipo eventos (púrpura) ───────────────────────────────────── */
+.notif-card.unread-purple {
+    border-left: 3px solid #7c3aed;
+    background: #f5f3ff;
+}
+
+.icon-purple {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+.tag-purple {
+    background: #ede9fe;
+    color: #6d28d9;
+}
+
+.dot-unread.icon-purple {
+    background: #7c3aed;
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+    .main-content {
+        padding: 20px 16px;
+    }
+}
