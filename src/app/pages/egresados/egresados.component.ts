@@ -33,7 +33,7 @@ export class EgresadosComponent implements OnInit {
   filtroCarrera = '';
   filtroAnio = '';
   filtroSituacion = '';
-  filtroChip = 'todos';
+  filtrosChip: Set<string> = new Set(['todos']);
 
   // Listas para los selects
   carreras: string[] = [];
@@ -67,18 +67,35 @@ export class EgresadosComponent implements OnInit {
   aplicarFiltros(): void {
     this.egresadosFiltrados = this.egresados.filter(e => {
 
+      // Búsqueda por texto
       const q = this.busqueda.toLowerCase();
       if (q && !e.nombre_completo.toLowerCase().includes(q) &&
         !e.nombre_carrera.toLowerCase().includes(q) &&
         !e.empresa.toLowerCase().includes(q)) return false;
 
+      // Selects
       if (this.filtroCarrera && e.nombre_carrera !== this.filtroCarrera) return false;
       if (this.filtroAnio && e.anio_egreso !== +this.filtroAnio) return false;
       if (this.filtroSituacion && e.situacion_laboral !== this.filtroSituacion) return false;
 
-      if (this.filtroChip === 'sin-encuesta') return false;
-      if (this.filtroChip === 'contacto' && !e.autorizo_contacto) return false;
-      if (this.filtroChip === 'titulado' && e.estatus_titulacion !== 'Titulado') return false;
+      // Chips — solo aplican si no está activo 'todos'
+      if (!this.filtrosChip.has('todos')) {
+
+        if (this.filtrosChip.has('contacto') && !e.autorizo_contacto) return false;
+        if (this.filtrosChip.has('eventos') && !e.autorizo_eventos) return false;
+
+        const chipsTitulacion = ['titulado', 'en-tramite', 'no-titulado'];
+        const algunTitulacionActivo = chipsTitulacion.some(c => this.filtrosChip.has(c));
+
+        if (algunTitulacionActivo) {
+          const label = this.getTitulacionLabel(e.estatus_titulacion);
+          const coincide =
+            (this.filtrosChip.has('titulado') && label === 'Titulado') ||
+            (this.filtrosChip.has('en-tramite') && label === 'En trámite') ||
+            (this.filtrosChip.has('no-titulado') && label === 'No titulado');
+          if (!coincide) return false;
+        }
+      }
 
       return true;
     });
@@ -105,8 +122,23 @@ export class EgresadosComponent implements OnInit {
   }
 
   onFiltroChip(chip: string): void {
-    this.filtroChip = chip;
+    if (chip === 'todos') {
+      this.filtrosChip.clear();
+      this.filtrosChip.add('todos');
+    } else {
+      this.filtrosChip.delete('todos');
+      if (this.filtrosChip.has(chip)) {
+        this.filtrosChip.delete(chip);
+        if (this.filtrosChip.size === 0) this.filtrosChip.add('todos');
+      } else {
+        this.filtrosChip.add(chip);
+      }
+    }
     this.aplicarFiltros();
+  }
+
+  isChipActivo(chip: string): boolean {
+    return this.filtrosChip.has(chip);
   }
 
   get satisfaccionPromedio(): string {

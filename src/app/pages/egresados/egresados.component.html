@@ -91,12 +91,28 @@
                 </select>
 
                 <div class="chip-filters">
-                    <button class="chip-btn" [class.active]="filtroChip === 'todos'"
-                        (click)="onFiltroChip('todos')">Todos</button>
-                    <button class="chip-btn" [class.active]="filtroChip === 'contacto'"
-                        (click)="onFiltroChip('contacto')">Autorizó contacto</button>
-                    <button class="chip-btn" [class.active]="filtroChip === 'titulado'"
-                        (click)="onFiltroChip('titulado')">Titulados</button>
+                    <button class="chip-btn" [class.active]="isChipActivo('todos')" (click)="onFiltroChip('todos')">
+                        Todos
+                    </button>
+                    <button class="chip-btn" [class.active]="isChipActivo('contacto')"
+                        (click)="onFiltroChip('contacto')">
+                        Autorizó contacto
+                    </button>
+                    <button class="chip-btn" [class.active]="isChipActivo('eventos')" (click)="onFiltroChip('eventos')">
+                        Autorizó eventos
+                    </button>
+                    <button class="chip-btn" [class.active]="isChipActivo('titulado')"
+                        (click)="onFiltroChip('titulado')">
+                        Titulado
+                    </button>
+                    <button class="chip-btn" [class.active]="isChipActivo('en-tramite')"
+                        (click)="onFiltroChip('en-tramite')">
+                        En trámite
+                    </button>
+                    <button class="chip-btn" [class.active]="isChipActivo('no-titulado')"
+                        (click)="onFiltroChip('no-titulado')">
+                        No titulado
+                    </button>
                 </div>
             </div>
 
@@ -172,13 +188,13 @@
                                 <!-- Estado (dots) -->
                                 <td>
                                     <div class="status-dots">
-                                        <span class="dot" [class.dot-green]="e.autorizo_contacto"
-                                            [class.dot-gray]="!e.autorizo_contacto"
-                                            [title]="e.autorizo_contacto ? 'Contacto autorizado' : 'Contacto no autorizado'">
-                                        </span>
                                         <span class="dot" [class.dot-green]="e.autorizo_estadisticas"
                                             [class.dot-gray]="!e.autorizo_estadisticas"
                                             [title]="e.autorizo_estadisticas ? 'Estadísticas autorizadas' : 'Estadísticas no autorizadas'">
+                                        </span>
+                                        <span class="dot" [class.dot-green]="e.autorizo_contacto"
+                                            [class.dot-gray]="!e.autorizo_contacto"
+                                            [title]="e.autorizo_contacto ? 'Contacto autorizado' : 'Contacto no autorizado'">
                                         </span>
                                         <span class="dot" [class.dot-green]="e.autorizo_eventos"
                                             [class.dot-gray]="!e.autorizo_eventos"
