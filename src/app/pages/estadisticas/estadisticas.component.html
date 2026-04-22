@@ -1,1 +1,516 @@
-<app-sidebar></app-sidebar>
+<div class="stats-layout">
+
+  <!-- ══ SIDEBAR ══ -->
+  <app-sidebar></app-sidebar>
+
+  <!-- ══ CONTENIDO PRINCIPAL ══ -->
+  <main class="stats-main">
+
+    <!-- ── Header ── -->
+    <div class="stats-header">
+      <div class="header-left">
+        <h1 class="page-title">Estadísticas</h1>
+        <p class="page-subtitle" *ngIf="datos">
+          Análisis de <strong>{{ datos.kpis.total_egresados }}</strong> egresados registrados
+        </p>
+        <p class="page-subtitle" *ngIf="!datos && !cargando">Sin datos disponibles</p>
+      </div>
+      <button class="btn-export" (click)="exportarPDF()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7,10 12,15 17,10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Exportar
+      </button>
+    </div>
+
+    <!-- ── Filtros ── -->
+    <div class="filtros-bar">
+      <div class="filtro-item">
+        <select class="filtro-select" [(ngModel)]="filtroCarrera" (change)="onFiltroChange()">
+          <option value="">Todas las carreras</option>
+          <option *ngFor="let c of carrerasDisponibles" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+      <div class="filtro-item">
+        <select class="filtro-select" [(ngModel)]="filtroAnio" (change)="onFiltroChange()">
+          <option value="">Todos los años</option>
+          <option *ngFor="let a of aniosDisponibles" [value]="a">{{ a }}</option>
+        </select>
+      </div>
+      <button class="btn-limpiar" (click)="limpiarFiltros()" *ngIf="filtroCarrera || filtroAnio">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+        Limpiar filtros
+      </button>
+    </div>
+
+    <!-- ── Loading ── -->
+    <div class="loading-state" *ngIf="cargando">
+      <div class="spinner"></div>
+      <p>Cargando estadísticas...</p>
+    </div>
+
+    <!-- ── Error ── -->
+    <div class="error-state" *ngIf="error && !cargando">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <p>No se pudieron cargar las estadísticas.</p>
+      <button class="btn-retry" (click)="cargarEstadisticas()">Reintentar</button>
+    </div>
+
+    <!-- ══ CONTENIDO DE ESTADÍSTICAS ══ -->
+    <ng-container *ngIf="datos && !cargando">
+
+      <!-- ── KPI Cards ── -->
+      <div class="kpi-grid">
+
+        <div class="kpi-card kpi-indigo">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Total Egresados</span>
+            <span class="kpi-value">{{ datos.kpis.total_egresados }}</span>
+            <span class="kpi-sub">todas las generaciones</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-green">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="4" height="14" rx="1"/>
+              <rect x="9" y="3" width="4" height="18" rx="1"/>
+              <rect x="16" y="10" width="4" height="11" rx="1"/>
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Empleados</span>
+            <span class="kpi-value">{{ datos.kpis.empleados }}</span>
+            <span class="kpi-sub">{{ getPct(datos.kpis.empleados, datos.kpis.total_egresados) }}% tasa de empleo</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-amber">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14,2 14,8 20,8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Titulados</span>
+            <span class="kpi-value">{{ datos.kpis.titulados }}</span>
+            <span class="kpi-sub">{{ getPct(datos.kpis.titulados, datos.kpis.total_egresados) }}% del total</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-rose">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26 12,2"/>
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Satisfacción prom.</span>
+            <span class="kpi-value">{{ datos.kpis.satisfaccion_promedio }}<small>/5</small></span>
+            <span class="kpi-sub">formación académica</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-blue">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07"/>
+              <path d="M11 11a5 5 0 0 0-7.08-7.08L3 4l1 1a5 5 0 0 0 7 7l1 1-.92.92"/>
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Autorizaron contacto</span>
+            <span class="kpi-value">{{ datos.kpis.autorizo_contacto }}</span>
+            <span class="kpi-sub">para oportunidades lab.</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-purple">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Autorizaron eventos</span>
+            <span class="kpi-value">{{ datos.kpis.autorizo_eventos }}</span>
+            <span class="kpi-sub">actividades académicas</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Sección: Empleabilidad ── -->
+      <div class="seccion-label">
+        <span class="seccion-dot dot-indigo"></span>
+        Empleabilidad
+      </div>
+
+      <div class="charts-row row-1-2">
+        <!-- Situación laboral – Pie -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Situación Laboral</h3>
+              <p class="chart-sub">Distribución actual</p>
+            </div>
+            <span class="chart-badge">Pastel</span>
+          </div>
+          <apx-chart
+            [series]="chartSituacion.series"
+            [chart]="chartSituacion.chart"
+            [labels]="chartSituacion.labels"
+            [colors]="chartSituacion.colors"
+            [legend]="chartSituacion.legend"
+            [dataLabels]="chartSituacion.dataLabels"
+            [tooltip]="chartSituacion.tooltip"
+            [responsive]="chartSituacion.responsive">
+          </apx-chart>
+        </div>
+
+        <!-- Empleabilidad por carrera – Barras -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Empleabilidad por Carrera</h3>
+              <p class="chart-sub">Empleados vs total de egresados</p>
+            </div>
+            <span class="chart-badge">Barras</span>
+          </div>
+          <apx-chart
+            [series]="chartEmpCarrera.series"
+            [chart]="chartEmpCarrera.chart"
+            [xaxis]="chartEmpCarrera.xaxis"
+            [colors]="chartEmpCarrera.colors"
+            [plotOptions]="chartEmpCarrera.plotOptions"
+            [dataLabels]="chartEmpCarrera.dataLabels"
+            [legend]="chartEmpCarrera.legend"
+            [grid]="chartEmpCarrera.grid">
+          </apx-chart>
+        </div>
+      </div>
+
+      <!-- ── Sección: Titulación ── -->
+      <div class="seccion-label">
+        <span class="seccion-dot dot-green"></span>
+        Titulación
+      </div>
+
+      <div class="charts-row row-2">
+        <!-- Titulación dona -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Estado de Titulación</h3>
+              <p class="chart-sub">Proporción general</p>
+            </div>
+            <span class="chart-badge">Dona</span>
+          </div>
+          <apx-chart
+            [series]="chartTitulacion.series"
+            [chart]="chartTitulacion.chart"
+            [labels]="chartTitulacion.labels"
+            [colors]="chartTitulacion.colors"
+            [legend]="chartTitulacion.legend"
+            [plotOptions]="chartTitulacion.plotOptions"
+            [dataLabels]="chartTitulacion.dataLabels"
+            [tooltip]="chartTitulacion.tooltip">
+          </apx-chart>
+        </div>
+
+        <!-- Tendencia titulación por año – Línea -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Tendencia de Titulación</h3>
+              <p class="chart-sub">Porcentaje titulados por generación</p>
+            </div>
+            <span class="chart-badge">Línea</span>
+          </div>
+          <apx-chart
+            [series]="chartTendTitulacion.series"
+            [chart]="chartTendTitulacion.chart"
+            [xaxis]="chartTendTitulacion.xaxis"
+            [yaxis]="chartTendTitulacion.yaxis"
+            [colors]="chartTendTitulacion.colors"
+            [stroke]="chartTendTitulacion.stroke"
+            [fill]="chartTendTitulacion.fill"
+            [markers]="chartTendTitulacion.markers"
+            [grid]="chartTendTitulacion.grid"
+            [tooltip]="chartTendTitulacion.tooltip">
+          </apx-chart>
+        </div>
+      </div>
+
+      <!-- ── Sección: Inglés ── -->
+      <div class="seccion-label">
+        <span class="seccion-dot dot-blue"></span>
+        Nivel de Inglés
+      </div>
+
+      <div class="charts-row row-3">
+        <!-- Inglés – Pie -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Nivel de Inglés</h3>
+              <p class="chart-sub">Distribución general</p>
+            </div>
+            <span class="chart-badge">Pastel</span>
+          </div>
+          <apx-chart
+            [series]="chartIngles.series"
+            [chart]="chartIngles.chart"
+            [labels]="chartIngles.labels"
+            [colors]="chartIngles.colors"
+            [legend]="chartIngles.legend"
+            [dataLabels]="chartIngles.dataLabels"
+            [tooltip]="chartIngles.tooltip">
+          </apx-chart>
+        </div>
+
+        <!-- Inglés por carrera – Barras agrupadas -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Inglés por Carrera</h3>
+              <p class="chart-sub">Niveles desglosados</p>
+            </div>
+            <span class="chart-badge">Barras agrupadas</span>
+          </div>
+          <apx-chart
+            [series]="chartInglesCarrera.series"
+            [chart]="chartInglesCarrera.chart"
+            [xaxis]="chartInglesCarrera.xaxis"
+            [colors]="chartInglesCarrera.colors"
+            [plotOptions]="chartInglesCarrera.plotOptions"
+            [dataLabels]="chartInglesCarrera.dataLabels"
+            [legend]="chartInglesCarrera.legend"
+            [grid]="chartInglesCarrera.grid">
+          </apx-chart>
+        </div>
+
+        <!-- Satisfacción por carrera – Radar -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Satisfacción Académica</h3>
+              <p class="chart-sub">Promedio por carrera</p>
+            </div>
+            <span class="chart-badge">Radar</span>
+          </div>
+          <apx-chart
+            [series]="chartRadar.series"
+            [chart]="chartRadar.chart"
+            [xaxis]="chartRadar.xaxis"
+            [colors]="chartRadar.colors"
+            [fill]="chartRadar.fill"
+            [markers]="chartRadar.markers"
+            [yaxis]="chartRadar.yaxis">
+          </apx-chart>
+        </div>
+      </div>
+
+      <!-- ── Sección: Empresas y evolución ── -->
+      <div class="seccion-label">
+        <span class="seccion-dot dot-amber"></span>
+        Empresas y Evolución
+      </div>
+
+      <div class="charts-row row-2">
+        <!-- Top empresas – Barras horizontales -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Top Empresas</h3>
+              <p class="chart-sub">Donde trabajan los egresados</p>
+            </div>
+            <span class="chart-badge">Barras H</span>
+          </div>
+          <apx-chart
+            [series]="chartEmpresas.series"
+            [chart]="chartEmpresas.chart"
+            [xaxis]="chartEmpresas.xaxis"
+            [yaxis]="chartEmpresas.yaxis"
+            [colors]="chartEmpresas.colors"
+            [plotOptions]="chartEmpresas.plotOptions"
+            [dataLabels]="chartEmpresas.dataLabels"
+            [grid]="chartEmpresas.grid">
+          </apx-chart>
+        </div>
+
+        <!-- Evolución por generación – Líneas -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Evolución por Generación</h3>
+              <p class="chart-sub">Empleabilidad · Titulación · Satisfacción</p>
+            </div>
+            <span class="chart-badge">Líneas</span>
+          </div>
+          <apx-chart
+            [series]="chartEvolucion.series"
+            [chart]="chartEvolucion.chart"
+            [xaxis]="chartEvolucion.xaxis"
+            [yaxis]="chartEvolucion.yaxis"
+            [colors]="chartEvolucion.colors"
+            [stroke]="chartEvolucion.stroke"
+            [fill]="chartEvolucion.fill"
+            [markers]="chartEvolucion.markers"
+            [legend]="chartEvolucion.legend"
+            [grid]="chartEvolucion.grid"
+            [tooltip]="chartEvolucion.tooltip">
+          </apx-chart>
+        </div>
+      </div>
+
+      <!-- ── Sección: Participación ── -->
+      <div class="seccion-label">
+        <span class="seccion-dot dot-purple"></span>
+        Participación y Sector
+      </div>
+
+      <div class="charts-row row-2">
+        <!-- Sector laboral – Pie -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Sector de Trabajo</h3>
+              <p class="chart-sub">Público · Privado · Posgrado · Otros</p>
+            </div>
+            <span class="chart-badge">Pastel</span>
+          </div>
+          <apx-chart
+            [series]="chartSector.series"
+            [chart]="chartSector.chart"
+            [labels]="chartSector.labels"
+            [colors]="chartSector.colors"
+            [legend]="chartSector.legend"
+            [dataLabels]="chartSector.dataLabels"
+            [tooltip]="chartSector.tooltip">
+          </apx-chart>
+        </div>
+
+        <!-- Participación por carrera – Barras apiladas -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Autorizaciones por Carrera</h3>
+              <p class="chart-sub">Contacto laboral y eventos</p>
+            </div>
+            <span class="chart-badge">Apiladas</span>
+          </div>
+          <apx-chart
+            [series]="chartParticipacion.series"
+            [chart]="chartParticipacion.chart"
+            [xaxis]="chartParticipacion.xaxis"
+            [colors]="chartParticipacion.colors"
+            [plotOptions]="chartParticipacion.plotOptions"
+            [dataLabels]="chartParticipacion.dataLabels"
+            [legend]="chartParticipacion.legend"
+            [grid]="chartParticipacion.grid">
+          </apx-chart>
+        </div>
+      </div>
+
+      <!-- ── Sección: Ubicación geográfica ── -->
+      <div class="seccion-label">
+        <span class="seccion-dot dot-rose"></span>
+        Distribución Geográfica
+      </div>
+
+      <div class="charts-row row-2">
+        <!-- Fuera de Durango -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Fuera de Durango</h3>
+              <p class="chart-sub">Egresados en otras ciudades de México</p>
+            </div>
+            <span class="chart-badge">Barras H</span>
+          </div>
+          <div *ngIf="datos.fueraDurango.length === 0" class="empty-geo">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <p>Sin registros fuera de Durango</p>
+          </div>
+          <apx-chart *ngIf="datos.fueraDurango.length > 0"
+            [series]="chartFueraDurango.series"
+            [chart]="chartFueraDurango.chart"
+            [xaxis]="chartFueraDurango.xaxis"
+            [yaxis]="chartFueraDurango.yaxis"
+            [colors]="chartFueraDurango.colors"
+            [plotOptions]="chartFueraDurango.plotOptions"
+            [dataLabels]="chartFueraDurango.dataLabels"
+            [grid]="chartFueraDurango.grid">
+          </apx-chart>
+        </div>
+
+        <!-- Fuera de México -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Fuera de México</h3>
+              <p class="chart-sub">Egresados trabajando en el extranjero</p>
+            </div>
+            <span class="chart-badge badge-special">Internacional</span>
+          </div>
+          <div *ngIf="datos.fueraMexico.length === 0" class="empty-geo">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+            <p>Sin registros fuera de México</p>
+          </div>
+          <apx-chart *ngIf="datos.fueraMexico.length > 0"
+            [series]="chartFueraMexico.series"
+            [chart]="chartFueraMexico.chart"
+            [xaxis]="chartFueraMexico.xaxis"
+            [yaxis]="chartFueraMexico.yaxis"
+            [colors]="chartFueraMexico.colors"
+            [plotOptions]="chartFueraMexico.plotOptions"
+            [dataLabels]="chartFueraMexico.dataLabels"
+            [grid]="chartFueraMexico.grid">
+          </apx-chart>
+        </div>
+      </div>
+
+      <!-- ── Insights automáticos ── -->
+      <div class="seccion-label">
+        <span class="seccion-dot dot-teal"></span>
+        Hallazgos Destacados
+      </div>
+
+      <div class="insights-grid">
+        <div class="insight-card" *ngFor="let insight of insights">
+          <div class="insight-icon" [style.background]="insight.bg">{{ insight.emoji }}</div>
+          <div class="insight-body">
+            <h4 class="insight-title">{{ insight.titulo }}</h4>
+            <p class="insight-desc">{{ insight.descripcion }}</p>
+          </div>
+        </div>
+      </div>
+
+    </ng-container>
+    <!-- fin ng-container datos -->
+
+  </main>
+</div>
