@@ -22,13 +22,13 @@ export class EstadisticasComponent implements OnInit {
 
   // ── Filtros ──────────────────────────────────────────────────────────────
   filtroCarrera = '';
-  filtroAnio    = '';
+  filtroAnio = '';
 
   carrerasDisponibles: string[] = [];
   aniosDisponibles: number[] = [];
 
   // ── Paleta de colores ─────────────────────────────────────────────────────
-  private PALETTE = ['#6366f1','#10b981','#f59e0b','#ef4444','#3b82f6','#a855f7','#14b8a6','#f97316','#ec4899','#0ea5e9'];
+  private PALETTE = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#a855f7', '#14b8a6', '#f97316', '#ec4899', '#0ea5e9'];
 
   private chartFontFamily = "'Plus Jakarta Sans', 'Segoe UI', sans-serif";
 
@@ -55,24 +55,24 @@ export class EstadisticasComponent implements OnInit {
   };
 
   // ── Definición de gráficas (se inicializan vacías) ────────────────────────
-  chartSituacion:    any = {};
-  chartEmpCarrera:   any = {};
-  chartTitulacion:   any = {};
+  chartSituacion: any = {};
+  chartEmpCarrera: any = {};
+  chartTitulacion: any = {};
   chartTendTitulacion: any = {};
-  chartIngles:       any = {};
+  chartIngles: any = {};
   chartInglesCarrera: any = {};
-  chartRadar:        any = {};
-  chartEmpresas:     any = {};
-  chartEvolucion:    any = {};
-  chartSector:       any = {};
+  chartRadar: any = {};
+  chartEmpresas: any = {};
+  chartEvolucion: any = {};
+  chartSector: any = {};
   chartParticipacion: any = {};
   chartFueraDurango: any = {};
-  chartFueraMexico:  any = {};
+  chartFueraMexico: any = {};
 
   // ── Insights dinámicos ────────────────────────────────────────────────────
   insights: { emoji: string; bg: string; titulo: string; descripcion: string }[] = [];
 
-  constructor(private estadisticasService: EstadisticasService) {}
+  constructor(private estadisticasService: EstadisticasService) { }
 
   ngOnInit(): void {
     this.cargarEstadisticas();
@@ -87,7 +87,7 @@ export class EstadisticasComponent implements OnInit {
 
     const filtros: FiltrosEstadisticas = {};
     if (this.filtroCarrera) filtros.carrera = this.filtroCarrera;
-    if (this.filtroAnio)    filtros.anio    = parseInt(this.filtroAnio);
+    if (this.filtroAnio) filtros.anio = parseInt(this.filtroAnio);
 
     this.estadisticasService.getEstadisticas(filtros).subscribe({
       next: (data) => {
@@ -111,7 +111,7 @@ export class EstadisticasComponent implements OnInit {
 
   limpiarFiltros(): void {
     this.filtroCarrera = '';
-    this.filtroAnio    = '';
+    this.filtroAnio = '';
     this.cargarEstadisticas();
   }
 
@@ -129,9 +129,9 @@ export class EstadisticasComponent implements OnInit {
 
   private poblarFiltros(data: EstadisticasResponse): void {
     const carreras = [...new Set(data.empleabilidadCarrera.map(e => e.nombre_carrera))];
-    const anios    = [...new Set(data.titulacionAnio.map(t => t.anio_egreso))].sort();
+    const anios = [...new Set(data.titulacionAnio.map(t => t.anio_egreso))].sort();
     if (!this.filtroCarrera) this.carrerasDisponibles = carreras;
-    if (!this.filtroAnio)    this.aniosDisponibles    = anios;
+    if (!this.filtroAnio) this.aniosDisponibles = anios;
   }
 
   private abrevCarrera(nombre: string): string {
@@ -180,14 +180,14 @@ export class EstadisticasComponent implements OnInit {
 
   // ── 2. Empleabilidad por carrera – Barras ─────────────────────────────────
   private buildEmpCarrera(data: EstadisticasResponse): void {
-    const labels   = data.empleabilidadCarrera.map(e => this.abrevCarrera(e.nombre_carrera));
+    const labels = data.empleabilidadCarrera.map(e => this.abrevCarrera(e.nombre_carrera));
     const empleados = data.empleabilidadCarrera.map(e => +e.empleados);
-    const total     = data.empleabilidadCarrera.map(e => +e.total);
+    const total = data.empleabilidadCarrera.map(e => +e.total);
 
     this.chartEmpCarrera = {
       series: [
         { name: 'Empleados', data: empleados },
-        { name: 'Total',     data: total     }
+        { name: 'Total', data: total }
       ],
       chart: this.baseChart('bar', 280),
       xaxis: {
@@ -239,8 +239,8 @@ export class EstadisticasComponent implements OnInit {
     const sorted = [...data.titulacionAnio].sort((a, b) => a.anio_egreso - b.anio_egreso);
     this.chartTendTitulacion = {
       series: [
-        { name: '% Titulados',  data: sorted.map(t => +t.pct_titulados) },
-        { name: 'En trámite',   data: sorted.map(t => +(+t.en_tramite * 100 / (+t.total || 1)).toFixed(1)) }
+        { name: '% Titulados', data: sorted.map(t => +t.pct_titulados) },
+        { name: 'En trámite', data: sorted.map(t => +(+t.en_tramite * 100 / (+t.total || 1)).toFixed(1)) }
       ],
       chart: this.baseChart('area', 260),
       xaxis: {
@@ -280,11 +280,11 @@ export class EstadisticasComponent implements OnInit {
   // ── 6. Inglés por carrera – Barras agrupadas ──────────────────────────────
   private buildInglesCarrera(data: EstadisticasResponse): void {
     const carreras = [...new Set(data.inglesCarrera.map(i => i.nombre_carrera))];
-    const niveles  = [...new Set(data.inglesCarrera.map(i => i.nivel))];
+    const niveles = [...new Set(data.inglesCarrera.map(i => i.nivel))];
     const coloresNivel: Record<string, string> = {
-      'Básico (A1-A2)':        '#ef4444',
-      'Intermedio (B1-B2)':    '#3b82f6',
-      'Avanzado (C1-C2)':      '#10b981',
+      'Básico (A1-A2)': '#ef4444',
+      'Intermedio (B1-B2)': '#3b82f6',
+      'Avanzado (C1-C2)': '#10b981',
     };
 
     const series = niveles.map(nivel => ({
@@ -332,8 +332,12 @@ export class EstadisticasComponent implements OnInit {
       xaxis: { labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
       yaxis: { categories: top.map(e => e.empresa), labels: { style: { fontFamily: this.chartFontFamily, fontSize: '10.5px', colors: '#64748b' } } },
       colors: ['#6366f1'],
-      plotOptions: { bar: { horizontal: true, borderRadius: 5, barHeight: '55%',
-        distributed: true, dataLabels: { position: 'bottom' } } },
+      plotOptions: {
+        bar: {
+          horizontal: true, borderRadius: 5, barHeight: '55%',
+          distributed: true, dataLabels: { position: 'bottom' }
+        }
+      },
       dataLabels: { enabled: true, style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: ['#fff'] } },
       grid: this.baseGrid
     };
@@ -344,9 +348,9 @@ export class EstadisticasComponent implements OnInit {
     const sorted = [...data.evolucionGeneracion].sort((a, b) => a.anio_egreso - b.anio_egreso);
     this.chartEvolucion = {
       series: [
-        { name: 'Empleabilidad %',  data: sorted.map(e => +e.pct_empleados) },
-        { name: 'Titulación %',     data: sorted.map(e => +e.pct_titulados) },
-        { name: 'Satisfacción %',   data: sorted.map(e => +e.satisfaccion_pct) }
+        { name: 'Empleabilidad %', data: sorted.map(e => +e.pct_empleados) },
+        { name: 'Titulación %', data: sorted.map(e => +e.pct_titulados) },
+        { name: 'Satisfacción %', data: sorted.map(e => +e.satisfaccion_pct) }
       ],
       chart: this.baseChart('line', 280),
       xaxis: {
@@ -390,7 +394,7 @@ export class EstadisticasComponent implements OnInit {
     this.chartParticipacion = {
       series: [
         { name: 'Autorizó contacto', data: data.participacionCarrera.map(p => +p.autorizo_contacto) },
-        { name: 'Autorizó eventos',  data: data.participacionCarrera.map(p => +p.autorizo_eventos) }
+        { name: 'Autorizó eventos', data: data.participacionCarrera.map(p => +p.autorizo_eventos) }
       ],
       chart: { ...this.baseChart('bar', 280), stacked: false },
       xaxis: {
@@ -405,46 +409,65 @@ export class EstadisticasComponent implements OnInit {
     };
   }
 
-  // ── 12. Fuera de Durango – Barras horizontales ────────────────────────────
+  // ── 12. Fuera de Durango ──────────────────────────────────────────────────
   private buildFueraDurango(data: EstadisticasResponse): void {
     if (!data.fueraDurango.length) return;
 
-    // Agrupar por ciudad
-    const ciudades = [...new Set(data.fueraDurango.map(f => f.ciudad_trabajo))];
-    const totales  = ciudades.map(c =>
-      data.fueraDurango.filter(f => f.ciudad_trabajo === c).reduce((s, f) => s + +f.total, 0)
-    );
+    const mapa = new Map<string, number>();
+    data.fueraDurango.forEach(f => {
+      mapa.set(f.ciudad_trabajo, (mapa.get(f.ciudad_trabajo) || 0) + +f.total);
+    });
+
+    const sorted = [...mapa.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
+    const ciudades = sorted.map(([ciudad]) => ciudad);
+    const totales = sorted.map(([, total]) => total);
 
     this.chartFueraDurango = {
       series: [{ name: 'Egresados', data: totales }],
-      chart: this.baseChart('bar', 280),
-      xaxis: { labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
-      yaxis: { categories: ciudades, labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
+      chart: { ...this.baseChart('bar', Math.max(220, ciudades.length * 44)) },
+      xaxis: {
+        categories: ciudades,
+        labels: { style: { fontFamily: this.chartFontFamily, fontSize: '12px', colors: '#374151' }, maxWidth: 150 },
+        axisBorder: { show: false }, axisTicks: { show: false }
+      },
+      yaxis: { labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#6b7280' } } },
+      plotOptions: { bar: { horizontal: true, borderRadius: 5, barHeight: '52%', distributed: false, dataLabels: { position: 'center' } } },
+      dataLabels: { enabled: true, style: { fontFamily: this.chartFontFamily, fontSize: '12px', fontWeight: '600', colors: ['#fff'] }, formatter: (val: number) => val > 0 ? `${val}` : '' },
       colors: ['#f59e0b'],
-      plotOptions: { bar: { horizontal: true, borderRadius: 5, barHeight: '50%', distributed: true } },
-      dataLabels: { enabled: true, style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: ['#fff'] } },
-      grid: this.baseGrid
+      legend: { show: false },
+      grid: { borderColor: 'rgba(100,116,139,.08)', xaxis: { lines: { show: false } }, yaxis: { lines: { show: true } } },
+      tooltip: { y: { formatter: (v: number) => `${v} egresado${v !== 1 ? 's' : ''}` } }
     };
   }
 
-  // ── 13. Fuera de México – Barras horizontales ─────────────────────────────
+  // ── 13. Fuera de México ───────────────────────────────────────────────────
   private buildFueraMexico(data: EstadisticasResponse): void {
     if (!data.fueraMexico.length) return;
 
-    const ciudades = [...new Set(data.fueraMexico.map(f => f.ciudad_trabajo))];
-    const totales  = ciudades.map(c =>
-      data.fueraMexico.filter(f => f.ciudad_trabajo === c).reduce((s, f) => s + +f.total, 0)
-    );
+    const mapa = new Map<string, number>();
+    data.fueraMexico.forEach(f => {
+      mapa.set(f.ciudad_trabajo, (mapa.get(f.ciudad_trabajo) || 0) + +f.total);
+    });
+
+    const sorted = [...mapa.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
+    const ciudades = sorted.map(([ciudad]) => ciudad);
+    const totales = sorted.map(([, total]) => total);
 
     this.chartFueraMexico = {
       series: [{ name: 'Egresados', data: totales }],
-      chart: this.baseChart('bar', 280),
-      xaxis: { labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
-      yaxis: { categories: ciudades, labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
-      colors: ['#a855f7'],
-      plotOptions: { bar: { horizontal: true, borderRadius: 5, barHeight: '50%', distributed: true } },
-      dataLabels: { enabled: true, style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: ['#fff'] } },
-      grid: this.baseGrid
+      chart: { ...this.baseChart('bar', Math.max(220, ciudades.length * 44)) },
+      xaxis: {
+        categories: ciudades,
+        labels: { style: { fontFamily: this.chartFontFamily, fontSize: '12px', colors: '#374151' }, maxWidth: 160 },
+        axisBorder: { show: false }, axisTicks: { show: false }
+      },
+      yaxis: { labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#6b7280' } } },
+      plotOptions: { bar: { horizontal: true, borderRadius: 5, barHeight: '52%', distributed: false, dataLabels: { position: 'center' } } },
+      dataLabels: { enabled: true, style: { fontFamily: this.chartFontFamily, fontSize: '12px', fontWeight: '600', colors: ['#fff'] }, formatter: (val: number) => val > 0 ? `${val}` : '' },
+      colors: ['#6366f1'],
+      legend: { show: false },
+      grid: { borderColor: 'rgba(100,116,139,.08)', xaxis: { lines: { show: false } }, yaxis: { lines: { show: true } } },
+      tooltip: { y: { formatter: (v: number) => `${v} egresado${v !== 1 ? 's' : ''}` } }
     };
   }
 
