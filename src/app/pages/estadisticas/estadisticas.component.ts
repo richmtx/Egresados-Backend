@@ -326,20 +326,58 @@ export class EstadisticasComponent implements OnInit {
   // ── 8. Top empresas – Barras horizontales ─────────────────────────────────
   private buildEmpresas(data: EstadisticasResponse): void {
     const top = data.topEmpresas.slice(0, 10);
+    const empresas = top.map(e => e.empresa);
+    const totales = top.map(e => +e.total);
+
     this.chartEmpresas = {
-      series: [{ name: 'Egresados', data: top.map(e => +e.total) }],
-      chart: this.baseChart('bar', 300),
-      xaxis: { labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
-      yaxis: { categories: top.map(e => e.empresa), labels: { style: { fontFamily: this.chartFontFamily, fontSize: '10.5px', colors: '#64748b' } } },
-      colors: ['#6366f1'],
-      plotOptions: {
-        bar: {
-          horizontal: true, borderRadius: 5, barHeight: '55%',
-          distributed: true, dataLabels: { position: 'bottom' }
+      series: [{ name: 'Egresados', data: totales }],
+      chart: {
+        ...this.baseChart('bar', Math.max(280, empresas.length * 42)),
+      },
+      // ✅ Categorías en xaxis (nombres de empresas en el eje Y visual)
+      xaxis: {
+        categories: empresas,
+        labels: {
+          style: { fontFamily: this.chartFontFamily, fontSize: '11.5px', colors: '#374151' },
+          maxWidth: 200
+        },
+        axisBorder: { show: false },
+        axisTicks: { show: false }
+      },
+      yaxis: {
+        labels: {
+          style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#6b7280' }
         }
       },
-      dataLabels: { enabled: true, style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: ['#fff'] } },
-      grid: this.baseGrid
+      plotOptions: {
+        bar: {
+          horizontal: true,
+          borderRadius: 5,
+          barHeight: '52%',
+          distributed: false,       // ← sin distributed
+          dataLabels: { position: 'center' }
+        }
+      },
+      dataLabels: {
+        enabled: true,
+        style: {
+          fontFamily: this.chartFontFamily,
+          fontSize: '12px',
+          fontWeight: '600',
+          colors: ['#fff']
+        },
+        formatter: (val: number) => val > 0 ? `${val}` : ''
+      },
+      colors: ['#6366f1'],
+      legend: { show: false },
+      grid: {
+        borderColor: 'rgba(100,116,139,.08)',
+        xaxis: { lines: { show: false } },
+        yaxis: { lines: { show: true } }
+      },
+      tooltip: {
+        y: { formatter: (v: number) => `${v} egresado${v !== 1 ? 's' : ''}` }
+      }
     };
   }
 
