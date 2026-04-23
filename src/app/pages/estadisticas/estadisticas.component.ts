@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgxApexchartsModule } from 'ngx-apexcharts';
@@ -13,21 +14,118 @@ import { EstadisticasResponse, FiltrosEstadisticas } from './models/estadisticas
   templateUrl: './estadisticas.component.html',
   styleUrl: './estadisticas.component.css'
 })
-export class EstadisticasComponent implements OnInit {
+export class EstadisticasComponent implements OnInit, OnDestroy {
 
-  // ── Estado ──────────────────────────────────────────────────────────────
+  // Estado
   datos: EstadisticasResponse | null = null;
   cargando = true;
   error = false;
 
-  // ── Filtros ──────────────────────────────────────────────────────────────
+  // Filtros
   filtroCarrera = '';
   filtroAnio = '';
 
   carrerasDisponibles: string[] = [];
   aniosDisponibles: number[] = [];
 
-  // ── Paleta de colores ─────────────────────────────────────────────────────
+  // Modal
+  modalAbierto = false;
+  modalTitulo = '';
+  modalSubtitulo = '';
+  modalTipo = '';
+  modalChart: any = {};
+
+  abrirModal(tipo: string, titulo: string, subtitulo: string, chartConfig: any): void {
+
+    // ── Caso especial: Radar con muchas carreras → barras horizontales
+    if (tipo === 'radar' && chartConfig.xaxis?.categories?.length > 5) {
+      const categorias: string[] = chartConfig.xaxis.categories;
+      const valores: number[] = chartConfig.series[0]?.data ?? [];
+
+      const pares = categorias
+        .map((cat: string, i: number) => ({ cat, val: valores[i] ?? 0 }))
+        .sort((a: any, b: any) => b.val - a.val);
+
+      this.modalChart = {
+        series: [{ name: 'Satisfacción promedio', data: pares.map((p: any) => p.val) }],
+        chart: {
+          ...this.baseChart('bar', Math.max(420, pares.length * 44)),
+          height: Math.max(420, pares.length * 44)
+        },
+        xaxis: {
+          categories: pares.map((p: any) => p.cat),
+          labels: {
+            style: { fontFamily: this.chartFontFamily, fontSize: '12px', colors: '#374151' },
+            maxWidth: 260
+          },
+          axisBorder: { show: false },
+          axisTicks: { show: false },
+          min: 0, max: 5
+        },
+        yaxis: {
+          labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#6b7280' } }
+        },
+        plotOptions: {
+          bar: { horizontal: true, borderRadius: 5, barHeight: '52%', distributed: false, dataLabels: { position: 'center' } }
+        },
+        dataLabels: {
+          enabled: true,
+          style: { fontFamily: this.chartFontFamily, fontSize: '12px', fontWeight: '600', colors: ['#fff'] },
+          formatter: (val: number) => val > 0 ? val.toFixed(1) : ''
+        },
+        colors: ['#6366f1'],
+        legend: { show: false },
+        grid: { borderColor: 'rgba(100,116,139,.08)', xaxis: { lines: { show: true } }, yaxis: { lines: { show: false } } },
+        tooltip: { y: { formatter: (v: number) => `${v.toFixed(2)} / 5` } }
+      };
+
+      this.modalTipo = 'bar';
+      this.modalTitulo = titulo;
+      this.modalSubtitulo = subtitulo + ' · ordenado por satisfacción';
+      this.modalAbierto = true;
+
+      // Protegido con isPlatformBrowser
+      if (isPlatformBrowser(this.platformId)) {
+        document.body.style.overflow = 'hidden';
+      }
+      return;
+    }
+
+    // Comportamiento normal
+    this.modalChart = {
+      ...chartConfig,
+      chart: {
+        ...chartConfig.chart,
+        height: tipo === 'bar' ? Math.max(420, (chartConfig.chart?.height || 300) + 160) : 460
+      }
+    };
+    this.modalTipo = tipo;
+    this.modalTitulo = titulo;
+    this.modalSubtitulo = subtitulo;
+    this.modalAbierto = true;
+
+    // Protegido con isPlatformBrowser
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  cerrarModal(): void {
+    this.modalAbierto = false;
+    // Protegido con isPlatformBrowser
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.style.overflow = '';
+    }
+  }
+
+  ngOnDestroy(): void {
+    // Protegido con isPlatformBrowser
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.style.overflow = '';
+    }
+  }
+
+  // Paleta de colores
   private PALETTE = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#a855f7', '#14b8a6', '#f97316', '#ec4899', '#0ea5e9'];
 
   private chartFontFamily = "'Plus Jakarta Sans', 'Segoe UI', sans-serif";
@@ -54,7 +152,7 @@ export class EstadisticasComponent implements OnInit {
     markers: { width: 8, height: 8, radius: 2 }
   };
 
-  // ── Definición de gráficas (se inicializan vacías) ────────────────────────
+  // Definición de gráficas (se inicializan vacías)
   chartSituacion: any = {};
   chartEmpCarrera: any = {};
   chartTitulacion: any = {};
@@ -69,18 +167,19 @@ export class EstadisticasComponent implements OnInit {
   chartFueraDurango: any = {};
   chartFueraMexico: any = {};
 
-  // ── Insights dinámicos ────────────────────────────────────────────────────
+  // Insights dinámicos
   insights: { emoji: string; bg: string; titulo: string; descripcion: string }[] = [];
 
-  constructor(private estadisticasService: EstadisticasService) { }
+  constructor(
+    private estadisticasService: EstadisticasService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) { }
 
   ngOnInit(): void {
     this.cargarEstadisticas();
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
   // CARGA DE DATOS
-  // ─────────────────────────────────────────────────────────────────────────
   cargarEstadisticas(): void {
     this.cargando = true;
     this.error = false;
@@ -119,9 +218,7 @@ export class EstadisticasComponent implements OnInit {
     window.print();
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
   // HELPERS
-  // ─────────────────────────────────────────────────────────────────────────
   getPct(parte: number, total: number): string {
     if (!total) return '0';
     return ((parte / total) * 100).toFixed(1);
@@ -141,9 +238,7 @@ export class EstadisticasComponent implements OnInit {
       .replace('Sistemas Computacionales', 'Sistemas Comp.');
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
   // CONSTRUCCIÓN DE GRÁFICAS
-  // ─────────────────────────────────────────────────────────────────────────
   private construirTodasLasGraficas(data: EstadisticasResponse): void {
     this.buildSituacionLaboral(data);
     this.buildEmpCarrera(data);
@@ -160,7 +255,7 @@ export class EstadisticasComponent implements OnInit {
     this.buildFueraMexico(data);
   }
 
-  // ── 1. Situación laboral – Pie ────────────────────────────────────────────
+  // 1. Situación laboral – Pie 
   private buildSituacionLaboral(data: EstadisticasResponse): void {
     this.chartSituacion = {
       series: data.situacionLaboral.map(s => +s.total),
@@ -178,7 +273,7 @@ export class EstadisticasComponent implements OnInit {
     };
   }
 
-  // ── 2. Empleabilidad por carrera – Barras ─────────────────────────────────
+  // 2. Empleabilidad por carrera – Barras
   private buildEmpCarrera(data: EstadisticasResponse): void {
     const labels = data.empleabilidadCarrera.map(e => this.abrevCarrera(e.nombre_carrera));
     const empleados = data.empleabilidadCarrera.map(e => +e.empleados);
@@ -202,7 +297,7 @@ export class EstadisticasComponent implements OnInit {
     };
   }
 
-  // ── 3. Titulación – Dona ──────────────────────────────────────────────────
+  // 3. Titulación – Dona 
   private buildTitulacion(data: EstadisticasResponse): void {
     const k = data.kpis;
     this.chartTitulacion = {
@@ -234,7 +329,7 @@ export class EstadisticasComponent implements OnInit {
     };
   }
 
-  // ── 4. Tendencia titulación por año – Línea ───────────────────────────────
+  // 4. Tendencia titulación por año – Línea
   private buildTendTitulacion(data: EstadisticasResponse): void {
     const sorted = [...data.titulacionAnio].sort((a, b) => a.anio_egreso - b.anio_egreso);
     this.chartTendTitulacion = {
@@ -260,7 +355,7 @@ export class EstadisticasComponent implements OnInit {
     };
   }
 
-  // ── 5. Nivel de inglés – Pie ──────────────────────────────────────────────
+  // 5. Nivel de inglés – Pie
   private buildIngles(data: EstadisticasResponse): void {
     this.chartIngles = {
       series: data.nivelesIngles.map(n => +n.total),
@@ -277,7 +372,7 @@ export class EstadisticasComponent implements OnInit {
     };
   }
 
-  // ── 6. Inglés por carrera – Barras agrupadas ──────────────────────────────
+  // 6. Inglés por carrera – Barras agrupadas
   private buildInglesCarrera(data: EstadisticasResponse): void {
     const carreras = [...new Set(data.inglesCarrera.map(i => i.nombre_carrera))];
     const niveles = [...new Set(data.inglesCarrera.map(i => i.nivel))];
@@ -310,7 +405,7 @@ export class EstadisticasComponent implements OnInit {
     };
   }
 
-  // ── 7. Satisfacción por carrera – Radar ───────────────────────────────────
+  // 7. Satisfacción por carrera – Radar
   private buildRadar(data: EstadisticasResponse): void {
     this.chartRadar = {
       series: [{ name: 'Satisfacción promedio', data: data.satisfaccionCarrera.map(s => +s.promedio) }],
@@ -323,7 +418,7 @@ export class EstadisticasComponent implements OnInit {
     };
   }
 
-  // ── 8. Top empresas – Barras horizontales ─────────────────────────────────
+  // 8. Top empresas – Barras horizontales
   private buildEmpresas(data: EstadisticasResponse): void {
     const top = data.topEmpresas.slice(0, 10);
     const empresas = top.map(e => e.empresa);
@@ -334,7 +429,7 @@ export class EstadisticasComponent implements OnInit {
       chart: {
         ...this.baseChart('bar', Math.max(280, empresas.length * 42)),
       },
-      // ✅ Categorías en xaxis (nombres de empresas en el eje Y visual)
+      // Categorías en xaxis (nombres de empresas en el eje Y visual)
       xaxis: {
         categories: empresas,
         labels: {
@@ -381,7 +476,7 @@ export class EstadisticasComponent implements OnInit {
     };
   }
 
-  // ── 9. Evolución por generación – Líneas ─────────────────────────────────
+  // 9. Evolución por generación – Líneas
   private buildEvolucion(data: EstadisticasResponse): void {
     const sorted = [...data.evolucionGeneracion].sort((a, b) => a.anio_egreso - b.anio_egreso);
     this.chartEvolucion = {
@@ -409,7 +504,7 @@ export class EstadisticasComponent implements OnInit {
     };
   }
 
-  // ── 10. Sector laboral – Pie ──────────────────────────────────────────────
+  // 10. Sector laboral – Pie
   private buildSector(data: EstadisticasResponse): void {
     this.chartSector = {
       series: data.sectorLaboral.map(s => +s.total),
@@ -426,7 +521,7 @@ export class EstadisticasComponent implements OnInit {
     };
   }
 
-  // ── 11. Participación por carrera – Barras apiladas ───────────────────────
+  // 11. Participación por carrera – Barras apiladas
   private buildParticipacion(data: EstadisticasResponse): void {
     const labels = data.participacionCarrera.map(p => this.abrevCarrera(p.nombre_carrera));
     this.chartParticipacion = {
@@ -447,7 +542,7 @@ export class EstadisticasComponent implements OnInit {
     };
   }
 
-  // ── 12. Fuera de Durango ──────────────────────────────────────────────────
+  // 12. Fuera de Durango
   private buildFueraDurango(data: EstadisticasResponse): void {
     if (!data.fueraDurango.length) return;
 
@@ -478,7 +573,7 @@ export class EstadisticasComponent implements OnInit {
     };
   }
 
-  // ── 13. Fuera de México ───────────────────────────────────────────────────
+  // 13. Fuera de México
   private buildFueraMexico(data: EstadisticasResponse): void {
     if (!data.fueraMexico.length) return;
 
@@ -508,10 +603,8 @@ export class EstadisticasComponent implements OnInit {
       tooltip: { y: { formatter: (v: number) => `${v} egresado${v !== 1 ? 's' : ''}` } }
     };
   }
-
-  // ─────────────────────────────────────────────────────────────────────────
+  
   // INSIGHTS AUTOMÁTICOS
-  // ─────────────────────────────────────────────────────────────────────────
   private generarInsights(data: EstadisticasResponse): void {
     const insights = [];
     const k = data.kpis;

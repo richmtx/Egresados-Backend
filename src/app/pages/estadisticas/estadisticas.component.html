@@ -134,9 +134,11 @@
 
         <div class="kpi-card kpi-blue">
           <div class="kpi-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07" />
-              <path d="M11 11a5 5 0 0 0-7.08-7.08L3 4l1 1a5 5 0 0 0 7 7l1 1-.92.92" />
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <polyline points="16 11 18 13 22 9" />
             </svg>
           </div>
           <div class="kpi-body">
@@ -172,7 +174,7 @@
 
       <div class="charts-row row-1-2">
         <!-- Situación laboral – Pie -->
-        <div class="chart-card">
+        <div class="chart-card" (click)="abrirModal('pie', 'Situación Laboral', 'Distribución actual', chartSituacion)">
           <div class="chart-header">
             <div>
               <h3 class="chart-title">Situación Laboral</h3>
@@ -184,10 +186,17 @@
             [colors]="chartSituacion.colors" [legend]="chartSituacion.legend" [dataLabels]="chartSituacion.dataLabels"
             [tooltip]="chartSituacion.tooltip" [responsive]="chartSituacion.responsive">
           </apx-chart>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            Clic para expandir
+          </div>
         </div>
 
         <!-- Empleabilidad por carrera – Barras -->
-        <div class="chart-card">
+        <div class="chart-card"
+          (click)="abrirModal('bar', 'Empleabilidad por Carrera', 'Empleados vs total de egresados', chartEmpCarrera)">
           <div class="chart-header">
             <div>
               <h3 class="chart-title">Empleabilidad por Carrera</h3>
@@ -199,6 +208,12 @@
             [colors]="chartEmpCarrera.colors" [plotOptions]="chartEmpCarrera.plotOptions"
             [dataLabels]="chartEmpCarrera.dataLabels" [legend]="chartEmpCarrera.legend" [grid]="chartEmpCarrera.grid">
           </apx-chart>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            Clic para expandir
+          </div>
         </div>
       </div>
 
@@ -210,7 +225,8 @@
 
       <div class="charts-row row-2">
         <!-- Titulación dona -->
-        <div class="chart-card">
+        <div class="chart-card"
+          (click)="abrirModal('pie', 'Estado de Titulación', 'Proporción general', chartTitulacion)">
           <div class="chart-header">
             <div>
               <h3 class="chart-title">Estado de Titulación</h3>
@@ -223,10 +239,17 @@
             [plotOptions]="chartTitulacion.plotOptions" [dataLabels]="chartTitulacion.dataLabels"
             [tooltip]="chartTitulacion.tooltip">
           </apx-chart>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            Clic para expandir
+          </div>
         </div>
 
         <!-- Tendencia titulación por año – Línea -->
-        <div class="chart-card">
+        <div class="chart-card"
+          (click)="abrirModal('line', 'Tendencia de Titulación', 'Porcentaje titulados por generación', chartTendTitulacion)">
           <div class="chart-header">
             <div>
               <h3 class="chart-title">Tendencia de Titulación</h3>
@@ -240,6 +263,12 @@
             [fill]="chartTendTitulacion.fill" [markers]="chartTendTitulacion.markers" [grid]="chartTendTitulacion.grid"
             [tooltip]="chartTendTitulacion.tooltip">
           </apx-chart>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            Clic para expandir
+          </div>
         </div>
       </div>
 
@@ -251,7 +280,7 @@
 
       <div class="charts-row row-3">
         <!-- Inglés – Pie -->
-        <div class="chart-card">
+        <div class="chart-card" (click)="abrirModal('pie', 'Nivel de Inglés', 'Distribución general', chartIngles)">
           <div class="chart-header">
             <div>
               <h3 class="chart-title">Nivel de Inglés</h3>
@@ -263,10 +292,17 @@
             [colors]="chartIngles.colors" [legend]="chartIngles.legend" [dataLabels]="chartIngles.dataLabels"
             [tooltip]="chartIngles.tooltip">
           </apx-chart>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            Clic para expandir
+          </div>
         </div>
 
         <!-- Inglés por carrera – Barras agrupadas -->
-        <div class="chart-card">
+        <div class="chart-card"
+          (click)="abrirModal('bar', 'Inglés por Carrera', 'Niveles desglosados', chartInglesCarrera)">
           <div class="chart-header">
             <div>
               <h3 class="chart-title">Inglés por Carrera</h3>
@@ -279,10 +315,17 @@
             [plotOptions]="chartInglesCarrera.plotOptions" [dataLabels]="chartInglesCarrera.dataLabels"
             [legend]="chartInglesCarrera.legend" [grid]="chartInglesCarrera.grid">
           </apx-chart>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            Clic para expandir
+          </div>
         </div>
 
         <!-- Satisfacción por carrera – Radar -->
-        <div class="chart-card">
+        <div class="chart-card"
+          (click)="abrirModal('radar', 'Satisfacción Académica', 'Promedio por carrera', chartRadar)">
           <div class="chart-header">
             <div>
               <h3 class="chart-title">Satisfacción Académica</h3>
@@ -294,6 +337,12 @@
             [colors]="chartRadar.colors" [fill]="chartRadar.fill" [markers]="chartRadar.markers"
             [yaxis]="chartRadar.yaxis">
           </apx-chart>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            Clic para expandir
+          </div>
         </div>
       </div>
 
@@ -305,7 +354,8 @@
 
       <div class="charts-row row-2">
         <!-- Top empresas – Barras horizontales -->
-        <div class="chart-card">
+        <div class="chart-card"
+          (click)="abrirModal('bar', 'Top Empresas', 'Donde trabajan los egresados', chartEmpresas)">
           <div class="chart-header">
             <div>
               <h3 class="chart-title">Top Empresas</h3>
@@ -318,10 +368,17 @@
             [dataLabels]="chartEmpresas.dataLabels" [grid]="chartEmpresas.grid" [tooltip]="chartEmpresas.tooltip"
             [legend]="chartEmpresas.legend">
           </apx-chart>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            Clic para expandir
+          </div>
         </div>
 
         <!-- Evolución por generación – Líneas -->
-        <div class="chart-card">
+        <div class="chart-card"
+          (click)="abrirModal('line', 'Evolución por Generación', 'Empleabilidad · Titulación · Satisfacción', chartEvolucion)">
           <div class="chart-header">
             <div>
               <h3 class="chart-title">Evolución por Generación</h3>
@@ -334,6 +391,12 @@
             [fill]="chartEvolucion.fill" [markers]="chartEvolucion.markers" [legend]="chartEvolucion.legend"
             [grid]="chartEvolucion.grid" [tooltip]="chartEvolucion.tooltip">
           </apx-chart>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            Clic para expandir
+          </div>
         </div>
       </div>
 
@@ -345,7 +408,8 @@
 
       <div class="charts-row row-2">
         <!-- Sector laboral – Pie -->
-        <div class="chart-card">
+        <div class="chart-card"
+          (click)="abrirModal('pie', 'Sector de Trabajo', 'Público · Privado · Posgrado · Otros', chartSector)">
           <div class="chart-header">
             <div>
               <h3 class="chart-title">Sector de Trabajo</h3>
@@ -357,10 +421,17 @@
             [colors]="chartSector.colors" [legend]="chartSector.legend" [dataLabels]="chartSector.dataLabels"
             [tooltip]="chartSector.tooltip">
           </apx-chart>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            Clic para expandir
+          </div>
         </div>
 
         <!-- Participación por carrera – Barras apiladas -->
-        <div class="chart-card">
+        <div class="chart-card"
+          (click)="abrirModal('bar', 'Autorizaciones por Carrera', 'Contacto laboral y eventos', chartParticipacion)">
           <div class="chart-header">
             <div>
               <h3 class="chart-title">Autorizaciones por Carrera</h3>
@@ -373,6 +444,12 @@
             [plotOptions]="chartParticipacion.plotOptions" [dataLabels]="chartParticipacion.dataLabels"
             [legend]="chartParticipacion.legend" [grid]="chartParticipacion.grid">
           </apx-chart>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            Clic para expandir
+          </div>
         </div>
       </div>
 
@@ -385,7 +462,8 @@
       <div class="charts-row row-2">
 
         <!-- Fuera de Durango -->
-        <div class="chart-card">
+        <div class="chart-card"
+          (click)="abrirModal('bar', 'Fuera de Durango', 'Egresados en otras ciudades de México', chartFueraDurango)">
           <div class="chart-header">
             <div>
               <h3 class="chart-title">Fuera de Durango</h3>
@@ -426,11 +504,18 @@
               [plotOptions]="chartFueraDurango.plotOptions" [dataLabels]="chartFueraDurango.dataLabels"
               [grid]="chartFueraDurango.grid" [tooltip]="chartFueraDurango.tooltip">
             </apx-chart>
+            <div class="chart-card-hint">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+              </svg>
+              Clic para expandir
+            </div>
           </ng-container>
         </div>
 
         <!-- Fuera de México -->
-        <div class="chart-card">
+        <div class="chart-card"
+          (click)="abrirModal('bar', 'Fuera de México', 'Egresados trabajando en el extranjero', chartFueraMexico)">
           <div class="chart-header">
             <div>
               <h3 class="chart-title">Fuera de México</h3>
@@ -474,6 +559,12 @@
               [plotOptions]="chartFueraMexico.plotOptions" [dataLabels]="chartFueraMexico.dataLabels"
               [grid]="chartFueraMexico.grid" [tooltip]="chartFueraMexico.tooltip">
             </apx-chart>
+            <div class="chart-card-hint">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+              </svg>
+              Clic para expandir
+            </div>
           </ng-container>
         </div>
 
@@ -497,6 +588,64 @@
 
     </ng-container>
     <!-- fin ng-container datos -->
+
+
+    <!-- ── Modal gráfica expandida ── -->
+    <div class="chart-modal-overlay" *ngIf="modalAbierto" (click)="cerrarModal()">
+      <div class="chart-modal" (click)="$event.stopPropagation()">
+
+        <div class="chart-modal-head">
+          <div>
+            <h3 class="chart-modal-title">{{ modalTitulo }}</h3>
+            <p class="chart-modal-sub">{{ modalSubtitulo }}</p>
+          </div>
+          <button class="chart-modal-close" (click)="cerrarModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="chart-modal-body">
+          <!-- Pie / Donut -->
+          <ng-container *ngIf="modalTipo === 'pie' || modalTipo === 'donut'">
+            <apx-chart [series]="modalChart.series" [chart]="modalChart.chart" [labels]="modalChart.labels"
+              [colors]="modalChart.colors" [legend]="modalChart.legend" [dataLabels]="modalChart.dataLabels"
+              [plotOptions]="modalChart.plotOptions" [tooltip]="modalChart.tooltip"
+              [responsive]="modalChart.responsive">
+            </apx-chart>
+          </ng-container>
+
+          <!-- Bar -->
+          <ng-container *ngIf="modalTipo === 'bar'">
+            <apx-chart [series]="modalChart.series" [chart]="modalChart.chart" [xaxis]="modalChart.xaxis"
+              [yaxis]="modalChart.yaxis" [colors]="modalChart.colors" [plotOptions]="modalChart.plotOptions"
+              [dataLabels]="modalChart.dataLabels" [legend]="modalChart.legend" [grid]="modalChart.grid"
+              [tooltip]="modalChart.tooltip">
+            </apx-chart>
+          </ng-container>
+
+          <!-- Line / Area -->
+          <ng-container *ngIf="modalTipo === 'line' || modalTipo === 'area'">
+            <apx-chart [series]="modalChart.series" [chart]="modalChart.chart" [xaxis]="modalChart.xaxis"
+              [yaxis]="modalChart.yaxis" [colors]="modalChart.colors" [stroke]="modalChart.stroke"
+              [fill]="modalChart.fill" [markers]="modalChart.markers" [legend]="modalChart.legend"
+              [grid]="modalChart.grid" [tooltip]="modalChart.tooltip">
+            </apx-chart>
+          </ng-container>
+
+          <!-- Radar -->
+          <ng-container *ngIf="modalTipo === 'radar'">
+            <apx-chart [series]="modalChart.series" [chart]="modalChart.chart" [xaxis]="modalChart.xaxis"
+              [colors]="modalChart.colors" [fill]="modalChart.fill" [markers]="modalChart.markers"
+              [yaxis]="modalChart.yaxis">
+            </apx-chart>
+          </ng-container>
+        </div>
+
+      </div>
+    </div>
 
   </main>
 </div>
