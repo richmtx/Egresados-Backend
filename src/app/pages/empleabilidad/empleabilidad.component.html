@@ -1,1 +1,395 @@
-<app-sidebar></app-sidebar>
+<div class="emp-layout">
+
+  <!-- ══ SIDEBAR ══ -->
+  <app-sidebar></app-sidebar>
+
+  <!-- ══ CONTENIDO PRINCIPAL ══ -->
+  <main class="emp-main">
+
+    <!-- ── Header ── -->
+    <div class="emp-header">
+      <div class="header-left">
+        <h1 class="page-title">Empleabilidad</h1>
+        <p class="page-subtitle" *ngIf="datos">
+          Análisis de <strong>{{ datos.kpis.total_egresados }}</strong> egresados registrados
+        </p>
+        <p class="page-subtitle" *ngIf="!datos && !cargando">Sin datos disponibles</p>
+      </div>
+    </div>
+
+    <!-- ── Filtros ── -->
+    <div class="filtros-bar">
+      <div class="filtro-item">
+        <select class="filtro-select" [(ngModel)]="filtroCarrera" (change)="onFiltroChange()">
+          <option value="">Todas las carreras</option>
+          <option *ngFor="let c of carrerasDisponibles" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+      <button class="btn-limpiar" (click)="limpiarFiltros()" *ngIf="filtroCarrera">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+        Limpiar filtros
+      </button>
+    </div>
+
+    <!-- ── Loading ── -->
+    <div class="loading-state" *ngIf="cargando">
+      <div class="spinner"></div>
+      <p>Cargando estadísticas...</p>
+    </div>
+
+    <!-- ── Error ── -->
+    <div class="error-state" *ngIf="error && !cargando">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+      <p>No se pudieron cargar las estadísticas.</p>
+      <button class="btn-retry" (click)="cargarEstadisticas()">Reintentar</button>
+    </div>
+
+    <!-- ══ CONTENIDO ══ -->
+    <ng-container *ngIf="datos && !cargando">
+
+      <!-- ── KPI Cards ── -->
+      <div class="kpi-grid">
+
+        <div class="kpi-card kpi-indigo">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Total egresados</span>
+            <span class="kpi-value">{{ datos.kpis.total_egresados }}</span>
+            <span class="kpi-sub">todas las generaciones</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-green">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="4" height="14" rx="1"/>
+              <rect x="9" y="3" width="4" height="18" rx="1"/>
+              <rect x="16" y="10" width="4" height="11" rx="1"/>
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Tasa de empleo</span>
+            <span class="kpi-value">{{ tasaEmpleo }}<small>%</small></span>
+            <span class="kpi-sub">{{ datos.kpis.empleados }} empleados actualmente</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-cyan">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12,6 12,12 16,14"/>
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Tiempo prom. para emplearse</span>
+            <span class="kpi-value">{{ tiempoPromedioGeneral | number:'1.1-1' }}<small> años</small></span>
+            <span class="kpi-sub">estimado por antigüedad y egreso</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-emerald">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9,11 12,14 22,4"/>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Coincidencia laboral</span>
+            <span class="kpi-value">{{ coincidenciaGlobal }}<small>%</small></span>
+            <span class="kpi-sub">trabajan en su área de estudio</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Sección: Empleo ── -->
+      <div class="seccion-label">
+        <span class="seccion-dot dot-indigo"></span>
+        Estado de Empleo
+      </div>
+
+      <div class="charts-row row-1-2">
+
+        <!-- Sectores donde trabajan - Donut -->
+        <div class="chart-card" (click)="abrirModal('pie', 'Sectores donde trabajan', 'Distribución por tipo de empleador', chartSectores)">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Sectores donde trabajan</h3>
+              <p class="chart-sub">Distribución por tipo de empleador</p>
+            </div>
+            <span class="chart-badge">Dona</span>
+          </div>
+          <apx-chart
+            [series]="chartSectores.series"
+            [chart]="chartSectores.chart"
+            [labels]="chartSectores.labels"
+            [colors]="chartSectores.colors"
+            [legend]="chartSectores.legend"
+            [dataLabels]="chartSectores.dataLabels"
+            [plotOptions]="chartSectores.plotOptions"
+            [tooltip]="chartSectores.tooltip"
+            [responsive]="chartSectores.responsive">
+          </apx-chart>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+            </svg>
+            Clic para expandir
+          </div>
+        </div>
+
+        <!-- Empleabilidad por carrera - Barras apiladas -->
+        <div class="chart-card" (click)="abrirModal('bar', 'Empleabilidad por Carrera', 'Empleados vs sin empleo por carrera', chartEmpleabilidadCarrera)">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Empleabilidad por Carrera</h3>
+              <p class="chart-sub">Empleados vs sin empleo por carrera</p>
+            </div>
+            <span class="chart-badge">Barras</span>
+          </div>
+          <apx-chart
+            [series]="chartEmpleabilidadCarrera.series"
+            [chart]="chartEmpleabilidadCarrera.chart"
+            [xaxis]="chartEmpleabilidadCarrera.xaxis"
+            [colors]="chartEmpleabilidadCarrera.colors"
+            [plotOptions]="chartEmpleabilidadCarrera.plotOptions"
+            [dataLabels]="chartEmpleabilidadCarrera.dataLabels"
+            [legend]="chartEmpleabilidadCarrera.legend"
+            [grid]="chartEmpleabilidadCarrera.grid"
+            [tooltip]="chartEmpleabilidadCarrera.tooltip">
+          </apx-chart>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+            </svg>
+            Clic para expandir
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Sección: Tiempo y coincidencia ── -->
+      <div class="seccion-label">
+        <span class="seccion-dot dot-cyan"></span>
+        Inserción Laboral
+      </div>
+
+      <div class="charts-row row-2">
+
+        <!-- Tiempo promedio para emplearse -->
+        <div class="chart-card" (click)="abrirModal('bar', 'Tiempo para emplearse', 'Años estimados por carrera', chartTiempoEmpleo)">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Tiempo para emplearse</h3>
+              <p class="chart-sub">Años estimados por carrera</p>
+            </div>
+            <span class="chart-badge badge-cyan">Barras H</span>
+          </div>
+          <p class="chart-note">
+            Estimado cruzando año de egreso con antigüedad en empleo actual.
+          </p>
+          <apx-chart
+            [series]="chartTiempoEmpleo.series"
+            [chart]="chartTiempoEmpleo.chart"
+            [xaxis]="chartTiempoEmpleo.xaxis"
+            [yaxis]="chartTiempoEmpleo.yaxis"
+            [colors]="chartTiempoEmpleo.colors"
+            [plotOptions]="chartTiempoEmpleo.plotOptions"
+            [dataLabels]="chartTiempoEmpleo.dataLabels"
+            [grid]="chartTiempoEmpleo.grid"
+            [tooltip]="chartTiempoEmpleo.tooltip">
+          </apx-chart>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+            </svg>
+            Clic para expandir
+          </div>
+        </div>
+
+        <!-- Coincidencia carrera–trabajo -->
+        <div class="chart-card" (click)="abrirModal('bar', 'Coincidencia Carrera–Trabajo', 'Porcentaje que trabaja en su área', chartCoincidencia)">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Coincidencia Carrera–Trabajo</h3>
+              <p class="chart-sub">Porcentaje que trabaja en su área</p>
+            </div>
+            <span class="chart-badge badge-green">Barras</span>
+          </div>
+          <p class="chart-note">
+            Egresados cuyo empleo actual está relacionado con su carrera estudiada.
+          </p>
+          <apx-chart
+            [series]="chartCoincidencia.series"
+            [chart]="chartCoincidencia.chart"
+            [xaxis]="chartCoincidencia.xaxis"
+            [yaxis]="chartCoincidencia.yaxis"
+            [colors]="chartCoincidencia.colors"
+            [plotOptions]="chartCoincidencia.plotOptions"
+            [dataLabels]="chartCoincidencia.dataLabels"
+            [grid]="chartCoincidencia.grid"
+            [tooltip]="chartCoincidencia.tooltip">
+          </apx-chart>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+            </svg>
+            Clic para expandir
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Sección: Empresas ── -->
+      <div class="seccion-label">
+        <span class="seccion-dot dot-amber"></span>
+        Empresas Empleadoras
+      </div>
+
+      <div class="charts-row row-full">
+        <div class="chart-card" (click)="abrirModal('bar', 'Top Empresas Empleadoras', 'Donde trabajan los egresados', chartTopEmpresas)">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Top Empresas Empleadoras</h3>
+              <p class="chart-sub">Donde trabajan los egresados</p>
+            </div>
+            <span class="chart-badge badge-amber">Top 8</span>
+          </div>
+          <apx-chart
+            [series]="chartTopEmpresas.series"
+            [chart]="chartTopEmpresas.chart"
+            [xaxis]="chartTopEmpresas.xaxis"
+            [yaxis]="chartTopEmpresas.yaxis"
+            [colors]="chartTopEmpresas.colors"
+            [plotOptions]="chartTopEmpresas.plotOptions"
+            [dataLabels]="chartTopEmpresas.dataLabels"
+            [grid]="chartTopEmpresas.grid"
+            [tooltip]="chartTopEmpresas.tooltip"
+            [legend]="chartTopEmpresas.legend">
+          </apx-chart>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+            </svg>
+            Clic para expandir
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Tabla resumen por carrera ── -->
+      <div class="seccion-label">
+        <span class="seccion-dot dot-purple"></span>
+        Resumen por Carrera
+      </div>
+
+      <div class="charts-row row-full">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Detalle por carrera</h3>
+              <p class="chart-sub">Empleabilidad, tiempo estimado y coincidencia</p>
+            </div>
+            <span class="chart-badge">Tabla</span>
+          </div>
+          <div class="table-wrap">
+            <table class="emp-table">
+              <thead>
+                <tr>
+                  <th>Carrera</th>
+                  <th>Total egresados</th>
+                  <th>Empleados</th>
+                  <th>Tasa de empleo</th>
+                  <th>Tiempo estimado (prom.)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of datos.empleabilidadCarrera">
+                  <td class="td-carrera">{{ item.nombre_carrera }}</td>
+                  <td class="td-center">{{ item.total }}</td>
+                  <td class="td-center">{{ item.empleados }}</td>
+                  <td class="td-center">
+                    <span class="pct-badge"
+                      [class.pct-high]="getPct(item.empleados, item.total) >= 75"
+                      [class.pct-mid]="getPct(item.empleados, item.total) >= 50 && getPct(item.empleados, item.total) < 75"
+                      [class.pct-low]="getPct(item.empleados, item.total) < 50">
+                      {{ getPct(item.empleados, item.total) }}%
+                    </span>
+                  </td>
+                  <td class="td-center">{{ getTiempoCarrera(item.nombre_carrera) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </ng-container>
+    <!-- fin ng-container datos -->
+
+    <!-- ── Modal gráfica expandida ── -->
+    <div class="chart-modal-overlay" *ngIf="modalAbierto" (click)="cerrarModal()">
+      <div class="chart-modal" (click)="$event.stopPropagation()">
+        <div class="chart-modal-head">
+          <div>
+            <h3 class="chart-modal-title">{{ modalTitulo }}</h3>
+            <p class="chart-modal-sub">{{ modalSubtitulo }}</p>
+          </div>
+          <button class="chart-modal-close" (click)="cerrarModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div class="chart-modal-body">
+
+          <!-- Pie / Donut -->
+          <ng-container *ngIf="modalTipo === 'pie' || modalTipo === 'donut'">
+            <apx-chart
+              [series]="modalChart.series"
+              [chart]="modalChart.chart"
+              [labels]="modalChart.labels"
+              [colors]="modalChart.colors"
+              [legend]="modalChart.legend"
+              [dataLabels]="modalChart.dataLabels"
+              [plotOptions]="modalChart.plotOptions"
+              [tooltip]="modalChart.tooltip"
+              [responsive]="modalChart.responsive">
+            </apx-chart>
+          </ng-container>
+
+          <!-- Bar -->
+          <ng-container *ngIf="modalTipo === 'bar'">
+            <apx-chart
+              [series]="modalChart.series"
+              [chart]="modalChart.chart"
+              [xaxis]="modalChart.xaxis"
+              [yaxis]="modalChart.yaxis"
+              [colors]="modalChart.colors"
+              [plotOptions]="modalChart.plotOptions"
+              [dataLabels]="modalChart.dataLabels"
+              [legend]="modalChart.legend"
+              [grid]="modalChart.grid"
+              [tooltip]="modalChart.tooltip">
+            </apx-chart>
+          </ng-container>
+
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
