@@ -449,7 +449,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
           horizontal: true,
           borderRadius: 5,
           barHeight: '52%',
-          distributed: false,       // ← sin distributed
+          distributed: false,     
           dataLabels: { position: 'center' }
         }
       },
@@ -510,7 +510,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
       series: data.sectorLaboral.map(s => +s.total),
       chart: this.baseChart('pie', 280),
       labels: data.sectorLaboral.map(s => s.sector),
-      colors: ['#3b82f6', '#6366f1', '#10b981', '#a855f7', '#ef4444'],
+      colors: ['#3b82f6', '#6366f1', '#10b981', '#a855f7', '#ef4444', '#f59e0b'],
       legend: { ...this.baseLegend, position: 'bottom' },
       dataLabels: {
         enabled: true,

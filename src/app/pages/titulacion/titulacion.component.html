@@ -1,1 +1,262 @@
-<app-sidebar></app-sidebar>
+<div class="tit-layout">
+  <app-sidebar></app-sidebar>
+
+  <main class="tit-main">
+
+    <!-- ── Header ─────────────────────────────────────────────────── -->
+    <div class="tit-header">
+      <div class="header-left">
+        <h1 class="page-title">Titulación</h1>
+        <p class="page-subtitle" *ngIf="totalEgresados > 0">
+          Análisis de <strong>{{ totalEgresados }}</strong> egresados registrados
+        </p>
+        <p class="page-subtitle" *ngIf="totalEgresados === 0 && !cargando">Sin datos disponibles</p>
+      </div>
+    </div>
+
+    <!-- ── Filtros ─────────────────────────────────────────────────── -->
+    <div class="filtros-bar">
+      <div class="filtro-item">
+        <select class="filtro-select" [(ngModel)]="filtroCarrera" (change)="onFiltroChange()">
+          <option value="">Todas las carreras</option>
+          <option *ngFor="let c of carrerasDisponibles" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+      <div class="filtro-item">
+        <select class="filtro-select" [(ngModel)]="filtroAnio" (change)="onFiltroChange()">
+          <option value="">Todos los años</option>
+          <option *ngFor="let a of aniosDisponibles" [value]="a">{{ a }}</option>
+        </select>
+      </div>
+      <button class="btn-limpiar" (click)="limpiarFiltros()" *ngIf="filtroCarrera || filtroAnio">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+        Limpiar filtros
+      </button>
+    </div>
+
+    <!-- ── Loading ─────────────────────────────────────────────────── -->
+    <div class="loading-state" *ngIf="cargando">
+      <div class="spinner"></div>
+      <p>Cargando estadísticas...</p>
+    </div>
+
+    <!-- ── Error ───────────────────────────────────────────────────── -->
+    <div class="error-state" *ngIf="error && !cargando">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+      <p>No se pudieron cargar las estadísticas.</p>
+      <button class="btn-retry" (click)="cargarDatos()">Reintentar</button>
+    </div>
+
+    <!-- ══ CONTENIDO ══════════════════════════════════════════════════ -->
+    <ng-container *ngIf="!cargando && !error">
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+
+        <div class="kpi-card kpi-green">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9,11 12,14 22,4" />
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Titulados</span>
+            <span class="kpi-value">{{ pctTitulados }}<small> %</small></span>
+            <span class="kpi-sub">{{ totalTitulados | number }} egresados</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-amber">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12,6 12,12 16,14" />
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">En trámite</span>
+            <span class="kpi-value">{{ pctEnTramite }}<small> %</small></span>
+            <span class="kpi-sub">{{ totalEnTramite | number }} egresados</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-red">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="15" y1="9" x2="9" y2="15" />
+              <line x1="9" y1="9" x2="15" y2="15" />
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">No titulados</span>
+            <span class="kpi-value">{{ pctNoTitulados }}<small> %</small></span>
+            <span class="kpi-sub">{{ totalNoTitulados | number }} egresados</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-indigo">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Total egresados</span>
+            <span class="kpi-value">{{ totalEgresados | number }}</span>
+            <span class="kpi-sub">registros en BD</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Sección: Estado de titulación ─────────────────────────── -->
+      <div class="seccion-label">
+        <span class="seccion-dot dot-green"></span>
+        Estado de Titulación
+      </div>
+
+      <div class="charts-row row-1-2">
+
+        <!-- Dona de posgrado -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Egresados con posgrado</h3>
+              <p class="chart-sub">Maestría y posgrado registrados</p>
+            </div>
+            <span class="chart-badge">Dona</span>
+          </div>
+          <div class="posgrado-contadores">
+            <div class="posgrado-item">
+              <div class="kpi-icon" style="background:#EEEDFE; color:#7F77DD;">🎓</div>
+              <div>
+                <p class="posgrado-num">{{ totalMaestria }}</p>
+                <p class="kpi-sub">Maestría</p>
+              </div>
+            </div>
+            <div class="posgrado-item">
+              <div class="kpi-icon" style="background:#E1F5EE; color:#1D9E75;">📚</div>
+              <div>
+                <p class="posgrado-num">{{ totalDoctorado }}</p>
+                <p class="kpi-sub">Posgrado</p>
+              </div>
+            </div>
+          </div>
+          <apx-chart [series]="donaSeries" [chart]="donaChart" [labels]="donaLabels" [colors]="donaColors"
+            [legend]="donaLegend" [dataLabels]="donaDataLabels">
+          </apx-chart>
+        </div>
+
+        <!-- Barras apiladas por carrera -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Estado de titulación por carrera</h3>
+              <p class="chart-sub">% titulados / en trámite / no titulados</p>
+            </div>
+            <span class="chart-badge badge-green">Barras</span>
+          </div>
+          <apx-chart [series]="barrasSeries" [chart]="barrasChart" [xaxis]="barrasXAxis" [yaxis]="barrasYAxis"
+            [colors]="barrasColors" [dataLabels]="barrasDataLabels" [plotOptions]="barrasPlotOptions"
+            [legend]="barrasLegend" [tooltip]="barrasTooltip">
+          </apx-chart>
+        </div>
+
+      </div>
+
+      <!-- ── Sección: Tendencia ─────────────────────────────────────── -->
+      <div class="seccion-label">
+        <span class="seccion-dot dot-cyan"></span>
+        Tendencia por Año
+      </div>
+
+      <div class="charts-row row-full">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Tendencia de titulación por año de egreso</h3>
+              <p class="chart-sub">Número de egresados por estatus a lo largo de los años</p>
+            </div>
+            <span class="chart-badge badge-cyan">Línea</span>
+          </div>
+          <apx-chart [series]="lineaSeries" [chart]="lineaChart" [xaxis]="lineaXAxis" [yaxis]="lineaYAxis"
+            [colors]="lineaColors" [stroke]="lineaStroke" [dataLabels]="lineaDataLabels" [legend]="lineaLegend"
+            [tooltip]="lineaTooltip">
+          </apx-chart>
+        </div>
+      </div>
+
+      <!-- ── Sección: Detalle ───────────────────────────────────────── -->
+      <div class="seccion-label">
+        <span class="seccion-dot dot-purple"></span>
+        Detalle por Carrera
+      </div>
+
+      <div class="charts-row row-full">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Detalle por carrera y año de egreso</h3>
+              <p class="chart-sub">Estatus de titulación con semáforo de rendimiento</p>
+            </div>
+            <input type="text" class="filtro-select" style="width:200px;" placeholder="Buscar carrera..."
+              (input)="filtrarTabla($event)" />
+          </div>
+          <div class="table-wrap">
+            <table class="tit-table">
+              <thead>
+                <tr>
+                  <th>Carrera</th>
+                  <th>Año egreso</th>
+                  <th>Total</th>
+                  <th>Titulados</th>
+                  <th>En trámite</th>
+                  <th>No titulados</th>
+                  <th>% Titulados</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of tablaFiltrada">
+                  <td class="td-carrera">{{ row.nombre_carrera }}</td>
+                  <td class="td-center">{{ row.anio_egreso }}</td>
+                  <td class="td-center">{{ row.total }}</td>
+                  <td class="td-center">{{ row.titulados }}</td>
+                  <td class="td-center">{{ row.en_tramite }}</td>
+                  <td class="td-center">{{ row.no_titulados }}</td>
+                  <td class="td-center"><strong>{{ row.pct_titulados }}%</strong></td>
+                  <td class="td-center">
+                    <span class="pct-badge" [class.pct-high]="row.pct_titulados >= 70"
+                      [class.pct-mid]="row.pct_titulados >= 50 && row.pct_titulados < 70"
+                      [class.pct-low]="row.pct_titulados < 50">
+                      {{ getBadgeTexto(row.pct_titulados) }}
+                    </span>
+                  </td>
+                </tr>
+                <tr *ngIf="tablaFiltrada.length === 0">
+                  <td colspan="8" class="td-center" style="padding:2rem; color:#9ca3af;">
+                    Sin resultados para el filtro aplicado.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </ng-container>
+
+  </main>
+</div>
