@@ -1,4 +1,4 @@
-/* ── Layout ───────────────────────────────────────────────────────── */
+/* Layout */
 .tit-layout {
     display: flex;
     height: 100vh;
@@ -16,7 +16,7 @@
     min-width: 0;
 }
 
-/* ── Header ───────────────────────────────────────────────────────── */
+/* Header */
 .tit-header {
     display: flex;
     align-items: flex-start;
@@ -43,7 +43,7 @@
     font-weight: 600;
 }
 
-/* ── Filtros ──────────────────────────────────────────────────────── */
+/* Filtros */
 .filtros-bar {
     background: #fff;
     border: 0.5px solid #e5e7eb;
@@ -94,7 +94,7 @@
     background: #fee2e2;
 }
 
-/* ── Loading / Error ──────────────────────────────────────────────── */
+/* Loading / Error */
 .loading-state {
     display: flex;
     flex-direction: column;
@@ -150,7 +150,7 @@
     border-color: #9ca3af;
 }
 
-/* ── KPI Cards ────────────────────────────────────────────────────── */
+/* KPI Cards */
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -235,7 +235,7 @@
     margin: 0;
 }
 
-/* ── Sección label ────────────────────────────────────────────────── */
+/* Sección label */
 .seccion-label {
     display: flex;
     align-items: center;
@@ -266,7 +266,7 @@
     background: #a78bfa;
 }
 
-/* ── Chart rows ───────────────────────────────────────────────────── */
+/* Chart rows */
 .charts-row {
     display: grid;
     gap: 12px;
@@ -280,7 +280,7 @@
     grid-template-columns: 1fr;
 }
 
-/* ── Chart card ───────────────────────────────────────────────────── */
+/* Chart card */
 .chart-card {
     background: #fff;
     border: 0.5px solid #e5e7eb;
@@ -310,7 +310,7 @@
     margin: 2px 0 0;
 }
 
-/* ── Badges ───────────────────────────────────────────────────────── */
+/* Badges */
 .chart-badge {
     font-size: 11px;
     font-weight: 500;
@@ -335,7 +335,7 @@
     border-color: #a5f3fc;
 }
 
-/* ── Posgrado contadores ──────────────────────────────────────────── */
+/* Posgrado contadores */
 .posgrado-contadores {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -360,7 +360,7 @@
     line-height: 1;
 }
 
-/* ── Tabla ────────────────────────────────────────────────────────── */
+/* Tabla */
 .table-wrap {
     overflow-x: auto;
     margin-top: 8px;
@@ -384,6 +384,10 @@
     color: #6b7280;
     text-align: left;
     white-space: nowrap;
+}
+
+.tit-table th:not(:first-child) {
+    text-align: center;
 }
 
 .tit-table td {
@@ -438,7 +442,7 @@
     color: #791F1F;
 }
 
-/* ── Responsive ───────────────────────────────────────────────────── */
+/* Responsive */
 @media (max-width: 1024px) {
     .kpi-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -457,4 +461,124 @@
     .kpi-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* Chart card clickeable */
+.chart-card {
+    cursor: pointer;
+    transition: box-shadow 0.15s;
+    position: relative;
+}
+
+.chart-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
+}
+
+/* Chart hint */
+.chart-card-hint {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: #d1d5db;
+    margin-top: 4px;
+}
+
+.chart-card-hint svg {
+    width: 11px;
+    height: 11px;
+}
+
+/* Modal */
+.chart-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.18s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.chart-modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 820px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+    animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(16px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.chart-modal-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 18px 20px;
+    border-bottom: 0.5px solid #e5e7eb;
+    gap: 12px;
+}
+
+.chart-modal-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.chart-modal-sub {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 3px 0 0;
+}
+
+.chart-modal-close {
+    background: none;
+    border: 0.5px solid #e5e7eb;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 5px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+
+.chart-modal-close svg {
+    width: 14px;
+    height: 14px;
+}
+
+.chart-modal-close:hover {
+    background: #f3f4f6;
+    color: #111827;
+}
+
+.chart-modal-body {
+    padding: 20px;
 }

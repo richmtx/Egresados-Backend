@@ -127,10 +127,11 @@
         Estado de Titulación
       </div>
 
-      <div class="charts-row row-1-2">
+      <!-- Sin filtro de carrera: dona + barras lado a lado -->
+      <div class="charts-row row-1-2" *ngIf="!filtroCarrera">
 
-        <!-- Dona de posgrado -->
-        <div class="chart-card">
+        <div class="chart-card"
+          (click)="abrirModal('donut', 'Egresados con posgrado', 'Maestría y posgrado registrados', chartDonaConfig)">
           <div class="chart-header">
             <div>
               <h3 class="chart-title">Egresados con posgrado</h3>
@@ -140,14 +141,24 @@
           </div>
           <div class="posgrado-contadores">
             <div class="posgrado-item">
-              <div class="kpi-icon" style="background:#EEEDFE; color:#7F77DD;">🎓</div>
+              <div class="kpi-icon" style="background:#EEEDFE; color:#7F77DD;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                  <path d="M6 12v5c3 3 9 3 12 0v-5" />
+                </svg>
+              </div>
               <div>
                 <p class="posgrado-num">{{ totalMaestria }}</p>
                 <p class="kpi-sub">Maestría</p>
               </div>
             </div>
             <div class="posgrado-item">
-              <div class="kpi-icon" style="background:#E1F5EE; color:#1D9E75;">📚</div>
+              <div class="kpi-icon" style="background:#E1F5EE; color:#1D9E75;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                </svg>
+              </div>
               <div>
                 <p class="posgrado-num">{{ totalDoctorado }}</p>
                 <p class="kpi-sub">Posgrado</p>
@@ -157,10 +168,16 @@
           <apx-chart [series]="donaSeries" [chart]="donaChart" [labels]="donaLabels" [colors]="donaColors"
             [legend]="donaLegend" [dataLabels]="donaDataLabels">
           </apx-chart>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            Clic para expandir
+          </div>
         </div>
 
-        <!-- Barras apiladas por carrera -->
-        <div class="chart-card">
+        <div class="chart-card"
+          (click)="abrirModal('bar', 'Estado de titulación por carrera', '% titulados / en trámite / no titulados', chartBarrasConfig)">
           <div class="chart-header">
             <div>
               <h3 class="chart-title">Estado de titulación por carrera</h3>
@@ -172,8 +189,38 @@
             [colors]="barrasColors" [dataLabels]="barrasDataLabels" [plotOptions]="barrasPlotOptions"
             [legend]="barrasLegend" [tooltip]="barrasTooltip">
           </apx-chart>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            Clic para expandir
+          </div>
         </div>
 
+      </div>
+
+      <!-- Con filtro de carrera: solo barras a ancho completo -->
+      <div class="charts-row row-full" *ngIf="filtroCarrera">
+        <div class="chart-card"
+          (click)="abrirModal('bar', 'Estado de titulación — ' + filtroCarrera, '% titulados / en trámite / no titulados', chartBarrasConfig)">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Estado de titulación — {{ filtroCarrera }}</h3>
+              <p class="chart-sub">% titulados / en trámite / no titulados</p>
+            </div>
+            <span class="chart-badge badge-green">Barras</span>
+          </div>
+          <apx-chart [series]="barrasSeries" [chart]="barrasChart" [xaxis]="barrasXAxis" [yaxis]="barrasYAxis"
+            [colors]="barrasColors" [dataLabels]="barrasDataLabels" [plotOptions]="barrasPlotOptions"
+            [legend]="barrasLegend" [tooltip]="barrasTooltip">
+          </apx-chart>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            Clic para expandir
+          </div>
+        </div>
       </div>
 
       <!-- ── Sección: Tendencia ─────────────────────────────────────── -->
@@ -183,7 +230,8 @@
       </div>
 
       <div class="charts-row row-full">
-        <div class="chart-card">
+        <div class="chart-card"
+          (click)="abrirModal('line', 'Tendencia de titulación por año de egreso', 'Número de egresados por estatus a lo largo de los años', chartLineaConfig)">
           <div class="chart-header">
             <div>
               <h3 class="chart-title">Tendencia de titulación por año de egreso</h3>
@@ -195,6 +243,12 @@
             [colors]="lineaColors" [stroke]="lineaStroke" [dataLabels]="lineaDataLabels" [legend]="lineaLegend"
             [tooltip]="lineaTooltip">
           </apx-chart>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            Clic para expandir
+          </div>
         </div>
       </div>
 
@@ -211,8 +265,8 @@
               <h3 class="chart-title">Detalle por carrera y año de egreso</h3>
               <p class="chart-sub">Estatus de titulación con semáforo de rendimiento</p>
             </div>
-            <input type="text" class="filtro-select" style="width:200px;" placeholder="Buscar carrera..."
-              (input)="filtrarTabla($event)" />
+            <input *ngIf="!filtroCarrera" type="text" class="filtro-select" style="width:200px;"
+              placeholder="Buscar carrera..." (input)="filtrarTabla($event)" />
           </div>
           <div class="table-wrap">
             <table class="tit-table">
@@ -257,6 +311,50 @@
       </div>
 
     </ng-container>
+
+    <!-- ── Modal gráfica expandida ── -->
+    <div class="chart-modal-overlay" *ngIf="modalAbierto" (click)="cerrarModal()">
+      <div class="chart-modal" (click)="$event.stopPropagation()">
+        <div class="chart-modal-head">
+          <div>
+            <h3 class="chart-modal-title">{{ modalTitulo }}</h3>
+            <p class="chart-modal-sub">{{ modalSubtitulo }}</p>
+          </div>
+          <button class="chart-modal-close" (click)="cerrarModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div class="chart-modal-body">
+
+          <!-- Donut -->
+          <ng-container *ngIf="modalTipo === 'donut'">
+            <apx-chart [series]="modalChart.series" [chart]="modalChart.chart" [labels]="modalChart.labels"
+              [colors]="modalChart.colors" [legend]="modalChart.legend" [dataLabels]="modalChart.dataLabels">
+            </apx-chart>
+          </ng-container>
+
+          <!-- Bar -->
+          <ng-container *ngIf="modalTipo === 'bar'">
+            <apx-chart [series]="modalChart.series" [chart]="modalChart.chart" [xaxis]="modalChart.xaxis"
+              [yaxis]="modalChart.yaxis" [colors]="modalChart.colors" [plotOptions]="modalChart.plotOptions"
+              [dataLabels]="modalChart.dataLabels" [legend]="modalChart.legend" [tooltip]="modalChart.tooltip">
+            </apx-chart>
+          </ng-container>
+
+          <!-- Line -->
+          <ng-container *ngIf="modalTipo === 'line'">
+            <apx-chart [series]="modalChart.series" [chart]="modalChart.chart" [xaxis]="modalChart.xaxis"
+              [yaxis]="modalChart.yaxis" [colors]="modalChart.colors" [stroke]="modalChart.stroke"
+              [dataLabels]="modalChart.dataLabels" [legend]="modalChart.legend" [tooltip]="modalChart.tooltip">
+            </apx-chart>
+          </ng-container>
+
+        </div>
+      </div>
+    </div>
 
   </main>
 </div>
