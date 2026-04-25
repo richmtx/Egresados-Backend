@@ -1,4 +1,4 @@
-/* ══ Layout — igual que .page-layout en egresados ══════════════════════════ */
+/* Layout */
 .emp-layout {
     display: flex;
     height: 100vh;
@@ -16,7 +16,7 @@
     min-width: 0;
 }
 
-/* ══ Header ════════════════════════════════════════════════════════════════ */
+/* Header */
 .emp-header {
     display: flex;
     align-items: flex-start;
@@ -40,10 +40,10 @@
 
 .page-subtitle strong {
     color: #111827;
-    font-weight: 500;
+    font-weight: 600;
 }
 
-/* ══ Filtros ════════════════════════════════════════════════════════════════ */
+/* Filtros */
 .filtros-bar {
     background: #fff;
     border: 0.5px solid #e5e7eb;
@@ -93,7 +93,7 @@
     background: #fee2e2;
 }
 
-/* ══ Loading / Error ════════════════════════════════════════════════════════ */
+/* Loading / Error */
 .loading-state {
     display: flex;
     flex-direction: column;
@@ -149,7 +149,7 @@
     border-color: #9ca3af;
 }
 
-/* ══ KPI Cards — igual que .metric-card en egresados ═══════════════════════ */
+/* KPI Cards — igual que .metric-card en egresados */
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -232,7 +232,7 @@
     text-overflow: ellipsis;
 }
 
-/* ══ Sección label ══════════════════════════════════════════════════════════ */
+/* Sección label */
 .seccion-label {
     display: flex;
     align-items: center;
@@ -271,10 +271,10 @@
     background: #a78bfa;
 }
 
-/* ══ Chart rows ════════════════════════════════════════════════════════════ */
+/* Chart rows */
 .row-2 {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 12px;
 }
 
@@ -289,7 +289,7 @@
     grid-template-columns: 1fr;
 }
 
-/* ══ Chart card ════════════════════════════════════════════════════════════ */
+/* Chart card */
 .chart-card {
     background: #fff;
     border: 0.5px solid #e5e7eb;
@@ -298,6 +298,7 @@
     cursor: pointer;
     transition: box-shadow 0.15s;
     position: relative;
+    min-height: 120px;
 }
 
 .chart-card:hover {
@@ -332,7 +333,7 @@
     line-height: 1.5;
 }
 
-/* ══ Badges ════════════════════════════════════════════════════════════════ */
+/* Badges */
 .chart-badge {
     font-size: 11px;
     font-weight: 500;
@@ -363,7 +364,7 @@
     border-color: #fcd34d;
 }
 
-/* ══ Chart hint ════════════════════════════════════════════════════════════ */
+/* Chart hint */
 .chart-card-hint {
     display: flex;
     align-items: center;
@@ -378,7 +379,7 @@
     height: 11px;
 }
 
-/* ══ Tabla resumen ══════════════════════════════════════════════════════════ */
+/* Tabla resumen */
 .table-wrap {
     overflow-x: auto;
     margin-top: 8px;
@@ -452,7 +453,7 @@
     color: #791F1F;
 }
 
-/* ══ Modal ══════════════════════════════════════════════════════════════════ */
+/* Modal */
 .chart-modal-overlay {
     position: fixed;
     inset: 0;
@@ -546,7 +547,7 @@
     padding: 20px;
 }
 
-/* ══ Responsive ════════════════════════════════════════════════════════════ */
+/* Responsive */
 @media (max-width: 1024px) {
     .kpi-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
