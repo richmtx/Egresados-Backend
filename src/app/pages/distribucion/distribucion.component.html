@@ -1,1 +1,344 @@
-<app-sidebar></app-sidebar>
+<div class="dist-layout">
+
+    <!-- ══ SIDEBAR ══ -->
+    <app-sidebar></app-sidebar>
+
+    <!-- ══ CONTENIDO PRINCIPAL ══ -->
+    <main class="dist-main">
+
+        <!-- ── Header ── -->
+        <div class="stats-header">
+            <div class="header-left">
+                <h1 class="page-title">Distribución Geográfica</h1>
+                <p class="page-subtitle" *ngIf="datos">
+                    <strong>{{ datos.kpisGeo.con_ciudad_trabajo }}</strong> egresados con ubicación de trabajo
+                    registrada
+                </p>
+                <p class="page-subtitle" *ngIf="!datos && !cargando">Sin datos disponibles</p>
+            </div>
+        </div>
+
+        <!-- ── Filtros ── -->
+        <div class="filtros-bar">
+            <div class="filtro-item">
+                <select class="filtro-select" [(ngModel)]="filtroCarrera" (change)="onFiltroChange()">
+                    <option value="">Todas las carreras</option>
+                    <option *ngFor="let c of carrerasDisponibles" [value]="c">{{ c }}</option>
+                </select>
+            </div>
+            <div class="filtro-item">
+                <select class="filtro-select" [(ngModel)]="filtroAnio" (change)="onFiltroChange()">
+                    <option value="">Todos los años</option>
+                    <option *ngFor="let a of aniosDisponibles" [value]="a">{{ a }}</option>
+                </select>
+            </div>
+            <button class="btn-limpiar" (click)="limpiarFiltros()" *ngIf="filtroCarrera || filtroAnio">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+                Limpiar filtros
+            </button>
+        </div>
+
+        <!-- ── Loading ── -->
+        <div class="loading-state" *ngIf="cargando">
+            <div class="spinner"></div>
+            <p>Cargando distribución geográfica...</p>
+        </div>
+
+        <!-- ── Error ── -->
+        <div class="error-state" *ngIf="error && !cargando">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <p>No se pudo cargar la distribución geográfica.</p>
+            <button class="btn-retry" (click)="cargarDatos()">Reintentar</button>
+        </div>
+
+        <!-- ══ CONTENIDO ══ -->
+        <ng-container *ngIf="datos && !cargando">
+
+            <!-- ── KPI Cards ── -->
+            <div class="kpi-grid">
+
+                <div class="kpi-card kpi-indigo">
+                    <div class="kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                        </svg>
+                    </div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">Total mapeados</span>
+                        <span class="kpi-value">{{ datos.kpisGeo.total_mapeados }}</span>
+                        <span class="kpi-sub">egresados con registro</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-green">
+                    <div class="kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+                            <circle cx="12" cy="9" r="2.5" />
+                        </svg>
+                    </div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">Ciudades de trabajo</span>
+                        <span class="kpi-value">{{ datos.kpisGeo.ciudades_trabajo_distintas }}</span>
+                        <span class="kpi-sub">ciudades únicas registradas</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-amber">
+                    <div class="kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="2" y1="12" x2="22" y2="12" />
+                            <path
+                                d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                        </svg>
+                    </div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">En el extranjero</span>
+                        <span class="kpi-value">{{ datos.kpisGeo.en_extranjero }}</span>
+                        <span class="kpi-sub">{{ getPct(datos.kpisGeo.en_extranjero, datos.kpisGeo.total_mapeados) }}%
+                            del total</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-purple">
+                    <div class="kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polygon points="3,11 22,2 13,21 11,13 3,11" />
+                        </svg>
+                    </div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">Países registrados</span>
+                        <span class="kpi-value">{{ datos.kpisGeo.paises_distintos }}</span>
+                        <span class="kpi-sub">fuera de México</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ══ SECCIÓN: MAPA MÉXICO ══ -->
+            <div class="seccion-label">
+                <span class="seccion-dot dot-indigo"></span>
+                Mapa de distribución — ciudades de trabajo
+            </div>
+
+            <div class="geo-row-map">
+
+                <!-- Mapa México -->
+                <div class="chart-card mapa-card">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Mapa de México</h3>
+                            <p class="chart-sub">Ciudad de trabajo · puntos proporcionales</p>
+                        </div>
+                        <span class="chart-badge">Leaflet</span>
+                    </div>
+                    <div [id]="idMapaMexico" class="mapa-contenedor"></div>
+                    <div class="mapa-leyenda">
+                        <span class="leyenda-punto" style="background:#003366"></span>
+                        <span class="leyenda-texto">Tamaño proporcional al nº de egresados</span>
+                    </div>
+                </div>
+
+                <!-- Top ciudades de trabajo -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Top ciudades de trabajo</h3>
+                            <p class="chart-sub">Nacional · top 10</p>
+                        </div>
+                        <span class="chart-badge">Ranking</span>
+                    </div>
+
+                    <div class="ciudad-lista">
+                        <div class="ciudad-row" *ngFor="let c of datos.topCiudadesTrabajo; let i = index">
+                            <span class="ciudad-rank">{{ i + 1 }}</span>
+                            <span class="ciudad-nombre">{{ getCiudadCorta(c.ciudad_trabajo) }}</span>
+                            <div class="ciudad-bar-wrap">
+                                <div class="ciudad-bar" [style.width]="getBarWidth(c.total, getMaxCiudad())"
+                                    [class.bar-extranjero]="getPais(c.ciudad_trabajo) !== 'México'">
+                                </div>
+                            </div>
+                            <span class="ciudad-count">{{ c.total }}</span>
+                            <span class="ciudad-pais-badge" *ngIf="getPais(c.ciudad_trabajo) !== 'México'"
+                                title="{{ getPais(c.ciudad_trabajo) }}">
+                                Int.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ══ SECCIÓN: INTERNACIONAL ══ -->
+            <div class="seccion-label">
+                <span class="seccion-dot dot-purple"></span>
+                Egresados en el extranjero
+            </div>
+
+            <div class="geo-row-intl">
+
+                <!-- Lista de países -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Por país</h3>
+                            <p class="chart-sub">{{ datos.kpisGeo.en_extranjero }} egresados fuera de México</p>
+                        </div>
+                        <span class="chart-badge badge-special">Internacional</span>
+                    </div>
+
+                    <div *ngIf="datos.extranjerosPorPais.length === 0" class="empty-geo">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="2" y1="12" x2="22" y2="12" />
+                            <path
+                                d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                        </svg>
+                        <p>Sin egresados en el extranjero</p>
+                    </div>
+
+                    <div class="pais-lista" *ngIf="datos.extranjerosPorPais.length > 0">
+                        <div class="pais-row" *ngFor="let p of datos.extranjerosPorPais; let i = index">
+                            <span class="pais-rank">{{ i + 1 }}</span>
+                            <span class="pais-nombre">{{ p.pais }}</span>
+                            <div class="ciudad-bar-wrap">
+                                <div class="ciudad-bar bar-extranjero"
+                                    [style.width]="getBarWidth(p.total, datos.extranjerosPorPais[0].total)">
+                                </div>
+                            </div>
+                            <span class="ciudad-count">{{ p.total }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mapa Mundial -->
+                <div class="chart-card mapa-card">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Mapa mundial</h3>
+                            <p class="chart-sub">Puntos por ciudad · extranjero</p>
+                        </div>
+                        <span class="chart-badge">Leaflet</span>
+                    </div>
+
+                    <div *ngIf="datos.extranjerosDetalle.length === 0" class="empty-geo">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="2" y1="12" x2="22" y2="12" />
+                            <path
+                                d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                        </svg>
+                        <p>Sin registros fuera de México</p>
+                    </div>
+
+                    <div [id]="idMapaMundial" class="mapa-contenedor" *ngIf="datos.extranjerosDetalle.length > 0"></div>
+
+                    <div class="mapa-leyenda" *ngIf="datos.extranjerosDetalle.length > 0">
+                        <span class="leyenda-punto" style="background:#7c3aed"></span>
+                        <span class="leyenda-texto">Tamaño proporcional al nº de egresados</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ══ SECCIÓN: MOVILIDAD ══ -->
+            <div class="seccion-label">
+                <span class="seccion-dot dot-green"></span>
+                Movilidad — egresados fuera de Durango
+            </div>
+
+            <div class="geo-row-movilidad">
+
+                <!-- Movilidad por año de egreso -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Por año de egreso</h3>
+                            <p class="chart-sub">% fuera de Durango · por generación</p>
+                        </div>
+                        <span class="chart-badge">Barras</span>
+                    </div>
+
+                    <div class="anio-lista">
+                        <div class="anio-row" *ngFor="let a of datos.movilidadPorAnio">
+                            <span class="anio-label">{{ a.anio_egreso }}</span>
+                            <div class="anio-bars">
+                                <div class="anio-bar-wrap" title="Fuera de Durango: {{ a.pct_fuera_durango }}%">
+                                    <div class="anio-bar bar-nacional" [style.width]="a.pct_fuera_durango + '%'">
+                                    </div>
+                                </div>
+                                <div class="anio-bar-wrap anio-bar-wrap-sm"
+                                    title="En extranjero: {{ a.pct_extranjero }}%">
+                                    <div class="anio-bar bar-extranjero-sm" [style.width]="a.pct_extranjero + '%'">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="anio-pcts">
+                                <span class="anio-pct">{{ a.pct_fuera_durango }}%</span>
+                                <span class="anio-pct-sm">{{ a.pct_extranjero }}% ext.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Leyenda -->
+                    <div class="movilidad-leyenda">
+                        <span class="ley-item">
+                            <span class="ley-dot" style="background:#003366"></span>
+                            Fuera de Durango
+                        </span>
+                        <span class="ley-item">
+                            <span class="ley-dot" style="background:#7c3aed"></span>
+                            En el extranjero
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Movilidad por carrera -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Por carrera</h3>
+                            <p class="chart-sub">% fuera de Durango · por programa</p>
+                        </div>
+                        <span class="chart-badge">Barras</span>
+                    </div>
+
+                    <div class="carrera-lista">
+                        <div class="carrera-row" *ngFor="let c of datos.movilidadPorCarrera">
+                            <div class="carrera-header-row">
+                                <span class="carrera-nombre">{{ c.nombre_carrera }}</span>
+                                <span class="carrera-pct">{{ c.pct_fuera_durango }}%</span>
+                            </div>
+                            <div class="carrera-bar-wrap">
+                                <div class="carrera-bar" [style.width]="c.pct_fuera_durango + '%'" [style.background]="c.pct_fuera_durango >= 60 ? '#003366' :
+                                         c.pct_fuera_durango >= 40 ? '#3b82f6' :
+                                         c.pct_fuera_durango >= 20 ? '#93c5fd' : '#dbeafe'">
+                                </div>
+                            </div>
+                            <span class="carrera-total">{{ c.fuera_durango }} de {{ c.total }} egresados</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </ng-container>
+        <!-- fin ng-container datos -->
+
+    </main>
+</div>
