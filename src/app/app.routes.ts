@@ -8,6 +8,7 @@ import { EmpleabilidadComponent } from './pages/empleabilidad/empleabilidad.comp
 import { DistribucionComponent } from './pages/distribucion/distribucion.component';
 import { TitulacionComponent } from './pages/titulacion/titulacion.component';
 import { NotificacionesComponent } from './pages/notificaciones/notificaciones.component';
+import { VinculacionComponent } from './pages/vinculacion/vinculacion.component';
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -19,4 +20,5 @@ export const routes: Routes = [
   { path: 'distribucion', component: DistribucionComponent},
   { path: 'titulacion', component: TitulacionComponent},
   { path: 'notificaciones', component: NotificacionesComponent},
+  { path: 'vinculacion', component: VinculacionComponent},
 ];
