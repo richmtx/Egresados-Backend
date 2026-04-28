@@ -7,7 +7,10 @@
         <div class="page-header">
             <div class="header-left">
                 <h1 class="page-title">Vinculación</h1>
-                <p class="page-subtitle">Relación del egresado con el ITD después de egresar</p>
+                <p class="page-subtitle" *ngIf="totalEgresados !== null">
+                    Análisis de <strong>{{ totalEgresados }}</strong> egresados registrados
+                </p>
+                <p class="page-subtitle" *ngIf="totalEgresados === null && !cargando">Sin datos disponibles</p>
             </div>
         </div>
 

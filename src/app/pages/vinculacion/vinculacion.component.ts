@@ -6,6 +6,7 @@ import {
   VinculacionService,
   EgresadoContacto,
 } from './vinculacion.service';
+import { EstadisticasService } from '../estadisticas/estadisticas.service';
 
 interface ColaboracionRow {
   descripcion: string;
@@ -27,7 +28,6 @@ interface PanelDetalle {
   egresados: EgresadoContacto[];
   cargando: boolean;
   error: string | null;
-  // Cuando los egresados tienen "Otro", mostramos también su descripción libre
   mostrarDescripcionOtro: boolean;
 }
 
@@ -39,7 +39,6 @@ export const SAT_COLORES: Record<number, string> = {
   5: '#22c55e',
 };
 
-// Clave interna que usa el backend para identificar el registro "Otro"
 const OTRO_KEY = '__otro__';
 
 @Component({
@@ -84,7 +83,10 @@ export class VinculacionComponent implements OnInit {
     return Math.round(this.satisfaccionProm);
   }
 
-  constructor(private vinculacionSvc: VinculacionService) { }
+  constructor(
+    private vinculacionSvc: VinculacionService,
+    private estadisticasSvc: EstadisticasService,
+  ) { }
 
   ngOnInit(): void {
     this.cargarTodo();
@@ -98,19 +100,22 @@ export class VinculacionComponent implements OnInit {
       stats: this.vinculacionSvc.getEstadisticas(),
       colaborTots: this.vinculacionSvc.getTotalesColaboraciones(),
       habTots: this.vinculacionSvc.getTotalesHabilidades(),
-      distSat: this.vinculacionSvc.getDistribucionSatisfaccion(), // ← nuevo
+      distSat: this.vinculacionSvc.getDistribucionSatisfaccion(),
+      totalEg: this.estadisticasSvc.getEstadisticas(),
     }).subscribe({
-      next: ({ stats, colaborTots, habTots, distSat }) => {
+      next: ({ stats, colaborTots, habTots, distSat, totalEg }) => {
 
-        // ── KPIs ─────────────────────────────────────────────────────────
+        // Total de egresados desde el endpoint de Estadísticas
+        this.totalEgresados = +totalEg.kpis.total_egresados || 0;
+
+        // KPIs de vinculación
         const kpis = stats.kpis;
-        this.totalEgresados = +kpis.total_egresados || 0;
         this.satisfaccionProm = +kpis.satisfaccion_promedio || 0;
 
         const autContacto = +kpis.autorizo_contacto || 0;
         const autEventos = +kpis.autorizo_eventos || 0;
 
-        // ── Autorizaciones ────────────────────────────────────────────────
+        // Autorizaciones
         const totalEst = (stats.participacionCarrera as any[])
           .reduce((acc: number, r: any) => acc + (+r.autorizo_contacto || 0), 0);
 
@@ -121,15 +126,18 @@ export class VinculacionComponent implements OnInit {
         this.autorizaciones[2].total = autEventos;
         this.autorizaciones[2].porcentaje = this.pct(autEventos, this.totalEgresados);
 
-        // ── Satisfacción ──────────────────────────────────────────────────
-        this.distribucionSatisfaccion = [5, 4, 3, 2, 1].map((n) => ({
-          nivel: n,
-          pct: this.pctSatisfaccion(n, this.satisfaccionProm),
-        }));
+        // Distribución REAL de satisfacción
+        const totalConRespuesta = distSat.reduce((s, r) => s + (+r.total || 0), 0);
+        this.distribucionSatisfaccion = [5, 4, 3, 2, 1].map((n) => {
+          const fila = distSat.find(r => +r.nivel === n);
+          const count = fila ? +fila.total : 0;
+          return {
+            nivel: n,
+            pct: totalConRespuesta > 0 ? Math.round((count / totalConRespuesta) * 100) : 0,
+          };
+        });
 
-        // ── Colaboraciones ────────────────────────────────────────────────
-        // Separamos: registro "Otro" (__otro__), el de "no puede participar"
-        // y el resto. Orden: resto por total desc → no puede → Otro.
+        // Colaboraciones
         const otroColab = colaborTots.find(c => c.descripcion === OTRO_KEY);
         const noParticipa = colaborTots.find(
           c => c.descripcion !== OTRO_KEY &&
@@ -154,19 +162,7 @@ export class VinculacionComponent implements OnInit {
           esOtro: c.descripcion === OTRO_KEY,
         }));
 
-        // ── Distribución REAL de satisfacción ─────────────────────────
-        const totalConRespuesta = distSat.reduce((s, r) => s + (+r.total || 0), 0);
-        this.distribucionSatisfaccion = [5, 4, 3, 2, 1].map((n) => {
-          const fila = distSat.find(r => +r.nivel === n);
-          const count = fila ? +fila.total : 0;
-          return {
-            nivel: n,
-            pct: totalConRespuesta > 0 ? Math.round((count / totalConRespuesta) * 100) : 0,
-          };
-        });
-
-        // ── Habilidades ───────────────────────────────────────────────────
-        // Separamos "Otro" (__otro__) y el resto, ordenado por total desc.
+        // Habilidades
         const otroHab = habTots.find(h => h.habilidad === OTRO_KEY);
         const restoHab = habTots.filter(h => h.habilidad !== OTRO_KEY);
 
@@ -192,7 +188,7 @@ export class VinculacionComponent implements OnInit {
     });
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  // Helpers
   pct(valor: number, total: number): number {
     if (!total) return 0;
     return Math.round((valor / total) * 100);
@@ -235,7 +231,7 @@ export class VinculacionComponent implements OnInit {
     return genero === 'Femenino' ? 'avatar-f' : 'avatar-m';
   }
 
-  // ── Abrir panel: colaboración ─────────────────────────────────────────────
+  // Abrir panel: colaboración
   abrirColaboracion(row: ColaboracionRow): void {
     const key = 'colab:' + row.descripcion;
     if (this.filaActiva === key) { this.cerrarPanel(); return; }
@@ -272,7 +268,7 @@ export class VinculacionComponent implements OnInit {
     }
   }
 
-  // ── Abrir panel: habilidad ────────────────────────────────────────────────
+  // Abrir panel: habilidad
   abrirHabilidad(row: HabilidadRow): void {
     const key = 'hab:' + row.habilidad;
     if (this.filaActiva === key) { this.cerrarPanel(); return; }
@@ -309,7 +305,7 @@ export class VinculacionComponent implements OnInit {
     }
   }
 
-  // ── Abrir panel: autorización ─────────────────────────────────────────────
+  // Abrir panel: autorización
   abrirAutorizacion(auth: typeof this.autorizaciones[0]): void {
     const key = 'auth:' + auth.tipo;
     if (this.filaActiva === key) { this.cerrarPanel(); return; }
@@ -351,6 +347,5 @@ export class VinculacionComponent implements OnInit {
   }
 
   exportarPDF(): void {
-    // Pendiente de implementar
   }
 }
