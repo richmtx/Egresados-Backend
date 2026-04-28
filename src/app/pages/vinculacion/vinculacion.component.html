@@ -1,1 +1,307 @@
-<app-sidebar></app-sidebar>>
+<div class="page-layout">
+    <app-sidebar></app-sidebar>
+
+    <main class="main-content">
+
+        <!-- HEADER -->
+        <div class="page-header">
+            <div class="header-left">
+                <h1 class="page-title">Vinculación</h1>
+                <p class="page-subtitle">Relación del egresado con el ITD después de egresar</p>
+            </div>
+        </div>
+
+        <!-- ESTADO: CARGANDO -->
+        <div class="state-box" *ngIf="cargando">
+            <div class="spinner"></div>
+            <p>Cargando datos de vinculación...</p>
+        </div>
+
+        <!-- ESTADO: ERROR -->
+        <div class="state-box state-error" *ngIf="error && !cargando">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 8v4M12 16h.01" />
+            </svg>
+            <p>{{ error }}</p>
+        </div>
+
+        <ng-container *ngIf="!cargando && !error">
+
+            <!-- KPIs -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <span class="metric-label">Total egresados</span>
+                    <span class="metric-value">{{ totalEgresados }}</span>
+                    <span class="metric-sub">registros activos</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Satisfacción promedio</span>
+                    <span class="metric-value">
+                        {{ satisfaccionProm | number:'1.1-1' }}
+                        <span class="metric-unit">/ 5</span>
+                    </span>
+                    <span class="metric-sub">formación académica</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Autorizaron contacto</span>
+                    <span class="metric-value">{{ autorizaciones[1].total }}</span>
+                    <span class="metric-sub">para oportunidades laborales</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Autorizaron eventos</span>
+                    <span class="metric-value">{{ autorizaciones[2].total }}</span>
+                    <span class="metric-sub">actividades institucionales</span>
+                </div>
+            </div>
+
+            <!-- FILA PRINCIPAL: misma altura con stretch -->
+            <div class="two-col-layout">
+
+                <!-- COL IZQUIERDA: Colaboraciones -->
+                <div class="section-card col-stretch">
+                    <p class="section-title">Interés en colaborar</p>
+                    <p class="section-hint">Clic en una opción para ver los egresados</p>
+
+                    <div class="colabs-list">
+                        <div *ngFor="let c of colaboraciones" class="bar-row"
+                            [class.bar-row--active]="esFilaActiva('colab:' + c.descripcion)"
+                            [class.bar-row--final]="c.esFinal" (click)="abrirColaboracion(c)">
+
+                            <div class="bar-meta">
+                                <span class="bar-label" [title]="c.descripcion">{{ labelCorto(c.descripcion) }}</span>
+                                <span class="bar-count">{{ c.total > 0 ? c.total + ' egresados' : '—' }}</span>
+                            </div>
+
+                            <div class="bar-track-wrap">
+                                <div class="bar-track">
+                                    <!-- Barra visible mínima aunque sea 0% -->
+                                    <div class="bar-fill" [class.bar-fill--gray]="c.esFinal"
+                                        [style.width]="c.porcentaje > 0 ? c.porcentaje + '%' : '3px'">
+                                    </div>
+                                </div>
+                                <span class="bar-pct">{{ c.porcentaje }}%</span>
+                                <svg class="chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor"
+                                    stroke-width="1.5" stroke-linecap="round">
+                                    <path d="M4 2l4 4-4 4" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COL DERECHA -->
+                <div class="right-col">
+
+                    <!-- Satisfacción -->
+                    <div class="section-card">
+                        <p class="section-title">Satisfacción con la formación — ITD</p>
+
+                        <!-- Escala con colores -->
+                        <div class="rating-scale">
+                            <div *ngFor="let n of [1,2,3,4,5]" class="rating-box"
+                                [class.rating-box--active]="n === roundedSatisfaccion"
+                                [style.--sat-color]="getSatColor(n)">
+                                {{ n }}
+                            </div>
+                        </div>
+                        <div class="rating-legend">
+                            <span>Muy insatisfecho</span>
+                            <span>Muy satisfecho</span>
+                        </div>
+
+                        <div class="satisfaccion-promedio">
+                            <span class="satisfaccion-num" [style.color]="getSatColor(roundedSatisfaccion)">
+                                {{ satisfaccionProm | number:'1.1-1' }}
+                            </span>
+                            <span class="satisfaccion-sub">promedio general</span>
+                        </div>
+
+                        <!-- Barras de distribución con color por nivel -->
+                        <div class="sat-bars">
+                            <div *ngFor="let n of [5,4,3,2,1]" class="sat-bar-row">
+                                <span class="sat-nivel">{{ n }}</span>
+                                <div class="bar-track">
+                                    <div class="sat-fill"
+                                        [style.width]="getFilaPct(n) > 0 ? getFilaPct(n) + '%' : '3px'"
+                                        [style.background]="getSatColor(n)">
+                                    </div>
+                                </div>
+                                <span class="bar-pct sat-pct-val">{{ getFilaPct(n) }}%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Autorizaciones — card completa sin overflow -->
+                    <div class="section-card auth-card">
+                        <p class="section-title">Autorización de datos</p>
+                        <p class="section-hint">Clic para ver los egresados autorizados</p>
+
+                        <div class="auth-list">
+                            <div *ngFor="let a of autorizaciones" class="auth-row"
+                                [class.auth-row--active]="esFilaActiva('auth:' + a.tipo)"
+                                (click)="abrirAutorizacion(a)">
+
+                                <div class="auth-icon" [ngClass]="'auth-icon--' + a.tipo">
+
+                                    <!-- Estadísticas: gráfica de barras -->
+                                    <svg *ngIf="a.tipo === 'estadisticas'" viewBox="0 0 16 16" fill="none">
+                                        <rect x="1" y="9" width="3" height="5" rx="0.5" stroke="currentColor"
+                                            stroke-width="1.3" />
+                                        <rect x="6" y="5" width="3" height="9" rx="0.5" stroke="currentColor"
+                                            stroke-width="1.3" />
+                                        <rect x="11" y="2" width="3" height="12" rx="0.5" stroke="currentColor"
+                                            stroke-width="1.3" />
+                                    </svg>
+
+                                    <!-- Contacto laboral: maletín -->
+                                    <svg *ngIf="a.tipo === 'contacto'" viewBox="0 0 16 16" fill="none">
+                                        <rect x="1.5" y="5.5" width="13" height="9" rx="1.5" stroke="currentColor"
+                                            stroke-width="1.3" />
+                                        <path d="M5.5 5.5V4a2 2 0 014 0v1.5" stroke="currentColor" stroke-width="1.3"
+                                            stroke-linecap="round" />
+                                        <path d="M1.5 9.5h13" stroke="currentColor" stroke-width="1.3" />
+                                        <path d="M7 9.5v1M9 9.5v1" stroke="currentColor" stroke-width="1.3"
+                                            stroke-linecap="round" />
+                                    </svg>
+
+                                    <!-- Eventos institucionales: diploma/estrella académica -->
+                                    <svg *ngIf="a.tipo === 'eventos'" viewBox="0 0 16 16" fill="none">
+                                        <circle cx="8" cy="6.5" r="4" stroke="currentColor" stroke-width="1.3" />
+                                        <path d="M8 3.5l.9 1.8 2 .3-1.45 1.4.34 2L8 8.1l-1.79.9.34-2L5.1 5.6l2-.3z"
+                                            stroke="currentColor" stroke-width="1.1" stroke-linejoin="round" />
+                                        <path d="M5.5 10l-1.5 4.5M10.5 10l1.5 4.5" stroke="currentColor"
+                                            stroke-width="1.3" stroke-linecap="round" />
+                                    </svg>
+
+                                </div>
+
+                                <span class="auth-label">{{ a.label }}</span>
+                                <span class="auth-count">{{ a.total }}</span>
+                                <span class="auth-pct">{{ a.porcentaje }}%</span>
+                                <svg class="chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor"
+                                    stroke-width="1.5" stroke-linecap="round">
+                                    <path d="M4 2l4 4-4 4" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- HABILIDADES A REFORZAR -->
+            <div class="section-card">
+                <p class="section-title">Habilidades a reforzar</p>
+                <p class="section-hint">Clic en una habilidad para ver los egresados que la señalaron</p>
+
+                <div class="habilidades-grid">
+                    <div *ngFor="let h of habilidades" class="bar-row"
+                        [class.bar-row--active]="esFilaActiva('hab:' + h.habilidad)" (click)="abrirHabilidad(h)">
+
+                        <div class="bar-meta">
+                            <span class="bar-label" [title]="h.habilidad">{{ labelCorto(h.habilidad) }}</span>
+                            <span class="bar-count">{{ h.total > 0 ? h.total + ' egresados' : '—' }}</span>
+                        </div>
+
+                        <div class="bar-track-wrap">
+                            <div class="bar-track">
+                                <div class="bar-fill bar-fill--coral"
+                                    [style.width]="h.porcentaje > 0 ? h.porcentaje + '%' : '3px'">
+                                </div>
+                            </div>
+                            <span class="bar-pct">{{ h.porcentaje }}%</span>
+                            <svg class="chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round">
+                                <path d="M4 2l4 4-4 4" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </ng-container>
+    </main>
+
+    <!-- OVERLAY -->
+    <div class="panel-overlay" *ngIf="panelVisible" (click)="cerrarPanel()"></div>
+
+    <!-- PANEL LATERAL -->
+    <div class="panel-drawer" [class.panel-drawer--open]="panelVisible">
+
+        <div class="panel-loading" *ngIf="panel.cargando">
+            <div class="spinner"></div>
+            <p>Cargando egresados...</p>
+        </div>
+
+        <ng-container *ngIf="!panel.cargando">
+
+            <!-- Header -->
+            <div class="panel-head">
+                <div class="panel-head-top">
+                    <span class="panel-label">Egresados relacionados</span>
+                    <button class="drawer-close" (click)="cerrarPanel()">
+                        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"
+                            stroke-linecap="round">
+                            <path d="M1 1l10 10M11 1L1 11" />
+                        </svg>
+                    </button>
+                </div>
+                <p class="panel-titulo">{{ panel.titulo }}</p>
+                <p class="panel-count">{{ panel.egresados.length }} egresado{{ panel.egresados.length !== 1 ? 's' : ''
+                    }}</p>
+            </div>
+
+            <!-- Error -->
+            <div class="state-box state-error" *ngIf="panel.error">
+                <p>{{ panel.error }}</p>
+            </div>
+
+            <!-- Lista -->
+            <div class="panel-body" *ngIf="!panel.error">
+
+                <div *ngIf="panel.egresados.length === 0" class="panel-empty">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="M21 21l-4.35-4.35" />
+                    </svg>
+                    <p>Sin egresados para esta opción</p>
+                </div>
+
+                <div *ngFor="let e of panel.egresados" class="panel-egresado">
+                    <div class="avatar avatar-sm" [ngClass]="getAvatarClass(e.genero)">
+                        {{ getIniciales(e.nombre_completo) }}
+                    </div>
+                    <div class="panel-eg-info">
+                        <span class="panel-eg-nombre">{{ e.nombre_completo }}</span>
+                        <span class="panel-eg-carrera">{{ e.nombre_carrera }}</span>
+                        <!-- Descripción libre solo en panel de "Otro" -->
+                        <span class="panel-eg-otro" *ngIf="panel.mostrarDescripcionOtro && e.descripcion_otro">
+                            "{{ e.descripcion_otro }}"
+                        </span>
+                        <span class="panel-eg-contacto">
+                            <a [href]="'mailto:' + e.correo">{{ e.correo }}</a>
+                            <span class="sep">·</span>
+                            {{ e.telefono || '—' }}
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer: botón exportar PDF -->
+            <div class="panel-foot">
+                <button class="btn-pdf" (click)="exportarPDF()">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round">
+                        <path d="M3 12v2a1 1 0 001 1h8a1 1 0 001-1v-2M8 2v9M5 8l3 3 3-3" />
+                    </svg>
+                    Exportar PDF
+                </button>
+            </div>
+
+        </ng-container>
+    </div>
+
+</div>
