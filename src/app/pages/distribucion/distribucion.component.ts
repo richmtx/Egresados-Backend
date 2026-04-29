@@ -336,4 +336,6 @@ export class DistribucionComponent implements OnInit, OnDestroy, AfterViewInit {
       this.mapaMundial = null;
     }
   }
+
+  exportarPDF(): void { window.print(); }
 }

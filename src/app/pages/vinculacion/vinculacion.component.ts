@@ -346,6 +346,5 @@ export class VinculacionComponent implements OnInit {
     return this.filaActiva === key;
   }
 
-  exportarPDF(): void {
-  }
+  exportarPDF(): void { window.print(); }
 }

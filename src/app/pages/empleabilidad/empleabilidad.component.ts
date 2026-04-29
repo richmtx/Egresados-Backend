@@ -51,6 +51,8 @@ export class EmpleabilidadComponent implements OnInit {
     this.cargarEstadisticas();
   }
 
+  exportarPDF(): void { window.print(); }
+
   cargarEstadisticas(): void {
     this.cargando = true;
     this.error = false;

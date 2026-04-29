@@ -55,6 +55,34 @@
     font-weight: 600;
 }
 
+.btn-export {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: #003366;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.btn-export:hover {
+    background: #00254d;
+}
+
+.btn-export svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+
 /* ── Filtros ── */
 .filtros-bar {
     background: #fff;

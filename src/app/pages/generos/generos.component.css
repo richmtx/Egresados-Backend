@@ -207,30 +207,6 @@
     height: 3px;
 }
 
-.kpi-blue::before {
-    background: #3b82f6;
-}
-
-.kpi-rose::before {
-    background: #f43f5e;
-}
-
-.kpi-indigo::before {
-    background: #6366f1;
-}
-
-.kpi-pink::before {
-    background: #ec4899;
-}
-
-.kpi-cyan::before {
-    background: #06b6d4;
-}
-
-.kpi-green::before {
-    background: #10b981;
-}
-
 .kpi-card-inner {
     display: flex;
     align-items: flex-start;
