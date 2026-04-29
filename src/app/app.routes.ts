@@ -9,6 +9,7 @@ import { DistribucionComponent } from './pages/distribucion/distribucion.compone
 import { TitulacionComponent } from './pages/titulacion/titulacion.component';
 import { NotificacionesComponent } from './pages/notificaciones/notificaciones.component';
 import { VinculacionComponent } from './pages/vinculacion/vinculacion.component';
+import { GenerosComponent } from './pages/generos/generos.component';
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -21,4 +22,5 @@ export const routes: Routes = [
   { path: 'titulacion', component: TitulacionComponent},
   { path: 'notificaciones', component: NotificacionesComponent},
   { path: 'vinculacion', component: VinculacionComponent},
+  { path: 'generos', component: GenerosComponent},
 ];

@@ -1,0 +1,849 @@
+<div class="stats-layout">
+
+    <!-- ══ SIDEBAR ══ -->
+    <app-sidebar></app-sidebar>
+
+    <!-- ══ CONTENIDO PRINCIPAL ══ -->
+    <main class="stats-main">
+
+        <!-- ── Header ── -->
+        <div class="stats-header">
+            <div class="header-left">
+                <h1 class="page-title">Análisis de Género</h1>
+                <p class="page-subtitle" *ngIf="datos">
+                    Comparativa de <strong>{{ totalEgresados }}</strong> egresados por género
+                </p>
+                <p class="page-subtitle" *ngIf="!datos && !cargando">Sin datos disponibles</p>
+            </div>
+            <button class="btn-export" (click)="exportarPDF()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7,10 12,15 17,10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Exportar
+            </button>
+        </div>
+
+        <!-- ── Filtros ── -->
+        <div class="filtros-bar">
+            <select class="filtro-select" [(ngModel)]="filtroCarrera" (change)="onFiltroChange()">
+                <option value="">Todas las carreras</option>
+                <option *ngFor="let c of carrerasDisponibles" [value]="c">{{ c }}</option>
+            </select>
+            <select class="filtro-select" [(ngModel)]="filtroAnio" (change)="onFiltroChange()">
+                <option value="">Todos los años</option>
+                <option *ngFor="let a of aniosDisponibles" [value]="a">{{ a }}</option>
+            </select>
+            <button class="btn-limpiar" (click)="limpiarFiltros()" *ngIf="filtroCarrera || filtroAnio">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+                Limpiar filtros
+            </button>
+        </div>
+
+        <!-- ── Loading ── -->
+        <div class="loading-state" *ngIf="cargando">
+            <div class="spinner"></div>
+            <p>Cargando análisis de género...</p>
+        </div>
+
+        <!-- ── Error ── -->
+        <div class="error-state" *ngIf="error && !cargando">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <p>No se pudo cargar el análisis de género.</p>
+            <button class="btn-retry" (click)="cargarDatos()">Reintentar</button>
+        </div>
+
+        <!-- ══ CONTENIDO ══ -->
+        <ng-container *ngIf="datos && !cargando">
+
+            <!-- ── KPI Cards ── -->
+            <div class="kpi-grid-genero">
+
+                <!-- Total hombres -->
+                <div class="kpi-card kpi-blue">
+                    <div class="kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="7" r="4" />
+                            <path d="M5.5 21a8.38 8.38 0 0 1 13 0" />
+                        </svg>
+                    </div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">Hombres</span>
+                        <span class="kpi-value">{{ totalHombres }}</span>
+                        <span class="kpi-sub">{{ pctHombres }}% del total</span>
+                    </div>
+                    <div class="kpi-gender-bar">
+                        <div class="gender-bar-fill bar-blue" [style.width]="pctHombres + '%'"></div>
+                    </div>
+                </div>
+
+                <!-- Total mujeres -->
+                <div class="kpi-card kpi-rose">
+                    <div class="kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="8" r="4" />
+                            <path d="M12 12v9M9 18h6" />
+                        </svg>
+                    </div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">Mujeres</span>
+                        <span class="kpi-value">{{ totalMujeres }}</span>
+                        <span class="kpi-sub">{{ pctMujeres }}% del total</span>
+                    </div>
+                    <div class="kpi-gender-bar">
+                        <div class="gender-bar-fill bar-rose" [style.width]="pctMujeres + '%'"></div>
+                    </div>
+                </div>
+
+                <!-- Ratio global -->
+                <div class="kpi-card kpi-indigo">
+                    <div class="kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                        </svg>
+                    </div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">Ratio global H/M</span>
+                        <span class="kpi-value">{{ ratioHM }}</span>
+                        <span class="kpi-sub">hombres por cada mujer</span>
+                    </div>
+                </div>
+
+                <!-- Carrera más femenina -->
+                <div class="kpi-card kpi-pink">
+                    <div class="kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polygon
+                                points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26 12,2" />
+                        </svg>
+                    </div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">Mayor proporción femenina</span>
+                        <span class="kpi-value kpi-value-sm">{{ carreraMasFemenina?.nombre }}</span>
+                        <span class="kpi-sub">{{ carreraMasFemenina?.pct }}% mujeres</span>
+                    </div>
+                </div>
+
+                <!-- Carrera más masculina -->
+                <div class="kpi-card kpi-cyan">
+                    <div class="kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polygon
+                                points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26 12,2" />
+                        </svg>
+                    </div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">Mayor proporción masculina</span>
+                        <span class="kpi-value kpi-value-sm">{{ carreraMasMasculina?.nombre }}</span>
+                        <span class="kpi-sub">{{ carreraMasMasculina?.pct }}% hombres</span>
+                    </div>
+                </div>
+
+                <!-- Distribución visual H/M -->
+                <div class="kpi-card kpi-green">
+                    <div class="kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="2" y="7" width="4" height="14" rx="1" />
+                            <rect x="9" y="3" width="4" height="18" rx="1" />
+                            <rect x="16" y="10" width="4" height="11" rx="1" />
+                        </svg>
+                    </div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">Distribución total</span>
+                        <div class="dist-bar-wrap">
+                            <div class="dist-bar">
+                                <div class="dist-fill dist-blue" [style.width]="pctHombres + '%'"></div>
+                                <div class="dist-fill dist-rose" [style.width]="pctMujeres + '%'"></div>
+                            </div>
+                        </div>
+                        <span class="kpi-sub">{{ pctHombres }}% H · {{ pctMujeres }}% M</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ══════════════════════════════════════════════════════
+           SECCIÓN 1: EGRESO POR AÑO
+      ══════════════════════════════════════════════════════ -->
+            <div class="seccion-label">
+                <span class="seccion-dot dot-blue"></span>
+                Egreso por año
+            </div>
+
+            <div class="charts-row row-2">
+
+                <!-- Barras agrupadas H/M por año -->
+                <div class="chart-card"
+                    (click)="abrirModal('bar', 'Egreso por Año', 'Hombres vs mujeres por generación', chartEgresoAnio)">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Egresados por año</h3>
+                            <p class="chart-sub">Hombres vs mujeres por generación</p>
+                        </div>
+                        <span class="chart-badge">Barras agrupadas</span>
+                    </div>
+                    <apx-chart [series]="chartEgresoAnio.series" [chart]="chartEgresoAnio.chart"
+                        [xaxis]="chartEgresoAnio.xaxis" [colors]="chartEgresoAnio.colors"
+                        [plotOptions]="chartEgresoAnio.plotOptions" [dataLabels]="chartEgresoAnio.dataLabels"
+                        [legend]="chartEgresoAnio.legend" [grid]="chartEgresoAnio.grid">
+                    </apx-chart>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
+                </div>
+
+                <!-- Tendencia % femenina por año -->
+                <div class="chart-card"
+                    (click)="abrirModal('line', 'Tendencia de Género por Año', '% de mujeres y hombres egresados por generación', chartTendenciaGenero)">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Tendencia H/M por año</h3>
+                            <p class="chart-sub">¿Crece la matrícula femenina?</p>
+                        </div>
+                        <span class="chart-badge">Línea</span>
+                    </div>
+                    <apx-chart [series]="chartTendenciaGenero.series" [chart]="chartTendenciaGenero.chart"
+                        [xaxis]="chartTendenciaGenero.xaxis" [yaxis]="chartTendenciaGenero.yaxis"
+                        [colors]="chartTendenciaGenero.colors" [stroke]="chartTendenciaGenero.stroke"
+                        [fill]="chartTendenciaGenero.fill" [markers]="chartTendenciaGenero.markers"
+                        [grid]="chartTendenciaGenero.grid" [tooltip]="chartTendenciaGenero.tooltip">
+                    </apx-chart>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ══════════════════════════════════════════════════════
+           SECCIÓN 2: POR CARRERA
+      ══════════════════════════════════════════════════════ -->
+            <div class="seccion-label">
+                <span class="seccion-dot dot-indigo"></span>
+                Distribución por carrera
+            </div>
+
+            <div class="charts-row row-1-2">
+
+                <!-- Ranking de carreras -->
+                <div class="chart-card no-hover-cursor">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Ranking por feminización</h3>
+                            <p class="chart-sub">De más femenina a más masculina</p>
+                        </div>
+                    </div>
+                    <div class="ranking-list" *ngIf="rankingCarreras.length > 0; else sinRanking">
+                        <div class="ranking-item" *ngFor="let item of rankingCarreras">
+                            <div class="ranking-nombre">{{ item.nombre }}</div>
+                            <div class="ranking-barra-wrap">
+                                <div class="ranking-barra">
+                                    <div class="ranking-fill-rose" [style.width]="item.pctMujeres + '%'"></div>
+                                    <div class="ranking-fill-blue" [style.width]="item.pctHombres + '%'"></div>
+                                </div>
+                            </div>
+                            <div class="ranking-pcts">
+                                <span class="pct-rose">{{ item.pctMujeres }}%M</span>
+                                <span class="pct-blue">{{ item.pctHombres }}%H</span>
+                            </div>
+                            <span class="ranking-badge" [ngClass]="{
+                'badge-f': item.pctMujeres > 55,
+                'badge-m': item.pctHombres > 55,
+                'badge-eq': item.pctMujeres >= 45 && item.pctMujeres <= 55
+              }">
+                                {{ item.pctMujeres > 55 ? '+F' : item.pctHombres > 55 ? '+M' : '≈50' }}
+                            </span>
+                        </div>
+                    </div>
+                    <ng-template #sinRanking>
+                        <div class="empty-geo">
+                            <p>Sin datos de carrera disponibles</p>
+                        </div>
+                    </ng-template>
+                </div>
+
+                <!-- Barras 100% apiladas por carrera -->
+                <div class="chart-card"
+                    (click)="abrirModal('bar', 'Composición por Carrera', 'Proporción H/M en cada carrera', chartComposicionCarrera)">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Composición H/M por carrera</h3>
+                            <p class="chart-sub">Barras 100% apiladas</p>
+                        </div>
+                        <span class="chart-badge">Apiladas</span>
+                    </div>
+                    <apx-chart [series]="chartComposicionCarrera.series" [chart]="chartComposicionCarrera.chart"
+                        [xaxis]="chartComposicionCarrera.xaxis" [yaxis]="chartComposicionCarrera.yaxis"
+                        [colors]="chartComposicionCarrera.colors" [plotOptions]="chartComposicionCarrera.plotOptions"
+                        [dataLabels]="chartComposicionCarrera.dataLabels" [legend]="chartComposicionCarrera.legend"
+                        [grid]="chartComposicionCarrera.grid" [tooltip]="chartComposicionCarrera.tooltip">
+                    </apx-chart>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ══════════════════════════════════════════════════════
+           SECCIÓN 3: EMPLEABILIDAD
+      ══════════════════════════════════════════════════════ -->
+            <div class="seccion-label">
+                <span class="seccion-dot dot-green"></span>
+                Empleabilidad por género
+            </div>
+
+            <div class="charts-row row-3">
+
+                <!-- Tasa de empleo H/M -->
+                <div class="chart-card"
+                    (click)="abrirModal('bar', 'Tasa de Empleo por Género', '% empleados vs desempleados', chartEmpleabilidadGenero)">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Tasa de empleo</h3>
+                            <p class="chart-sub">% empleados por género</p>
+                        </div>
+                        <span class="chart-badge">Barras</span>
+                    </div>
+                    <apx-chart [series]="chartEmpleabilidadGenero.series" [chart]="chartEmpleabilidadGenero.chart"
+                        [xaxis]="chartEmpleabilidadGenero.xaxis" [colors]="chartEmpleabilidadGenero.colors"
+                        [plotOptions]="chartEmpleabilidadGenero.plotOptions"
+                        [dataLabels]="chartEmpleabilidadGenero.dataLabels" [legend]="chartEmpleabilidadGenero.legend"
+                        [grid]="chartEmpleabilidadGenero.grid" [yaxis]="chartEmpleabilidadGenero.yaxis">
+                    </apx-chart>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
+                </div>
+
+                <!-- Sector laboral H/M -->
+                <div class="chart-card"
+                    (click)="abrirModal('bar', 'Sector Laboral por Género', '¿Las mujeres van más al sector público?', chartSectorGenero)">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Sector de trabajo</h3>
+                            <p class="chart-sub">¿Público o privado por género?</p>
+                        </div>
+                        <span class="chart-badge">Apiladas</span>
+                    </div>
+                    <apx-chart [series]="chartSectorGenero.series" [chart]="chartSectorGenero.chart"
+                        [xaxis]="chartSectorGenero.xaxis" [colors]="chartSectorGenero.colors"
+                        [plotOptions]="chartSectorGenero.plotOptions" [dataLabels]="chartSectorGenero.dataLabels"
+                        [legend]="chartSectorGenero.legend" [grid]="chartSectorGenero.grid"
+                        [tooltip]="chartSectorGenero.tooltip">
+                    </apx-chart>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
+                </div>
+
+                <!-- Coincidencia laboral + tiempo empleo -->
+                <div class="chart-card no-hover-cursor">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Coincidencia y tiempo</h3>
+                            <p class="chart-sub">Relación carrera-trabajo y meses en emplearse</p>
+                        </div>
+                    </div>
+
+                    <div class="mini-stats-group">
+                        <p class="mini-stats-label">Trabaja en algo relacionado a su carrera</p>
+                        <div class="mini-stat-row" *ngFor="let item of coincidenciaResumen">
+                            <div class="mini-stat-genero">
+                                <span class="genero-dot"
+                                    [ngClass]="item.genero === 'Hombre' ? 'dot-blue-fill' : 'dot-rose-fill'"></span>
+                                {{ item.genero }}
+                            </div>
+                            <div class="mini-progress">
+                                <div class="mini-progress-fill"
+                                    [ngClass]="item.genero === 'Hombre' ? 'fill-blue' : 'fill-rose'"
+                                    [style.width]="item.pct + '%'">
+                                </div>
+                            </div>
+                            <span class="mini-stat-val">{{ item.pct }}%</span>
+                        </div>
+
+                        <div class="mini-divider"></div>
+
+                        <p class="mini-stats-label">Tiempo promedio en conseguir empleo (años)</p>
+                        <div class="mini-stat-row" *ngFor="let item of tiempoEmpleoResumen">
+                            <div class="mini-stat-genero">
+                                <span class="genero-dot"
+                                    [ngClass]="item.genero === 'Hombre' ? 'dot-blue-fill' : 'dot-rose-fill'"></span>
+                                {{ item.genero }}
+                            </div>
+                            <div class="mini-progress">
+                                <div class="mini-progress-fill"
+                                    [ngClass]="item.genero === 'Hombre' ? 'fill-blue' : 'fill-rose'"
+                                    [style.width]="(item.tiempo / maxTiempoEmpleo * 100) + '%'">
+                                </div>
+                            </div>
+                            <span class="mini-stat-val">{{ item.tiempo }} a.</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ══════════════════════════════════════════════════════
+           SECCIÓN 4: DISTRIBUCIÓN GEOGRÁFICA
+      ══════════════════════════════════════════════════════ -->
+            <div class="seccion-label">
+                <span class="seccion-dot dot-amber"></span>
+                Distribución geográfica por género
+            </div>
+
+            <div class="charts-row row-2">
+
+                <!-- Movilidad H/M (en Durango vs fuera) -->
+                <div class="chart-card no-hover-cursor">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">¿Quién emigra más?</h3>
+                            <p class="chart-sub">En Durango vs fuera de Durango por género</p>
+                        </div>
+                    </div>
+                    <div class="geo-genero-grid" *ngIf="geografiaResumen.length > 0; else sinGeo">
+                        <div class="geo-genero-item" *ngFor="let item of geografiaResumen">
+                            <div class="geo-genero-header">
+                                <span class="genero-dot-lg"
+                                    [ngClass]="item.genero === 'Hombre' ? 'dot-blue-fill' : 'dot-rose-fill'"></span>
+                                <strong>{{ item.genero }}s</strong>
+                            </div>
+                            <div class="geo-stat-row">
+                                <span class="geo-stat-label">En Durango</span>
+                                <div class="mini-progress">
+                                    <div class="mini-progress-fill"
+                                        [ngClass]="item.genero === 'Hombre' ? 'fill-blue' : 'fill-rose'"
+                                        [style.width]="item.pctDurango + '%'">
+                                    </div>
+                                </div>
+                                <span class="geo-stat-val">{{ item.pctDurango }}%</span>
+                            </div>
+                            <div class="geo-stat-row">
+                                <span class="geo-stat-label">Otro estado</span>
+                                <div class="mini-progress">
+                                    <div class="mini-progress-fill fill-gray" [style.width]="item.pctFueraMx + '%'">
+                                    </div>
+                                </div>
+                                <span class="geo-stat-val">{{ item.pctFueraMx }}%</span>
+                            </div>
+                            <div class="geo-stat-row">
+                                <span class="geo-stat-label">Extranjero</span>
+                                <div class="mini-progress">
+                                    <div class="mini-progress-fill fill-amber" [style.width]="item.pctExtranjero + '%'">
+                                    </div>
+                                </div>
+                                <span class="geo-stat-val">{{ item.pctExtranjero }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <ng-template #sinGeo>
+                        <div class="empty-geo">
+                            <p>Sin datos geográficos disponibles</p>
+                        </div>
+                    </ng-template>
+                </div>
+
+                <!-- Top ciudades por género -->
+                <div class="chart-card"
+                    (click)="abrirModal('bar', 'Top Ciudades por Género', 'Ciudades de trabajo más frecuentes', chartCiudadesGenero)">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Top ciudades por género</h3>
+                            <p class="chart-sub">Ciudades de trabajo más frecuentes</p>
+                        </div>
+                        <span class="chart-badge">Barras H</span>
+                    </div>
+                    <apx-chart [series]="chartCiudadesGenero.series" [chart]="chartCiudadesGenero.chart"
+                        [xaxis]="chartCiudadesGenero.xaxis" [yaxis]="chartCiudadesGenero.yaxis"
+                        [colors]="chartCiudadesGenero.colors" [plotOptions]="chartCiudadesGenero.plotOptions"
+                        [dataLabels]="chartCiudadesGenero.dataLabels" [grid]="chartCiudadesGenero.grid"
+                        [legend]="chartCiudadesGenero.legend" [tooltip]="chartCiudadesGenero.tooltip">
+                    </apx-chart>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ══════════════════════════════════════════════════════
+           SECCIÓN 5: TITULACIÓN
+      ══════════════════════════════════════════════════════ -->
+            <div class="seccion-label">
+                <span class="seccion-dot dot-purple"></span>
+                Titulación por género
+            </div>
+
+            <div class="charts-row row-2">
+
+                <!-- % titulados H/M global -->
+                <div class="chart-card"
+                    (click)="abrirModal('bar', 'Titulación por Género', '% titulados hombres vs mujeres', chartTitulacionGenero)">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">% titulados por género</h3>
+                            <p class="chart-sub">Titulado · En trámite · No titulado</p>
+                        </div>
+                        <span class="chart-badge">Barras apiladas</span>
+                    </div>
+                    <apx-chart [series]="chartTitulacionGenero.series" [chart]="chartTitulacionGenero.chart"
+                        [xaxis]="chartTitulacionGenero.xaxis" [yaxis]="chartTitulacionGenero.yaxis"
+                        [colors]="chartTitulacionGenero.colors" [plotOptions]="chartTitulacionGenero.plotOptions"
+                        [dataLabels]="chartTitulacionGenero.dataLabels" [legend]="chartTitulacionGenero.legend"
+                        [grid]="chartTitulacionGenero.grid" [tooltip]="chartTitulacionGenero.tooltip">
+                    </apx-chart>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
+                </div>
+
+                <!-- % titulados H/M por año -->
+                <div class="chart-card"
+                    (click)="abrirModal('line', 'Titulación por Año y Género', 'Evolución del % de titulados por generación', chartTitulacionAnioGenero)">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Titulación por año y género</h3>
+                            <p class="chart-sub">Evolución del % titulados</p>
+                        </div>
+                        <span class="chart-badge">Línea</span>
+                    </div>
+                    <apx-chart [series]="chartTitulacionAnioGenero.series" [chart]="chartTitulacionAnioGenero.chart"
+                        [xaxis]="chartTitulacionAnioGenero.xaxis" [yaxis]="chartTitulacionAnioGenero.yaxis"
+                        [colors]="chartTitulacionAnioGenero.colors" [stroke]="chartTitulacionAnioGenero.stroke"
+                        [fill]="chartTitulacionAnioGenero.fill" [markers]="chartTitulacionAnioGenero.markers"
+                        [grid]="chartTitulacionAnioGenero.grid" [tooltip]="chartTitulacionAnioGenero.tooltip">
+                    </apx-chart>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ══════════════════════════════════════════════════════
+           SECCIÓN 6: POSGRADO
+      ══════════════════════════════════════════════════════ -->
+            <div class="seccion-label">
+                <span class="seccion-dot dot-teal"></span>
+                Posgrado por género
+            </div>
+
+            <div class="charts-row row-2">
+
+                <!-- ¿Quién estudia más posgrado? -->
+                <div class="chart-card no-hover-cursor">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">¿Quién continúa estudiando?</h3>
+                            <p class="chart-sub">Egresados con posgrado por género</p>
+                        </div>
+                    </div>
+                    <div class="posgrado-resumen" *ngIf="posgradoResumen.length > 0; else sinPosgrado">
+                        <div class="posgrado-item" *ngFor="let item of posgradoResumen">
+                            <div class="posgrado-genero-header">
+                                <span class="genero-dot-lg"
+                                    [ngClass]="item.genero === 'Hombre' ? 'dot-blue-fill' : 'dot-rose-fill'"></span>
+                                <span class="posgrado-genero-label">{{ item.genero }}s</span>
+                                <span class="posgrado-total-badge"
+                                    [ngClass]="item.genero === 'Hombre' ? 'badge-blue' : 'badge-rose'">
+                                    {{ item.total }}
+                                </span>
+                            </div>
+                            <div class="posgrado-big-number"
+                                [ngClass]="item.genero === 'Hombre' ? 'num-blue' : 'num-rose'">
+                                {{ item.pct }}%
+                            </div>
+                            <p class="posgrado-sub">del total de {{ item.genero === 'Hombre' ? 'hombres' : 'mujeres' }}
+                            </p>
+                        </div>
+                    </div>
+                    <ng-template #sinPosgrado>
+                        <div class="empty-geo">
+                            <p>Sin datos de posgrado disponibles</p>
+                        </div>
+                    </ng-template>
+                </div>
+
+                <!-- Distribución tipo posgrado H/M -->
+                <div class="chart-card"
+                    (click)="abrirModal('bar', 'Tipo de Posgrado por Género', 'Maestría · Especialidad · Doctorado', chartPosgradoGenero)">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Tipo de posgrado</h3>
+                            <p class="chart-sub">Maestría · Especialidad · Doctorado por género</p>
+                        </div>
+                        <span class="chart-badge">Agrupadas</span>
+                    </div>
+                    <apx-chart [series]="chartPosgradoGenero.series" [chart]="chartPosgradoGenero.chart"
+                        [xaxis]="chartPosgradoGenero.xaxis" [colors]="chartPosgradoGenero.colors"
+                        [plotOptions]="chartPosgradoGenero.plotOptions" [dataLabels]="chartPosgradoGenero.dataLabels"
+                        [legend]="chartPosgradoGenero.legend" [grid]="chartPosgradoGenero.grid">
+                    </apx-chart>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ══════════════════════════════════════════════════════
+           SECCIÓN 7: INGLÉS
+      ══════════════════════════════════════════════════════ -->
+            <div class="seccion-label">
+                <span class="seccion-dot dot-rose"></span>
+                Inglés por género
+            </div>
+
+            <div class="charts-row row-2">
+
+                <!-- Distribución niveles H/M -->
+                <div class="chart-card"
+                    (click)="abrirModal('bar', 'Nivel de Inglés por Género', 'Básico · Intermedio · Avanzado', chartInglesGenero)">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Nivel de inglés por género</h3>
+                            <p class="chart-sub">Distribución básico / intermedio / avanzado</p>
+                        </div>
+                        <span class="chart-badge">Agrupadas</span>
+                    </div>
+                    <apx-chart [series]="chartInglesGenero.series" [chart]="chartInglesGenero.chart"
+                        [xaxis]="chartInglesGenero.xaxis" [colors]="chartInglesGenero.colors"
+                        [plotOptions]="chartInglesGenero.plotOptions" [dataLabels]="chartInglesGenero.dataLabels"
+                        [legend]="chartInglesGenero.legend" [grid]="chartInglesGenero.grid">
+                    </apx-chart>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
+                </div>
+
+                <!-- Promedio nivel H/M visual -->
+                <div class="chart-card no-hover-cursor">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Brecha de inglés</h3>
+                            <p class="chart-sub">¿Hay diferencia en el dominio del idioma?</p>
+                        </div>
+                    </div>
+                    <div class="ingles-brecha" *ngIf="inglesResumen.length > 0; else sinIngles">
+                        <div class="ingles-item" *ngFor="let item of inglesResumen">
+                            <div class="ingles-genero-label">
+                                <span class="genero-dot"
+                                    [ngClass]="item.genero === 'Hombre' ? 'dot-blue-fill' : 'dot-rose-fill'"></span>
+                                {{ item.genero }}s
+                            </div>
+                            <div class="ingles-nivel-badge"
+                                [ngClass]="item.genero === 'Hombre' ? 'nivel-blue' : 'nivel-rose'">
+                                Promedio: {{ item.nivelPromedio }}
+                            </div>
+                            <div class="ingles-bars">
+                                <div class="ingles-bar-row" *ngFor="let nivel of item.niveles">
+                                    <span class="ingles-bar-label">{{ nivel.nivel }}</span>
+                                    <div class="mini-progress">
+                                        <div class="mini-progress-fill"
+                                            [ngClass]="item.genero === 'Hombre' ? 'fill-blue' : 'fill-rose'"
+                                            [style.width]="nivel.porcentaje + '%'">
+                                        </div>
+                                    </div>
+                                    <span class="mini-stat-val">{{ nivel.porcentaje }}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <ng-template #sinIngles>
+                        <div class="empty-geo">
+                            <p>Sin datos de inglés disponibles</p>
+                        </div>
+                    </ng-template>
+                </div>
+
+            </div>
+
+            <!-- ══════════════════════════════════════════════════════
+           SECCIÓN 8: SATISFACCIÓN Y HABILIDADES
+      ══════════════════════════════════════════════════════ -->
+            <div class="seccion-label">
+                <span class="seccion-dot dot-amber"></span>
+                Satisfacción académica por género
+            </div>
+
+            <div class="charts-row row-2">
+
+                <!-- Satisfacción promedio H/M -->
+                <div class="chart-card no-hover-cursor">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Satisfacción promedio</h3>
+                            <p class="chart-sub">Calificación de formación por género (1–5)</p>
+                        </div>
+                    </div>
+                    <div class="satisfaccion-resumen" *ngIf="satisfaccionResumen.length > 0; else sinSat">
+                        <div class="sat-item" *ngFor="let item of satisfaccionResumen">
+                            <div class="sat-genero">
+                                <span class="genero-dot-lg"
+                                    [ngClass]="item.genero === 'Hombre' ? 'dot-blue-fill' : 'dot-rose-fill'"></span>
+                                {{ item.genero }}s
+                            </div>
+                            <div class="sat-score" [ngClass]="item.genero === 'Hombre' ? 'score-blue' : 'score-rose'">
+                                {{ item.promedio }}<span class="sat-score-max">/5</span>
+                            </div>
+                            <div class="sat-bars">
+                                <div class="sat-bar-row" *ngFor="let nivel of item.niveles">
+                                    <span class="sat-bar-label">{{ nivel.label }}</span>
+                                    <div class="mini-progress">
+                                        <div class="mini-progress-fill"
+                                            [ngClass]="item.genero === 'Hombre' ? 'fill-blue' : 'fill-rose'"
+                                            [style.width]="nivel.pct + '%'">
+                                        </div>
+                                    </div>
+                                    <span class="mini-stat-val">{{ nivel.total }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <ng-template #sinSat>
+                        <div class="empty-geo">
+                            <p>Sin datos de satisfacción disponibles</p>
+                        </div>
+                    </ng-template>
+                </div>
+
+                <!-- Habilidades que faltan H/M -->
+                <div class="chart-card"
+                    (click)="abrirModal('bar', 'Habilidades por Género', 'Habilidades que consideran les faltaron', chartHabilidadesGenero)">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Habilidades que faltaron</h3>
+                            <p class="chart-sub">¿Coincide entre géneros?</p>
+                        </div>
+                        <span class="chart-badge">Barras H agrupadas</span>
+                    </div>
+                    <apx-chart [series]="chartHabilidadesGenero.series" [chart]="chartHabilidadesGenero.chart"
+                        [xaxis]="chartHabilidadesGenero.xaxis" [yaxis]="chartHabilidadesGenero.yaxis"
+                        [colors]="chartHabilidadesGenero.colors" [plotOptions]="chartHabilidadesGenero.plotOptions"
+                        [dataLabels]="chartHabilidadesGenero.dataLabels" [legend]="chartHabilidadesGenero.legend"
+                        [grid]="chartHabilidadesGenero.grid" [tooltip]="chartHabilidadesGenero.tooltip">
+                    </apx-chart>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ── Insights automáticos ── -->
+            <div class="seccion-label">
+                <span class="seccion-dot dot-teal"></span>
+                Hallazgos destacados
+            </div>
+
+            <div class="insights-grid">
+                <div class="insight-card" *ngFor="let insight of insights">
+                    <div class="insight-icon" [style.background]="insight.bg">{{ insight.emoji }}</div>
+                    <div class="insight-body">
+                        <h4 class="insight-title">{{ insight.titulo }}</h4>
+                        <p class="insight-desc">{{ insight.descripcion }}</p>
+                    </div>
+                </div>
+            </div>
+
+        </ng-container>
+        <!-- fin ng-container -->
+
+        <!-- ── Modal gráfica expandida ── -->
+        <div class="chart-modal-overlay" *ngIf="modalAbierto" (click)="cerrarModal()">
+            <div class="chart-modal" (click)="$event.stopPropagation()">
+
+                <div class="chart-modal-head">
+                    <div>
+                        <h3 class="chart-modal-title">{{ modalTitulo }}</h3>
+                        <p class="chart-modal-sub">{{ modalSubtitulo }}</p>
+                    </div>
+                    <button class="chart-modal-close" (click)="cerrarModal()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="chart-modal-body">
+                    <ng-container *ngIf="modalTipo === 'pie' || modalTipo === 'donut'">
+                        <apx-chart [series]="modalChart.series" [chart]="modalChart.chart" [labels]="modalChart.labels"
+                            [colors]="modalChart.colors" [legend]="modalChart.legend"
+                            [dataLabels]="modalChart.dataLabels" [plotOptions]="modalChart.plotOptions"
+                            [tooltip]="modalChart.tooltip" [responsive]="modalChart.responsive">
+                        </apx-chart>
+                    </ng-container>
+                    <ng-container *ngIf="modalTipo === 'bar'">
+                        <apx-chart [series]="modalChart.series" [chart]="modalChart.chart" [xaxis]="modalChart.xaxis"
+                            [yaxis]="modalChart.yaxis" [colors]="modalChart.colors"
+                            [plotOptions]="modalChart.plotOptions" [dataLabels]="modalChart.dataLabels"
+                            [legend]="modalChart.legend" [grid]="modalChart.grid" [tooltip]="modalChart.tooltip">
+                        </apx-chart>
+                    </ng-container>
+                    <ng-container *ngIf="modalTipo === 'line' || modalTipo === 'area'">
+                        <apx-chart [series]="modalChart.series" [chart]="modalChart.chart" [xaxis]="modalChart.xaxis"
+                            [yaxis]="modalChart.yaxis" [colors]="modalChart.colors" [stroke]="modalChart.stroke"
+                            [fill]="modalChart.fill" [markers]="modalChart.markers" [legend]="modalChart.legend"
+                            [grid]="modalChart.grid" [tooltip]="modalChart.tooltip">
+                        </apx-chart>
+                    </ng-container>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+</div>

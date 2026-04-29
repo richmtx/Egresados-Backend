@@ -166,6 +166,24 @@
                 <span class="nav-label">Distribución geo.</span>
             </a>
 
+            <a class="nav-item" [class.active]="activeRoute === 'generos'" (click)="setRoute('generos')">
+                <span class="nav-icon">
+                    <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        
+                        <circle cx="6" cy="7" r="3.5" />
+                        <line x1="6" y1="10.5" x2="6" y2="14" />
+                        <line x1="4" y1="12.5" x2="8" y2="12.5" />
+
+                        <circle cx="12" cy="9" r="3.5" />
+                        <line x1="14.5" y1="6.5" x2="17" y2="4" />
+                        <line x1="14.5" y1="4" x2="17" y2="4" />
+                        <line x1="17" y1="4" x2="17" y2="6.5" />
+                    </svg>
+                </span>
+                <span class="nav-label">Análisis de Género</span>
+            </a>
+
             <a class="nav-item" [class.active]="activeRoute === 'reportes'" (click)="setRoute('reportes')">
                 <span class="nav-icon">
                     <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
