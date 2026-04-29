@@ -1,4 +1,4 @@
-/* LAYOUT PRINCIPAL  (idéntico a estadísticas) */
+/* LAYOUT PRINCIPAL */
 .stats-layout {
     display: flex;
     height: 100vh;
@@ -195,7 +195,8 @@
     gap: 14px;
     position: relative;
     overflow: hidden;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
 }
 
 .kpi-card::before {
@@ -259,6 +260,7 @@
     flex-direction: column;
     gap: 2px;
     min-width: 0;
+    flex: 1;
 }
 
 .kpi-label {
@@ -293,7 +295,8 @@
     background: #f3f4f6;
     border-radius: 2px;
     overflow: hidden;
-    margin-top: auto;
+    margin-top: 4px;
+    align-self: flex-end;
 }
 
 .gender-bar-fill {
