@@ -1058,6 +1058,16 @@
     padding: 20px 24px 24px;
 }
 
+.ranking-list-modal {
+    gap: 10px;
+}
+
+.ranking-nombre-modal {
+    width: 220px;
+    white-space: normal;
+    font-size: 13px;
+}
+
 /* RESPONSIVE */
 @media (max-width: 1200px) {
     .row-3 {

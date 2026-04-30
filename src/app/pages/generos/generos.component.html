@@ -249,8 +249,7 @@
 
             <div class="charts-row row-1-2">
 
-                <!-- Ranking de carreras -->
-                <div class="chart-card no-hover-cursor">
+                <div class="chart-card" (click)="abrirModalRanking()">
                     <div class="chart-header">
                         <div>
                             <h3 class="chart-title">Ranking por feminización</h3>
@@ -271,10 +270,10 @@
                                 <span class="pct-blue">{{ item.pctHombres }}%H</span>
                             </div>
                             <span class="ranking-badge" [ngClass]="{
-                'badge-f': item.pctMujeres > 55,
-                'badge-m': item.pctHombres > 55,
+                'badge-f':  item.pctMujeres > 55,
+                'badge-m':  item.pctHombres > 55,
                 'badge-eq': item.pctMujeres >= 45 && item.pctMujeres <= 55
-              }">
+            }">
                                 {{ item.pctMujeres > 55 ? '+F' : item.pctHombres > 55 ? '+M' : '≈50' }}
                             </span>
                         </div>
@@ -284,6 +283,12 @@
                             <p>Sin datos de carrera disponibles</p>
                         </div>
                     </ng-template>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
                 </div>
 
                 <!-- Barras 100% apiladas por carrera -->
@@ -429,7 +434,7 @@
             <div class="charts-row row-2">
 
                 <!-- Movilidad H/M (en Durango vs fuera) -->
-                <div class="chart-card no-hover-cursor">
+                <div class="chart-card" (click)="abrirModalMovilidad()">
                     <div class="chart-header">
                         <div>
                             <h3 class="chart-title">¿Quién emigra más?</h3>
@@ -476,6 +481,14 @@
                             <p>Sin datos geográficos disponibles</p>
                         </div>
                     </ng-template>
+
+                    <!-- Hint expandir -->
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
                 </div>
 
                 <!-- Top ciudades por género -->
@@ -575,7 +588,7 @@
             <div class="charts-row row-2">
 
                 <!-- ¿Quién estudia más posgrado? -->
-                <div class="chart-card no-hover-cursor">
+                <div class="chart-card" (click)="abrirModalPosgradoResumen()">
                     <div class="chart-header">
                         <div>
                             <h3 class="chart-title">¿Quién continúa estudiando?</h3>
@@ -587,7 +600,9 @@
                             <div class="posgrado-genero-header">
                                 <span class="genero-dot-lg"
                                     [ngClass]="item.genero === 'Hombre' ? 'dot-blue-fill' : 'dot-rose-fill'"></span>
-                                <span class="posgrado-genero-label">{{ item.genero }}s</span>
+                                <span class="posgrado-genero-label">
+                                    {{ item.genero === 'Hombre' ? 'Hombres' : 'Mujeres' }}
+                                </span>
                                 <span class="posgrado-total-badge"
                                     [ngClass]="item.genero === 'Hombre' ? 'badge-blue' : 'badge-rose'">
                                     {{ item.total }}
@@ -606,6 +621,14 @@
                             <p>Sin datos de posgrado disponibles</p>
                         </div>
                     </ng-template>
+
+                    <!-- Hint expandir -->
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
                 </div>
 
                 <!-- Distribución tipo posgrado H/M -->
@@ -614,7 +637,7 @@
                     <div class="chart-header">
                         <div>
                             <h3 class="chart-title">Tipo de posgrado</h3>
-                            <p class="chart-sub">Maestría · Especialidad · Doctorado por género</p>
+                            <p class="chart-sub">Maestría · Posgrado por género</p>
                         </div>
                         <span class="chart-badge">Agrupadas</span>
                     </div>
@@ -634,14 +657,14 @@
             </div>
 
             <!-- ══════════════════════════════════════════════════════
-           SECCIÓN 7: INGLÉS
-      ══════════════════════════════════════════════════════ -->
+                SECCIÓN 7: INGLÉS
+            ══════════════════════════════════════════════════════ -->
             <div class="seccion-label">
                 <span class="seccion-dot dot-rose"></span>
                 Inglés por género
             </div>
 
-            <div class="charts-row row-2">
+            <div class="charts-row">
 
                 <!-- Distribución niveles H/M -->
                 <div class="chart-card"
@@ -666,46 +689,6 @@
                     </div>
                 </div>
 
-                <!-- Promedio nivel H/M visual -->
-                <div class="chart-card no-hover-cursor">
-                    <div class="chart-header">
-                        <div>
-                            <h3 class="chart-title">Brecha de inglés</h3>
-                            <p class="chart-sub">¿Hay diferencia en el dominio del idioma?</p>
-                        </div>
-                    </div>
-                    <div class="ingles-brecha" *ngIf="inglesResumen.length > 0; else sinIngles">
-                        <div class="ingles-item" *ngFor="let item of inglesResumen">
-                            <div class="ingles-genero-label">
-                                <span class="genero-dot"
-                                    [ngClass]="item.genero === 'Hombre' ? 'dot-blue-fill' : 'dot-rose-fill'"></span>
-                                {{ item.genero }}s
-                            </div>
-                            <div class="ingles-nivel-badge"
-                                [ngClass]="item.genero === 'Hombre' ? 'nivel-blue' : 'nivel-rose'">
-                                Promedio: {{ item.nivelPromedio }}
-                            </div>
-                            <div class="ingles-bars">
-                                <div class="ingles-bar-row" *ngFor="let nivel of item.niveles">
-                                    <span class="ingles-bar-label">{{ nivel.nivel }}</span>
-                                    <div class="mini-progress">
-                                        <div class="mini-progress-fill"
-                                            [ngClass]="item.genero === 'Hombre' ? 'fill-blue' : 'fill-rose'"
-                                            [style.width]="nivel.porcentaje + '%'">
-                                        </div>
-                                    </div>
-                                    <span class="mini-stat-val">{{ nivel.porcentaje }}%</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <ng-template #sinIngles>
-                        <div class="empty-geo">
-                            <p>Sin datos de inglés disponibles</p>
-                        </div>
-                    </ng-template>
-                </div>
-
             </div>
 
             <!-- ══════════════════════════════════════════════════════
@@ -719,7 +702,7 @@
             <div class="charts-row row-2">
 
                 <!-- Satisfacción promedio H/M -->
-                <div class="chart-card no-hover-cursor">
+                <div class="chart-card" (click)="abrirModalSatisfaccion()">
                     <div class="chart-header">
                         <div>
                             <h3 class="chart-title">Satisfacción promedio</h3>
@@ -731,7 +714,7 @@
                             <div class="sat-genero">
                                 <span class="genero-dot-lg"
                                     [ngClass]="item.genero === 'Hombre' ? 'dot-blue-fill' : 'dot-rose-fill'"></span>
-                                {{ item.genero }}s
+                                {{ item.genero === 'Hombre' ? 'Hombres' : 'Mujeres' }}
                             </div>
                             <div class="sat-score" [ngClass]="item.genero === 'Hombre' ? 'score-blue' : 'score-rose'">
                                 {{ item.promedio }}<span class="sat-score-max">/5</span>
@@ -755,6 +738,13 @@
                             <p>Sin datos de satisfacción disponibles</p>
                         </div>
                     </ng-template>
+
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
                 </div>
 
                 <!-- Habilidades que faltan H/M -->
@@ -840,6 +830,116 @@
                             [fill]="modalChart.fill" [markers]="modalChart.markers" [legend]="modalChart.legend"
                             [grid]="modalChart.grid" [tooltip]="modalChart.tooltip">
                         </apx-chart>
+                    </ng-container>
+                    <ng-container *ngIf="modalTipo === 'ranking'">
+                        <div class="ranking-list ranking-list-modal">
+                            <div class="ranking-item" *ngFor="let item of rankingCarreras">
+                                <div class="ranking-nombre ranking-nombre-modal">{{ item.nombre }}</div>
+                                <div class="ranking-barra-wrap">
+                                    <div class="ranking-barra">
+                                        <div class="ranking-fill-rose" [style.width]="item.pctMujeres + '%'"></div>
+                                        <div class="ranking-fill-blue" [style.width]="item.pctHombres + '%'"></div>
+                                    </div>
+                                </div>
+                                <div class="ranking-pcts">
+                                    <span class="pct-rose">{{ item.pctMujeres }}%M</span>
+                                    <span class="pct-blue">{{ item.pctHombres }}%H</span>
+                                </div>
+                                <span class="ranking-badge" [ngClass]="{
+                'badge-f':  item.pctMujeres > 55,
+                'badge-m':  item.pctHombres > 55,
+                'badge-eq': item.pctMujeres >= 45 && item.pctMujeres <= 55
+            }">
+                                    {{ item.pctMujeres > 55 ? '+F' : item.pctHombres > 55 ? '+M' : '≈50' }}
+                                </span>
+                            </div>
+                        </div>
+                    </ng-container>
+                    <ng-container *ngIf="modalTipo === 'movilidad'">
+                        <div class="geo-genero-grid">
+                            <div class="geo-genero-item" *ngFor="let item of geografiaResumen">
+                                <div class="geo-genero-header">
+                                    <span class="genero-dot-lg"
+                                        [ngClass]="item.genero === 'Hombre' ? 'dot-blue-fill' : 'dot-rose-fill'"></span>
+                                    <strong>{{ item.genero }}s</strong>
+                                </div>
+                                <div class="geo-stat-row">
+                                    <span class="geo-stat-label">En Durango</span>
+                                    <div class="mini-progress">
+                                        <div class="mini-progress-fill"
+                                            [ngClass]="item.genero === 'Hombre' ? 'fill-blue' : 'fill-rose'"
+                                            [style.width]="item.pctDurango + '%'">
+                                        </div>
+                                    </div>
+                                    <span class="geo-stat-val">{{ item.pctDurango }}%</span>
+                                </div>
+                                <div class="geo-stat-row">
+                                    <span class="geo-stat-label">Otro estado</span>
+                                    <div class="mini-progress">
+                                        <div class="mini-progress-fill fill-gray" [style.width]="item.pctFueraMx + '%'">
+                                        </div>
+                                    </div>
+                                    <span class="geo-stat-val">{{ item.pctFueraMx }}%</span>
+                                </div>
+                                <div class="geo-stat-row">
+                                    <span class="geo-stat-label">Extranjero</span>
+                                    <div class="mini-progress">
+                                        <div class="mini-progress-fill fill-amber"
+                                            [style.width]="item.pctExtranjero + '%'">
+                                        </div>
+                                    </div>
+                                    <span class="geo-stat-val">{{ item.pctExtranjero }}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </ng-container>
+                    <ng-container *ngIf="modalTipo === 'posgradoResumen'">
+                        <div class="posgrado-resumen">
+                            <div class="posgrado-item" *ngFor="let item of posgradoResumen">
+                                <div class="posgrado-genero-header">
+                                    <span class="genero-dot-lg"
+                                        [ngClass]="item.genero === 'Hombre' ? 'dot-blue-fill' : 'dot-rose-fill'"></span>
+                                    <span class="posgrado-genero-label">{{ item.genero }}s</span>
+                                    <span class="posgrado-total-badge"
+                                        [ngClass]="item.genero === 'Hombre' ? 'badge-blue' : 'badge-rose'">
+                                        {{ item.total }}
+                                    </span>
+                                </div>
+                                <div class="posgrado-big-number"
+                                    [ngClass]="item.genero === 'Hombre' ? 'num-blue' : 'num-rose'">
+                                    {{ item.pct }}%
+                                </div>
+                                <p class="posgrado-sub">del total de {{ item.genero === 'Hombre' ? 'hombres' : 'mujeres'
+                                    }}</p>
+                            </div>
+                        </div>
+                    </ng-container>
+                    <ng-container *ngIf="modalTipo === 'satisfaccion'">
+                        <div class="satisfaccion-resumen">
+                            <div class="sat-item" *ngFor="let item of satisfaccionResumen">
+                                <div class="sat-genero">
+                                    <span class="genero-dot-lg"
+                                        [ngClass]="item.genero === 'Hombre' ? 'dot-blue-fill' : 'dot-rose-fill'"></span>
+                                    {{ item.genero === 'Hombre' ? 'Hombres' : 'Mujeres' }}
+                                </div>
+                                <div class="sat-score"
+                                    [ngClass]="item.genero === 'Hombre' ? 'score-blue' : 'score-rose'">
+                                    {{ item.promedio }}<span class="sat-score-max">/5</span>
+                                </div>
+                                <div class="sat-bars">
+                                    <div class="sat-bar-row" *ngFor="let nivel of item.niveles">
+                                        <span class="sat-bar-label">{{ nivel.label }}</span>
+                                        <div class="mini-progress">
+                                            <div class="mini-progress-fill"
+                                                [ngClass]="item.genero === 'Hombre' ? 'fill-blue' : 'fill-rose'"
+                                                [style.width]="nivel.pct + '%'">
+                                            </div>
+                                        </div>
+                                        <span class="mini-stat-val">{{ nivel.total }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </ng-container>
                 </div>
 
