@@ -376,7 +376,7 @@
                 </div>
 
                 <!-- Coincidencia laboral + tiempo empleo -->
-                <div class="chart-card no-hover-cursor">
+                <div class="chart-card" (click)="abrirModalCoincidencia()">
                     <div class="chart-header">
                         <div>
                             <h3 class="chart-title">Coincidencia y tiempo</h3>
@@ -419,6 +419,13 @@
                             <span class="mini-stat-val">{{ item.tiempo }} a.</span>
                         </div>
                     </div>
+
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
                 </div>
 
             </div>
@@ -446,7 +453,7 @@
                             <div class="geo-genero-header">
                                 <span class="genero-dot-lg"
                                     [ngClass]="item.genero === 'Hombre' ? 'dot-blue-fill' : 'dot-rose-fill'"></span>
-                                <strong>{{ item.genero }}s</strong>
+                                <strong>{{ item.genero === 'Hombre' ? 'Hombres' : 'Mujeres' }}</strong>
                             </div>
                             <div class="geo-stat-row">
                                 <span class="geo-stat-label">En Durango</span>
@@ -633,7 +640,7 @@
 
                 <!-- Distribución tipo posgrado H/M -->
                 <div class="chart-card"
-                    (click)="abrirModal('bar', 'Tipo de Posgrado por Género', 'Maestría · Especialidad · Doctorado', chartPosgradoGenero)">
+                    (click)="abrirModal('bar', 'Tipo de Posgrado por Género', 'Maestría · Posgrado por género', chartPosgradoGenero)">
                     <div class="chart-header">
                         <div>
                             <h3 class="chart-title">Tipo de posgrado</h3>
@@ -861,7 +868,7 @@
                                 <div class="geo-genero-header">
                                     <span class="genero-dot-lg"
                                         [ngClass]="item.genero === 'Hombre' ? 'dot-blue-fill' : 'dot-rose-fill'"></span>
-                                    <strong>{{ item.genero }}s</strong>
+                                    <strong>{{ item.genero === 'Hombre' ? 'Hombres' : 'Mujeres' }}</strong>
                                 </div>
                                 <div class="geo-stat-row">
                                     <span class="geo-stat-label">En Durango</span>
@@ -899,7 +906,8 @@
                                 <div class="posgrado-genero-header">
                                     <span class="genero-dot-lg"
                                         [ngClass]="item.genero === 'Hombre' ? 'dot-blue-fill' : 'dot-rose-fill'"></span>
-                                    <span class="posgrado-genero-label">{{ item.genero }}s</span>
+                                    <span class="posgrado-genero-label">{{ item.genero === 'Hombre' ? 'Hombres' :
+                                        'Mujeres' }}</span>
                                     <span class="posgrado-total-badge"
                                         [ngClass]="item.genero === 'Hombre' ? 'badge-blue' : 'badge-rose'">
                                         {{ item.total }}
@@ -939,6 +947,45 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </ng-container>
+                    <ng-container *ngIf="modalTipo === 'coincidencia'">
+                        <div class="mini-stats-group">
+
+                            <p class="mini-stats-label">Trabaja en algo relacionado a su carrera</p>
+                            <div class="mini-stat-row" *ngFor="let item of coincidenciaResumen">
+                                <div class="mini-stat-genero">
+                                    <span class="genero-dot"
+                                        [ngClass]="item.genero === 'Hombre' ? 'dot-blue-fill' : 'dot-rose-fill'"></span>
+                                    {{ item.genero }}
+                                </div>
+                                <div class="mini-progress">
+                                    <div class="mini-progress-fill"
+                                        [ngClass]="item.genero === 'Hombre' ? 'fill-blue' : 'fill-rose'"
+                                        [style.width]="item.pct + '%'">
+                                    </div>
+                                </div>
+                                <span class="mini-stat-val">{{ item.pct }}%</span>
+                            </div>
+
+                            <div class="mini-divider"></div>
+
+                            <p class="mini-stats-label">Tiempo promedio en conseguir empleo (años)</p>
+                            <div class="mini-stat-row" *ngFor="let item of tiempoEmpleoResumen">
+                                <div class="mini-stat-genero">
+                                    <span class="genero-dot"
+                                        [ngClass]="item.genero === 'Hombre' ? 'dot-blue-fill' : 'dot-rose-fill'"></span>
+                                    {{ item.genero }}
+                                </div>
+                                <div class="mini-progress">
+                                    <div class="mini-progress-fill"
+                                        [ngClass]="item.genero === 'Hombre' ? 'fill-blue' : 'fill-rose'"
+                                        [style.width]="(item.tiempo / maxTiempoEmpleo * 100) + '%'">
+                                    </div>
+                                </div>
+                                <span class="mini-stat-val">{{ item.tiempo }} a.</span>
+                            </div>
+
                         </div>
                     </ng-container>
                 </div>

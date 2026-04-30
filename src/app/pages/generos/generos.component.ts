@@ -528,7 +528,14 @@ export class GenerosComponent implements OnInit, OnDestroy {
       colors: [this.COLOR_H, this.COLOR_M],
       plotOptions: { bar: { columnWidth: '60%', borderRadius: 4 } },
       dataLabels: { enabled: true, formatter: (v: number) => v.toFixed(0) + '%', style: { fontFamily: this.chartFontFamily, fontSize: '10px', fontWeight: '600' } },
-      xaxis: { categories: niveles, labels: { style: { fontFamily: this.chartFontFamily, fontSize: '12px', colors: '#64748b' } } },
+      xaxis: {
+        categories: niveles.map(n =>
+          n === 'Básico' ? 'Básico (A1-A2)' :
+            n === 'Intermedio' ? 'Intermedio (B1-B2)' :
+              n === 'Avanzado' ? 'Avanzado (C1-C2)' : n
+        ),
+        labels: { style: { fontFamily: this.chartFontFamily, fontSize: '12px', colors: '#64748b' } }
+      },
       yaxis: { labels: { formatter: (v: number) => v + '%', style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
       legend: { ...this.baseLegend, position: 'top' },
       grid: this.baseGrid,
