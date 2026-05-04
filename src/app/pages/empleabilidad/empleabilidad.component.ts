@@ -137,7 +137,7 @@ export class EmpleabilidadComponent implements OnInit {
       ],
       chart: {
         type: 'bar',
-        height: 380,       
+        height: 380,
         stacked: true,
         toolbar: { show: false },
         fontFamily: 'inherit'
@@ -148,7 +148,7 @@ export class EmpleabilidadComponent implements OnInit {
         categories: carreras,
         labels: {
           style: { fontSize: '10px', colors: Array(carreras.length).fill('#6b7280') },
-          rotate: -35,   
+          rotate: -35,
           rotateAlways: true,
         },
         axisBorder: { show: false },
@@ -169,7 +169,29 @@ export class EmpleabilidadComponent implements OnInit {
       tooltip: {
         shared: true,
         intersect: false,
-        y: { formatter: (val: number) => `${val} egresados` }
+        custom: ({ series, seriesIndex, dataPointIndex, w }: any) => {
+          const empleados = series[0][dataPointIndex];
+          const sinEmpleo = series[1][dataPointIndex];
+          const total = empleados + sinEmpleo;
+          const carrera = w.globals.labels[dataPointIndex];
+
+          return `
+      <div style="padding: 10px 14px; font-family: inherit; font-size: 13px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div style="font-weight: 600; margin-bottom: 8px; color: #1e293b;">${carrera}</div>
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+          <span style="width: 10px; height: 10px; border-radius: 50%; background: #003366; display: inline-block;"></span>
+          <span style="color: #374151;">Empleados: <strong>${empleados} egresados</strong></span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <span style="width: 10px; height: 10px; border-radius: 50%; background: #cbd5e1; display: inline-block;"></span>
+          <span style="color: #374151;">Sin empleo: <strong>${sinEmpleo} egresados</strong></span>
+        </div>
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 6px; color: #1e293b;">
+          Total: <strong>${total} egresados</strong>
+        </div>
+      </div>
+    `;
+        },
       },
       yaxis: { labels: { style: { fontSize: '11px', colors: ['#9ca3af'] } } },
     };
@@ -260,7 +282,7 @@ export class EmpleabilidadComponent implements OnInit {
       series: [{ name: 'Coincidencia laboral', data: porcentajes }],
       chart: { type: 'bar', height: 280, toolbar: { show: false }, fontFamily: 'inherit' },
       plotOptions: { bar: { borderRadius: 4, columnWidth: '50%' } },
-      dataLabels: { enabled: false }, 
+      dataLabels: { enabled: false },
       xaxis: {
         categories: carreras,
         labels: {

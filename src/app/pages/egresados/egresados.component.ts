@@ -171,31 +171,63 @@ export class EgresadosComponent implements OnInit {
     this.modalVisible = true;
   }
 
-  cancelarEliminar(): void {
-    this.modalVisible = false;
-    this.egresadoPendiente = null;
-    this.mostrarToast('Eliminación cancelada', false);
-  }
+  egresadoEliminadoTemporal: EgresadoDetalle | null = null;
 
   confirmarEliminar(): void {
     if (!this.egresadoPendiente) return;
-    const id = this.egresadoPendiente.id_egresado;
-    const nombre = this.egresadoPendiente.nombre_completo;
 
+    const egresado = this.egresadoPendiente;
+    const id = egresado.id_egresado;
+
+    this.egresadoEliminadoTemporal = egresado;
+    this.egresados = this.egresados.filter(e => e.id_egresado !== id);
+    this.aplicarFiltros();
     this.modalVisible = false;
     this.egresadoPendiente = null;
 
-    this.egresadosService.deleteEgresado(id).subscribe({
-      next: () => {
-        this.egresados = this.egresados.filter(e => e.id_egresado !== id);
-        this.aplicarFiltros();
-        this.mostrarToast(`${nombre} fue eliminado correctamente`, false);
-      },
-      error: (err) => {
-        console.error(err);
-        this.mostrarToast('Error al eliminar. Intenta de nuevo.', true);
-      }
-    });
+    clearTimeout(this.toastTimer);
+    this.toastMensaje = `${egresado.nombre_completo} fue eliminado`;
+    this.toastError = false;
+    this.toastVisible = true;
+
+    this.toastTimer = setTimeout(() => {
+      this.egresadosService.deleteEgresado(id).subscribe({
+        next: () => {
+          this.egresadoEliminadoTemporal = null;
+          this.toastVisible = false;
+        },
+        error: () => {
+          if (this.egresadoEliminadoTemporal) {
+            this.egresados = [...this.egresados, this.egresadoEliminadoTemporal]
+              .sort((a, b) => a.nombre_completo.localeCompare(b.nombre_completo));
+            this.aplicarFiltros();
+            this.egresadoEliminadoTemporal = null;
+          }
+          this.mostrarToast('Error al eliminar. Intenta de nuevo.', true);
+        }
+      });
+    }, 5000);
+  }
+
+  deshacerEliminar(): void {
+    clearTimeout(this.toastTimer);
+
+    if (this.egresadoEliminadoTemporal) {
+      this.egresados = [...this.egresados, this.egresadoEliminadoTemporal]
+        .sort((a, b) => a.nombre_completo.localeCompare(b.nombre_completo));
+
+      this.egresadosFiltrados = [...this.egresados];
+      this.aplicarFiltros();
+
+      this.egresadoEliminadoTemporal = null;
+    }
+
+    this.toastVisible = false;
+  }
+
+  cancelarEliminar(): void {
+    this.modalVisible = false;
+    this.egresadoPendiente = null;
   }
 
   mostrarToast(mensaje: string, esError: boolean): void {

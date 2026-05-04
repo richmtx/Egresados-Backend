@@ -1,4 +1,4 @@
-/* ── Layout principal — idéntico al de egresados ─────────────── */
+/* Layout principal */
 .page-layout {
     display: flex;
     height: 100vh;
@@ -16,7 +16,7 @@
     min-width: 0;
 }
 
-/* ── Header ───────────────────────────────────────────────────── */
+/* Header */
 .page-header {
     display: flex;
     align-items: flex-start;
@@ -61,7 +61,7 @@
     cursor: not-allowed;
 }
 
-/* ── Tabs ─────────────────────────────────────────────────────── */
+/* Tabs */
 .notif-tabs {
     display: flex;
     background: #ffffff;
@@ -109,7 +109,7 @@
     color: #64748b;
 }
 
-/* ── Contenedor lista ─────────────────────────────────────────── */
+/* Contenedor lista */
 .notif-list-wrap {
     flex: 1;
     overflow-y: auto;
@@ -118,7 +118,7 @@
     min-height: 0;
 }
 
-/* ── Separador de grupo ───────────────────────────────────────── */
+/* Separador de grupo */
 .grupo-label {
     font-size: 11px;
     font-weight: 600;
@@ -132,7 +132,7 @@
     margin-top: 0;
 }
 
-/* ── Card ─────────────────────────────────────────────────────── */
+/* Card */
 .notif-card {
     display: flex;
     align-items: flex-start;
@@ -171,7 +171,7 @@
     background: #fff9f9;
 }
 
-/* ── Ícono ────────────────────────────────────────────────────── */
+/* Ícono */
 .notif-icon {
     width: 34px;
     height: 34px;
@@ -207,7 +207,7 @@
     color: #64748b;
 }
 
-/* ── Cuerpo ───────────────────────────────────────────────────── */
+/* Cuerpo */
 .notif-body {
     flex: 1;
     min-width: 0;
@@ -233,7 +233,7 @@
     gap: 10px;
 }
 
-/* ── Tags ─────────────────────────────────────────────────────── */
+/* Tags */
 .notif-tag {
     font-size: 10px;
     font-weight: 600;
@@ -266,7 +266,7 @@
     color: #9ca3af;
 }
 
-/* ── Acciones ─────────────────────────────────────────────────── */
+/* Acciones */
 .notif-actions {
     display: flex;
     flex-direction: column;
@@ -327,7 +327,7 @@
     color: #c0392b;
 }
 
-/* ── Estado vacío ─────────────────────────────────────────────── */
+/* Estado vacío */
 .state-box {
     display: flex;
     flex-direction: column;
@@ -345,7 +345,7 @@
     stroke: #d1d5db;
 }
 
-/* ── Tipo eventos (púrpura) ───────────────────────────────────── */
+/* Tipo eventos (púrpura) */
 .notif-card.unread-purple {
     border-left: 3px solid #7c3aed;
     background: #f5f3ff;
@@ -365,7 +365,208 @@
     background: #7c3aed;
 }
 
-/* ── Responsive ───────────────────────────────────────────────── */
+/* ── Modal overlay ── */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.18s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.modal-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 32px 28px 24px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(16px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-icon-wrap {
+    display: flex;
+    justify-content: center;
+}
+
+.modal-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #fee2e2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #b91c1c;
+}
+
+.modal-icon svg {
+    width: 26px;
+    height: 26px;
+}
+
+.modal-body {
+    text-align: center;
+}
+
+.modal-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 8px;
+}
+
+.modal-desc {
+    font-size: 13px;
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.6;
+}
+
+.modal-desc strong {
+    color: #111827;
+    font-weight: 500;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-modal-cancel {
+    flex: 1;
+    padding: 10px;
+    border: 0.5px solid #d1d5db;
+    border-radius: 8px;
+    background: #f9fafb;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-modal-cancel:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.btn-modal-confirm {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: #b91c1c;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    transition: background 0.15s;
+}
+
+.btn-modal-confirm:hover {
+    background: #991b1b;
+}
+
+.btn-modal-confirm svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+}
+
+/* Toast */
+.toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #1f2937;
+    color: #f9fafb;
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    min-width: 280px;
+    max-width: 400px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    z-index: 1100;
+    opacity: 0;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+    pointer-events: none;
+}
+
+.toast.toast-visible {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    pointer-events: all;
+}
+
+.toast-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+}
+
+.toast-left svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    color: #9ca3af;
+}
+
+.toast-btn {
+    background: transparent;
+    border: none;
+    color: #fbbf24;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    transition: color 0.15s;
+}
+
+.toast-btn:hover {
+    color: #f59e0b;
+}
+
+/* Responsive */
 @media (max-width: 1024px) {
     .main-content {
         padding: 20px 16px;

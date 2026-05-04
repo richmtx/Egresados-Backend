@@ -290,13 +290,19 @@
                 </div>
             </div>
 
-            <!-- TOAST NOTIFICACIÓN -->
+            <!-- TOAST DESHACER -->
             <div class="toast" [class.toast-visible]="toastVisible" [class.toast-error]="toastError">
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-                    <path *ngIf="!toastError" d="M3 8l3 3 7-7" />
-                    <path *ngIf="toastError" d="M4 4l8 8M12 4l-8 8" />
-                </svg>
-                {{ toastMensaje }}
+                <div class="toast-left">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round">
+                        <path *ngIf="!toastError" d="M3 4h10M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" />
+                        <path *ngIf="toastError" d="M8 3v5M8 11v1" />
+                    </svg>
+                    <span>{{ toastMensaje }}</span>
+                </div>
+                <button class="toast-btn" *ngIf="!toastError && egresadoEliminadoTemporal" (click)="deshacerEliminar()">
+                    Deshacer
+                </button>
             </div>
 
             <!-- OVERLAY DRAWER -->

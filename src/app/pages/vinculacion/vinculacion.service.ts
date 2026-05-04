@@ -9,16 +9,16 @@ export interface EgresadoContacto {
   telefono: string;
   nombre_carrera: string;
   genero: string;
-  descripcion_otro?: string;   // solo en los endpoints de "Otro"
+  descripcion_otro?: string;
 }
 
 export interface TotalColaboracion {
-  descripcion: string;   // '__otro__' para el registro especial
+  descripcion: string;
   total: number;
 }
 
 export interface TotalHabilidad {
-  habilidad: string;     // '__otro__' para el registro especial
+  habilidad: string;
   total: number;
 }
 
@@ -38,59 +38,89 @@ export class VinculacionService {
     return this.http.get<any>(`${this.apiUrl}/egresados/estadisticas`, { params });
   }
 
-  // ── Totales pre-cargados ──────────────────────────────────────────────────
-  getTotalesColaboraciones(): Observable<TotalColaboracion[]> {
+  // Totales pre-cargados
+  getTotalesColaboraciones(carrera?: string, anio?: number): Observable<TotalColaboracion[]> {
+    let params = new HttpParams();
+    if (carrera) params = params.set('carrera', carrera);
+    if (anio) params = params.set('anio', anio.toString());
     return this.http.get<TotalColaboracion[]>(
-      `${this.apiUrl}/egresados/vinculacion/totales-colaboraciones`
+      `${this.apiUrl}/egresados/vinculacion/totales-colaboraciones`, { params }
     );
   }
 
-  getTotalesHabilidades(): Observable<TotalHabilidad[]> {
+  getTotalesHabilidades(carrera?: string, anio?: number): Observable<TotalHabilidad[]> {
+    let params = new HttpParams();
+    if (carrera) params = params.set('carrera', carrera);
+    if (anio) params = params.set('anio', anio.toString());
     return this.http.get<TotalHabilidad[]>(
-      `${this.apiUrl}/egresados/vinculacion/totales-habilidades`
+      `${this.apiUrl}/egresados/vinculacion/totales-habilidades`, { params }
     );
   }
 
-  // ── Egresados por categoría fija ──────────────────────────────────────────
-  getEgresadosPorColaboracion(tipo: string): Observable<EgresadoContacto[]> {
-    const params = new HttpParams().set('tipo', tipo);
+  // Egresados por categoría fija
+  getEgresadosPorColaboracion(tipo: string, carrera?: string, anio?: number): Observable<EgresadoContacto[]> {
+    let params = new HttpParams().set('tipo', tipo);
+    if (carrera) params = params.set('carrera', carrera);
+    if (anio) params = params.set('anio', anio.toString());
     return this.http.get<EgresadoContacto[]>(
       `${this.apiUrl}/egresados/vinculacion/colaboracion`, { params }
     );
   }
 
-  getEgresadosPorHabilidad(tipo: string): Observable<EgresadoContacto[]> {
-    const params = new HttpParams().set('tipo', tipo);
+  getEgresadosPorHabilidad(tipo: string, carrera?: string, anio?: number): Observable<EgresadoContacto[]> {
+    let params = new HttpParams().set('tipo', tipo);
+    if (carrera) params = params.set('carrera', carrera);
+    if (anio) params = params.set('anio', anio.toString());
     return this.http.get<EgresadoContacto[]>(
       `${this.apiUrl}/egresados/vinculacion/habilidad`, { params }
     );
   }
 
   getEgresadosPorAutorizacion(
-    tipo: 'estadisticas' | 'contacto' | 'eventos'
+    tipo: 'estadisticas' | 'contacto' | 'eventos',
+    carrera?: string,
+    anio?: number,
   ): Observable<EgresadoContacto[]> {
-    const params = new HttpParams().set('tipo', tipo);
+    let params = new HttpParams().set('tipo', tipo);
+    if (carrera) params = params.set('carrera', carrera);
+    if (anio) params = params.set('anio', anio.toString());
     return this.http.get<EgresadoContacto[]>(
       `${this.apiUrl}/egresados/vinculacion/autorizacion`, { params }
     );
   }
 
-  // ── Egresados con respuesta "Otro" ────────────────────────────────────────
-  getEgresadosColaboracionOtro(): Observable<EgresadoContacto[]> {
+  getEgresadosColaboracionOtro(carrera?: string, anio?: number): Observable<EgresadoContacto[]> {
+    let params = new HttpParams();
+    if (carrera) params = params.set('carrera', carrera);
+    if (anio) params = params.set('anio', anio.toString());
     return this.http.get<EgresadoContacto[]>(
-      `${this.apiUrl}/egresados/vinculacion/colaboracion-otro`
+      `${this.apiUrl}/egresados/vinculacion/colaboracion-otro`, { params }
     );
   }
 
-  getEgresadosHabilidadOtro(): Observable<EgresadoContacto[]> {
+  getEgresadosHabilidadOtro(carrera?: string, anio?: number): Observable<EgresadoContacto[]> {
+    let params = new HttpParams();
+    if (carrera) params = params.set('carrera', carrera);
+    if (anio) params = params.set('anio', anio.toString());
     return this.http.get<EgresadoContacto[]>(
-      `${this.apiUrl}/egresados/vinculacion/habilidad-otro`
+      `${this.apiUrl}/egresados/vinculacion/habilidad-otro`, { params }
     );
   }
 
-  getDistribucionSatisfaccion(): Observable<{ nivel: number; total: number }[]> {
+  getDistribucionSatisfaccion(carrera?: string, anio?: number): Observable<{ nivel: number; total: number }[]> {
+    let params = new HttpParams();
+    if (carrera) params = params.set('carrera', carrera);
+    if (anio) params = params.set('anio', anio.toString());
     return this.http.get<{ nivel: number; total: number }[]>(
-      `${this.apiUrl}/egresados/vinculacion/distribucion-satisfaccion`
+      `${this.apiUrl}/egresados/vinculacion/distribucion-satisfaccion`, { params }
     );
+  }
+
+  getCarrerasDisponibles(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiUrl}/egresados/vinculacion/carreras`);
+  }
+
+  getAniosDisponibles(): Observable<number[]> {
+    return this.http.get<number[]>(`${this.apiUrl}/egresados/vinculacion/anios`);
   }
 }

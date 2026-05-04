@@ -1,11 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
-import {
-  VinculacionService,
-  EgresadoContacto,
-} from './vinculacion.service';
+import { VinculacionService, EgresadoContacto, } from './vinculacion.service';
 import { EstadisticasService } from '../estadisticas/estadisticas.service';
 
 interface ColaboracionRow {
@@ -44,7 +42,7 @@ const OTRO_KEY = '__otro__';
 @Component({
   selector: 'app-vinculacion',
   standalone: true,
-  imports: [CommonModule, SidebarComponent],
+  imports: [CommonModule, FormsModule, SidebarComponent],
   templateUrl: './vinculacion.component.html',
   styleUrl: './vinculacion.component.css',
 })
@@ -53,12 +51,18 @@ export class VinculacionComponent implements OnInit {
   cargando = true;
   error: string | null = null;
 
+  // Filtros
+  filtroCarrera = '';
+  filtroAnio = '';
+  todasLasCarreras: string[] = [];
+  todosLosAnios: number[] = [];
+
+  // Datos
   totalEgresados = 0;
   satisfaccionProm = 0;
 
   colaboraciones: ColaboracionRow[] = [];
   habilidades: HabilidadRow[] = [];
-
   distribucionSatisfaccion: { nivel: number; pct: number }[] = [];
 
   autorizaciones = [
@@ -67,6 +71,7 @@ export class VinculacionComponent implements OnInit {
     { tipo: 'eventos' as const, label: 'Actividades y eventos institucionales', total: 0, porcentaje: 0 },
   ];
 
+  // Panel lateral
   panelVisible = false;
   panel: PanelDetalle = {
     titulo: '',
@@ -92,30 +97,65 @@ export class VinculacionComponent implements OnInit {
     this.cargarTodo();
   }
 
+  // Filtros
+  onFiltroChange(): void {
+    this.cerrarPanel();
+    this.cargarTodo();
+  }
+
+  limpiarFiltros(): void {
+    this.filtroCarrera = '';
+    this.filtroAnio = '';
+    this.cerrarPanel();
+    this.cargarTodo();
+  }
+
+  // Carga principal
   private cargarTodo(): void {
     this.cargando = true;
     this.error = null;
 
+    const carrera = this.filtroCarrera || undefined;
+    const anio = this.filtroAnio ? +this.filtroAnio : undefined;
+
     forkJoin({
-      stats: this.vinculacionSvc.getEstadisticas(),
-      colaborTots: this.vinculacionSvc.getTotalesColaboraciones(),
-      habTots: this.vinculacionSvc.getTotalesHabilidades(),
-      distSat: this.vinculacionSvc.getDistribucionSatisfaccion(),
+      stats: this.vinculacionSvc.getEstadisticas(carrera, anio),
+      colaborTots: this.vinculacionSvc.getTotalesColaboraciones(carrera, anio),
+      habTots: this.vinculacionSvc.getTotalesHabilidades(carrera, anio),
+      distSat: this.vinculacionSvc.getDistribucionSatisfaccion(carrera, anio),
       totalEg: this.estadisticasSvc.getEstadisticas(),
     }).subscribe({
       next: ({ stats, colaborTots, habTots, distSat, totalEg }) => {
 
-        // Total de egresados desde el endpoint de Estadísticas
         this.totalEgresados = +totalEg.kpis.total_egresados || 0;
 
-        // KPIs de vinculación
         const kpis = stats.kpis;
         this.satisfaccionProm = +kpis.satisfaccion_promedio || 0;
 
-        const autContacto = +kpis.autorizo_contacto || 0;
-        const autEventos = +kpis.autorizo_eventos || 0;
+        if (!carrera && !anio) {
+          const carrerasEnResp: string[] = (stats.participacionCarrera as any[])
+            .map((r: any) => r.nombre_carrera as string)
+            .filter((v: string, i: number, arr: string[]) => arr.indexOf(v) === i)
+            .sort();
+          this.todasLasCarreras = carrerasEnResp;
+
+          const aniosEnResp: number[] = (stats.evolucionGeneracion as any[])
+            .map((r: any) => +r.anio_egreso)
+            .filter((v: number, i: number, arr: number[]) => !isNaN(v) && arr.indexOf(v) === i)
+            .sort((a, b) => b - a);
+          this.todosLosAnios = aniosEnResp;
+        }
+
+        if (this.todasLasCarreras.length === 0) {
+          this.todasLasCarreras = (stats.participacionCarrera as any[])
+            .map((r: any) => r.nombre_carrera as string)
+            .filter((v: string, i: number, arr: string[]) => arr.indexOf(v) === i)
+            .sort();
+        }
 
         // Autorizaciones
+        const autContacto = +kpis.autorizo_contacto || 0;
+        const autEventos = +kpis.autorizo_eventos || 0;
         const totalEst = (stats.participacionCarrera as any[])
           .reduce((acc: number, r: any) => acc + (+r.autorizo_contacto || 0), 0);
 
@@ -126,7 +166,7 @@ export class VinculacionComponent implements OnInit {
         this.autorizaciones[2].total = autEventos;
         this.autorizaciones[2].porcentaje = this.pct(autEventos, this.totalEgresados);
 
-        // Distribución REAL de satisfacción
+        // Distribución de satisfacción
         const totalConRespuesta = distSat.reduce((s, r) => s + (+r.total || 0), 0);
         this.distribucionSatisfaccion = [5, 4, 3, 2, 1].map((n) => {
           const fila = distSat.find(r => +r.nivel === n);
@@ -154,7 +194,7 @@ export class VinculacionComponent implements OnInit {
           ...(otroColab ? [otroColab] : []),
         ];
 
-        this.colaboraciones = ordenadas.map((c) => ({
+        this.colaboraciones = ordenadas.map(c => ({
           descripcion: c.descripcion === OTRO_KEY ? 'Otro' : c.descripcion,
           total: +c.total || 0,
           porcentaje: this.pct(+c.total || 0, this.totalEgresados),
@@ -165,13 +205,12 @@ export class VinculacionComponent implements OnInit {
         // Habilidades
         const otroHab = habTots.find(h => h.habilidad === OTRO_KEY);
         const restoHab = habTots.filter(h => h.habilidad !== OTRO_KEY);
-
         const ordenadasHab = [
           ...restoHab.sort((a, b) => (+b.total || 0) - (+a.total || 0)),
           ...(otroHab ? [otroHab] : []),
         ];
 
-        this.habilidades = ordenadasHab.map((h) => ({
+        this.habilidades = ordenadasHab.map(h => ({
           habilidad: h.habilidad === OTRO_KEY ? 'Otro' : h.habilidad,
           total: +h.total || 0,
           porcentaje: this.pct(+h.total || 0, this.totalEgresados),
@@ -194,18 +233,6 @@ export class VinculacionComponent implements OnInit {
     return Math.round((valor / total) * 100);
   }
 
-  private pctSatisfaccion(nivel: number, promedio: number): number {
-    const tablas: Record<number, number[]> = {
-      5: [3, 5, 10, 47, 35],
-      4: [3, 7, 14, 48, 28],
-      3: [5, 10, 35, 32, 18],
-      2: [10, 20, 35, 25, 10],
-      1: [25, 30, 25, 12, 8],
-    };
-    const idx = Math.min(5, Math.max(1, Math.round(promedio)));
-    return tablas[idx]?.[5 - nivel] ?? 20;
-  }
-
   getFilaPct(nivel: number): number {
     return this.distribucionSatisfaccion.find(d => d.nivel === nivel)?.pct ?? 0;
   }
@@ -223,7 +250,7 @@ export class VinculacionComponent implements OnInit {
       .split(' ')
       .filter(Boolean)
       .slice(0, 2)
-      .map((p) => p[0].toUpperCase())
+      .map(p => p[0].toUpperCase())
       .join('');
   }
 
@@ -231,15 +258,18 @@ export class VinculacionComponent implements OnInit {
     return genero === 'Femenino' ? 'avatar-f' : 'avatar-m';
   }
 
-  // Abrir panel: colaboración
+  // Panel: colaboración
   abrirColaboracion(row: ColaboracionRow): void {
     const key = 'colab:' + row.descripcion;
     if (this.filaActiva === key) { this.cerrarPanel(); return; }
     this.filaActiva = key;
 
+    const carrera = this.filtroCarrera || undefined;
+    const anio = this.filtroAnio ? +this.filtroAnio : undefined;
+
     if (row.esOtro) {
       this.abrirPanel('Otro — respuesta libre', true);
-      this.vinculacionSvc.getEgresadosColaboracionOtro().subscribe({
+      this.vinculacionSvc.getEgresadosColaboracionOtro(carrera, anio).subscribe({
         next: (eg) => {
           this.panel.egresados = eg;
           this.panel.cargando = false;
@@ -253,7 +283,7 @@ export class VinculacionComponent implements OnInit {
       });
     } else {
       this.abrirPanel(row.descripcion, false);
-      this.vinculacionSvc.getEgresadosPorColaboracion(row.descripcion).subscribe({
+      this.vinculacionSvc.getEgresadosPorColaboracion(row.descripcion, carrera, anio).subscribe({
         next: (eg) => {
           this.panel.egresados = eg;
           this.panel.cargando = false;
@@ -268,15 +298,17 @@ export class VinculacionComponent implements OnInit {
     }
   }
 
-  // Abrir panel: habilidad
   abrirHabilidad(row: HabilidadRow): void {
     const key = 'hab:' + row.habilidad;
     if (this.filaActiva === key) { this.cerrarPanel(); return; }
     this.filaActiva = key;
 
+    const carrera = this.filtroCarrera || undefined;
+    const anio = this.filtroAnio ? +this.filtroAnio : undefined;
+
     if (row.esOtro) {
       this.abrirPanel('Otro — respuesta libre', true);
-      this.vinculacionSvc.getEgresadosHabilidadOtro().subscribe({
+      this.vinculacionSvc.getEgresadosHabilidadOtro(carrera, anio).subscribe({
         next: (eg) => {
           this.panel.egresados = eg;
           this.panel.cargando = false;
@@ -290,7 +322,7 @@ export class VinculacionComponent implements OnInit {
       });
     } else {
       this.abrirPanel(row.habilidad, false);
-      this.vinculacionSvc.getEgresadosPorHabilidad(row.habilidad).subscribe({
+      this.vinculacionSvc.getEgresadosPorHabilidad(row.habilidad, carrera, anio).subscribe({
         next: (eg) => {
           this.panel.egresados = eg;
           this.panel.cargando = false;
@@ -305,14 +337,17 @@ export class VinculacionComponent implements OnInit {
     }
   }
 
-  // Abrir panel: autorización
+  // Panel: autorización
   abrirAutorizacion(auth: typeof this.autorizaciones[0]): void {
     const key = 'auth:' + auth.tipo;
     if (this.filaActiva === key) { this.cerrarPanel(); return; }
     this.filaActiva = key;
     this.abrirPanel(auth.label, false);
 
-    this.vinculacionSvc.getEgresadosPorAutorizacion(auth.tipo).subscribe({
+    const carrera = this.filtroCarrera || undefined;
+    const anio = this.filtroAnio ? +this.filtroAnio : undefined;
+
+    this.vinculacionSvc.getEgresadosPorAutorizacion(auth.tipo, carrera, anio).subscribe({
       next: (eg) => {
         this.panel.egresados = eg;
         this.panel.cargando = false;
@@ -326,6 +361,7 @@ export class VinculacionComponent implements OnInit {
     });
   }
 
+  // Panel: helpers
   private abrirPanel(titulo: string, mostrarDescripcionOtro: boolean): void {
     this.panel = {
       titulo,

@@ -24,13 +24,13 @@ export class NotificacionesComponent implements OnInit {
 
   readonly API = 'http://localhost:3000';
 
-  todas:     Notificacion[] = [];
+  todas: Notificacion[] = [];
   filtradas: Notificacion[] = [];
   tabActiva: 'recientes' | 'encuestas' | 'sistema' = 'recientes';
 
   conteos = { recientes: 0, encuestas: 0, sistema: 0 };
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   ngOnInit() {
     this.cargarNotificaciones();
@@ -86,22 +86,74 @@ export class NotificacionesComponent implements OnInit {
       });
   }
 
+  modalEliminar: { visible: boolean; id: number | null } = { visible: false, id: null };
+
   eliminar(id: number, event: MouseEvent) {
     event.stopPropagation();
-    this.http.delete(`${this.API}/notificaciones/${id}`).subscribe(() => {
-      this.todas     = this.todas.filter(n => n.id_notificacion !== id);
-      this.filtradas = this.filtradas.filter(n => n.id_notificacion !== id);
-      this.calcularConteos();
-    });
+    this.modalEliminar = { visible: true, id };
+  }
+
+  toast: { visible: boolean; mensaje: string; timer: any } = {
+    visible: false,
+    mensaje: '',
+    timer: null
+  };
+  notifEliminadaTemporal: Notificacion | null = null;
+
+  confirmarEliminar() {
+    const id = this.modalEliminar.id!;
+    const notif = this.todas.find(n => n.id_notificacion === id)!;
+
+    this.notifEliminadaTemporal = notif;
+    this.todas = this.todas.filter(n => n.id_notificacion !== id);
+    this.filtradas = this.filtradas.filter(n => n.id_notificacion !== id);
+    this.calcularConteos();
+    this.cerrarModal();
+    this.mostrarToast('Notificación eliminada');
+
+    this.toast.timer = setTimeout(() => {
+      this.http.delete(`${this.API}/notificaciones/${id}`).subscribe();
+      this.notifEliminadaTemporal = null;
+      this.ocultarToast();
+    }, 5000);
+  }
+
+  mostrarToast(mensaje: string) {
+    if (this.toast.timer) clearTimeout(this.toast.timer);
+    this.toast.visible = true;
+    this.toast.mensaje = mensaje;
+  }
+
+  ocultarToast() {
+    this.toast.visible = false;
+    this.toast.mensaje = '';
+  }
+
+  deshacerEliminar() {
+    clearTimeout(this.toast.timer);
+
+    const notif = this.notifEliminadaTemporal!;
+    this.todas = [...this.todas, notif].sort(
+      (a, b) => new Date(b.fecha_creacion).getTime() - new Date(a.fecha_creacion).getTime()
+    );
+    this.cambiarTab(this.tabActiva);
+    this.calcularConteos();
+
+    this.notifEliminadaTemporal = null;
+    this.ocultarToast();
+  }
+
+  cerrarModal() {
+    this.modalEliminar = { visible: false, id: null };
   }
 
   getIconClass(tipo: string): string {
     const map: Record<string, string> = {
       nueva_encuesta: 'icon-blue',
-      contacto:       'icon-green',
-      eventos:        'icon-purple',
-      exportacion:    'icon-green',
-      actualizacion:  'icon-amber',
+      contacto: 'icon-green',
+      eventos: 'icon-purple',
+      exportacion: 'icon-green',
+      actualizacion: 'icon-amber',
     };
     return map[tipo] ?? 'icon-gray';
   }
@@ -109,10 +161,10 @@ export class NotificacionesComponent implements OnInit {
   getTagClass(tipo: string): string {
     const map: Record<string, string> = {
       nueva_encuesta: 'tag-blue',
-      contacto:       'tag-green',
-      eventos:        'tag-purple',
-      exportacion:    'tag-green',
-      actualizacion:  'tag-amber',
+      contacto: 'tag-green',
+      eventos: 'tag-purple',
+      exportacion: 'tag-green',
+      actualizacion: 'tag-amber',
     };
     return map[tipo] ?? 'tag-gray';
   }
@@ -120,10 +172,10 @@ export class NotificacionesComponent implements OnInit {
   getTagLabel(tipo: string): string {
     const map: Record<string, string> = {
       nueva_encuesta: 'Sin revisar',
-      contacto:       'Contacto autorizado',
-      eventos:        'Eventos autorizado',
-      exportacion:    'Exportación',
-      actualizacion:  'Actualización',
+      contacto: 'Contacto autorizado',
+      eventos: 'Eventos autorizado',
+      exportacion: 'Exportación',
+      actualizacion: 'Actualización',
     };
     return map[tipo] ?? tipo;
   }
@@ -134,18 +186,18 @@ export class NotificacionesComponent implements OnInit {
 
   getFechaRelativa(fecha: string): string {
     const diff = Date.now() - new Date(fecha).getTime();
-    const min  = Math.floor(diff / 60000);
-    const hrs  = Math.floor(diff / 3600000);
+    const min = Math.floor(diff / 60000);
+    const hrs = Math.floor(diff / 3600000);
     const dias = Math.floor(diff / 86400000);
-    if (min < 1)    return 'Justo ahora';
-    if (min < 60)   return `Hace ${min} min`;
-    if (hrs < 24)   return `Hace ${hrs} hora${hrs > 1 ? 's' : ''}`;
+    if (min < 1) return 'Justo ahora';
+    if (min < 60) return `Hace ${min} min`;
+    if (hrs < 24) return `Hace ${hrs} hora${hrs > 1 ? 's' : ''}`;
     if (dias === 1) return 'Ayer';
     return `Hace ${dias} días`;
   }
 
   getGrupos(): { label: string; items: Notificacion[] }[] {
-    const hoy  = new Date(); hoy.setHours(0, 0, 0, 0);
+    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
     const ayer = new Date(hoy); ayer.setDate(ayer.getDate() - 1);
 
     const grupos: Record<string, Notificacion[]> = {
@@ -154,9 +206,9 @@ export class NotificacionesComponent implements OnInit {
 
     for (const n of this.filtradas) {
       const d = new Date(n.fecha_creacion); d.setHours(0, 0, 0, 0);
-      if (d.getTime() === hoy.getTime())       grupos['Hoy'].push(n);
+      if (d.getTime() === hoy.getTime()) grupos['Hoy'].push(n);
       else if (d.getTime() === ayer.getTime()) grupos['Ayer'].push(n);
-      else                                     grupos['Anteriores'].push(n);
+      else grupos['Anteriores'].push(n);
     }
 
     return Object.entries(grupos)

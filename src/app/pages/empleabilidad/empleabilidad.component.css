@@ -448,6 +448,14 @@
     background: #f9fafb;
 }
 
+.emp-table th {
+  text-align: center;
+}
+
+.emp-table th:first-child {
+  text-align: left; /* Carrera se queda a la izquierda */
+}
+
 .td-carrera {
     font-weight: 500;
     color: #111827;

@@ -22,6 +22,31 @@
             </button>
         </div>
 
+        <!-- FILTROS -->
+        <div class="filtros-bar">
+            <div class="filtro-item">
+                <select class="filtro-select" [(ngModel)]="filtroCarrera" (change)="onFiltroChange()">
+                    <option value="">Todas las carreras</option>
+                    <option *ngFor="let c of todasLasCarreras" [value]="c">{{ c }}</option>
+                </select>
+            </div>
+
+            <div class="filtro-item">
+                <select class="filtro-select" [(ngModel)]="filtroAnio" (change)="onFiltroChange()">
+                    <option value="">Todos los años</option>
+                    <option *ngFor="let a of todosLosAnios" [value]="a">{{ a }}</option>
+                </select>
+            </div>
+
+            <button class="btn-limpiar" (click)="limpiarFiltros()" *ngIf="filtroCarrera || filtroAnio">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+                Limpiar filtros
+            </button>
+        </div>
+
         <!-- ESTADO: CARGANDO -->
         <div class="state-box" *ngIf="cargando">
             <div class="spinner"></div>
@@ -301,7 +326,7 @@
 
             </div>
 
-            <!-- Footer: botón exportar PDF -->
+            <!-- Footer: botones -->
             <div class="panel-foot">
                 <button class="btn-pdf" (click)="exportarPDF()">
                     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"

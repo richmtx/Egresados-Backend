@@ -40,9 +40,7 @@
 
           <p class="grupo-label">{{ grupo.label }}</p>
 
-          <div
-            *ngFor="let n of grupo.items"
-            class="notif-card"
+          <div *ngFor="let n of grupo.items" class="notif-card"
             [class.unread-blue]="  !n.leida && n.tipo === 'nueva_encuesta'"
             [class.unread-green]=" !n.leida && (n.tipo === 'contacto' || n.tipo === 'exportacion')"
             [class.unread-purple]="!n.leida && n.tipo === 'eventos'"
@@ -52,27 +50,33 @@
 
             <!-- Ícono -->
             <div class="notif-icon" [ngClass]="getIconClass(n.tipo)">
-              <svg *ngIf="n.tipo === 'nueva_encuesta'" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-                <path d="M2 4h12v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4z"/>
-                <path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/>
+              <svg *ngIf="n.tipo === 'nueva_encuesta'" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round">
+                <path d="M2 4h12v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4z" />
+                <path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1" />
               </svg>
-              <svg *ngIf="n.tipo === 'contacto'" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-                <path d="M2 8l4 4 8-8"/>
+              <svg *ngIf="n.tipo === 'contacto'" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round">
+                <path d="M2 8l4 4 8-8" />
               </svg>
-              <svg *ngIf="n.tipo === 'eventos'" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-                <rect x="2" y="3" width="12" height="11" rx="1.5"/>
-                <path d="M5 1v3M11 1v3M2 7h12"/>
+              <svg *ngIf="n.tipo === 'eventos'" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round">
+                <rect x="2" y="3" width="12" height="11" rx="1.5" />
+                <path d="M5 1v3M11 1v3M2 7h12" />
               </svg>
-              <svg *ngIf="n.tipo === 'exportacion'" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-                <rect x="2" y="2" width="12" height="12" rx="2"/>
-                <path d="M8 5v6M5 8l3 3 3-3"/>
+              <svg *ngIf="n.tipo === 'exportacion'" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round">
+                <rect x="2" y="2" width="12" height="12" rx="2" />
+                <path d="M8 5v6M5 8l3 3 3-3" />
               </svg>
-              <svg *ngIf="n.tipo === 'actualizacion'" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-                <path d="M2 8a6 6 0 1110.93-3M14 2v4h-4"/>
+              <svg *ngIf="n.tipo === 'actualizacion'" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round">
+                <path d="M2 8a6 6 0 1110.93-3M14 2v4h-4" />
               </svg>
-              <svg *ngIf="!['nueva_encuesta','contacto','eventos','exportacion','actualizacion'].includes(n.tipo)" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-                <path d="M8 2a5 5 0 015 5v2l1 2H2l1-2V7a5 5 0 015-5z"/>
-                <path d="M6.5 13a1.5 1.5 0 003 0"/>
+              <svg *ngIf="!['nueva_encuesta','contacto','eventos','exportacion','actualizacion'].includes(n.tipo)"
+                viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <path d="M8 2a5 5 0 015 5v2l1 2H2l1-2V7a5 5 0 015-5z" />
+                <path d="M6.5 13a1.5 1.5 0 003 0" />
               </svg>
             </div>
 
@@ -93,7 +97,7 @@
               <span class="dot-unread" *ngIf="!n.leida" [ngClass]="getIconClass(n.tipo)"></span>
               <button class="btn-delete" (click)="eliminar(n.id_notificacion, $event)" title="Eliminar">
                 <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-                  <path d="M3 4h10M6 4V3h4v1M5 4v8a1 1 0 001 1h4a1 1 0 001-1V4"/>
+                  <path d="M3 4h10M6 4V3h4v1M5 4v8a1 1 0 001 1h4a1 1 0 001-1V4" />
                 </svg>
               </button>
             </div>
@@ -107,13 +111,60 @@
       <ng-template #vacio>
         <div class="state-box">
           <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-            <path d="M24 6a14 14 0 0114 14v6l3 6H7l3-6v-6A14 14 0 0124 6z"/>
-            <path d="M20 38a4 4 0 008 0"/>
+            <path d="M24 6a14 14 0 0114 14v6l3 6H7l3-6v-6A14 14 0 0124 6z" />
+            <path d="M20 38a4 4 0 008 0" />
           </svg>
           <p>No hay notificaciones en esta sección</p>
         </div>
       </ng-template>
 
+    </div>
+
+    <!-- MODAL CONFIRMACIÓN ELIMINAR -->
+    <div class="modal-overlay" *ngIf="modalEliminar.visible" (click)="cerrarModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+
+        <div class="modal-icon-wrap">
+          <div class="modal-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+              <path d="M10 11v6M14 11v6" />
+            </svg>
+          </div>
+        </div>
+
+        <div class="modal-body">
+          <h2 class="modal-title">¿Eliminar notificación?</h2>
+          <p class="modal-desc">
+            Esta acción no se puede deshacer. La notificación será
+            eliminada permanentemente.
+          </p>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-modal-cancel" (click)="cerrarModal()">
+            Cancelar
+          </button>
+          <button class="btn-modal-confirm" (click)="confirmarEliminar()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <path d="M3 4h10M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" />
+            </svg>
+            Sí, eliminar
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TOAST DESHACER -->
+    <div class="toast" [class.toast-visible]="toast.visible">
+      <div class="toast-left">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M3 4h10M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" />
+        </svg>
+        <span>{{ toast.mensaje }}</span>
+      </div>
+      <button class="toast-btn" (click)="deshacerEliminar()">Deshacer</button>
     </div>
 
   </main>
