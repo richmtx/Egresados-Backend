@@ -65,10 +65,7 @@ export class DistribucionComponent implements OnInit, OnDestroy, AfterViewInit {
         this.datos = resp;
         this.cargando = false;
 
-        // ── Carreras ──────────────────────────────────────────────────────
-        // La lista maestra solo se actualiza cuando no hay filtros activos.
-        // carrerasDisponibles siempre apunta a la maestra para que el select
-        // muestre todas las opciones independientemente del filtro seleccionado.
+        // Carreras
         const carrerasEnRespuesta = resp.movilidadPorCarrera
           .map(m => m.nombre_carrera)
           .filter((v, i, arr) => arr.indexOf(v) === i)
@@ -81,11 +78,7 @@ export class DistribucionComponent implements OnInit, OnDestroy, AfterViewInit {
         }
         this.carrerasDisponibles = this.todasLasCarreras;
 
-        // ── Años ──────────────────────────────────────────────────────────
-        // Extrae los años que realmente tienen egresados en la BD,
-        // ordenados de más reciente a más antiguo.
-        // La lista maestra solo se actualiza cuando no hay filtros activos,
-        // así el select siempre muestra todos los años disponibles.
+        // Años
         const aniosEnRespuesta = resp.movilidadPorAnio
           .map(a => a.anio_egreso)
           .filter((v, i, arr) => arr.indexOf(v) === i)
