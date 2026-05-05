@@ -335,9 +335,83 @@
                     </svg>
                     Exportar PDF
                 </button>
+
+                <!-- BOTÓN NUEVO -->
+                <button class="btn-correo" (click)="abrirModalCorreo()" [disabled]="panel.egresados.length === 0">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round">
+                        <path d="M2 4h12v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4z" />
+                        <path d="M2 4l6 5 6-5" />
+                    </svg>
+                    Mandar correo
+                </button>
             </div>
 
         </ng-container>
+    </div>
+
+    <!-- MODAL CORREO -->
+    <div class="modal-overlay" *ngIf="modalCorreoVisible" (click)="cerrarModalCorreo()"></div>
+
+    <div class="modal-correo" [class.modal-correo--visible]="modalCorreoVisible">
+        <div class="modal-head">
+            <div>
+                <p class="modal-label">Nuevo mensaje</p>
+                <p class="modal-titulo">{{ panel.titulo }}</p>
+            </div>
+            <button class="drawer-close" (click)="cerrarModalCorreo()">
+                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                    <path d="M1 1l10 10M11 1L1 11" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="modal-campos">
+            <!-- Para: -->
+            <div class="campo-row">
+                <span class="campo-label">Para:</span>
+                <div class="chips-wrap" [class.chips-wrap--expanded]="correosExpandido">
+                    <ng-container *ngFor="let e of panel.egresados; let i = index">
+                        <span class="chip" *ngIf="correosExpandido || i < 5">{{ e.correo }}</span>
+                    </ng-container>
+
+                    <!-- Badge "+N más" -->
+                    <button class="chip chip--mas" *ngIf="!correosExpandido && panel.egresados.length > 5"
+                        (click)="correosExpandido = true">
+                        +{{ panel.egresados.length - 5 }} más
+                    </button>
+
+                    <!-- Badge "Ver menos" -->
+                    <button class="chip chip--menos" *ngIf="correosExpandido && panel.egresados.length > 5"
+                        (click)="correosExpandido = false">
+                        Ver menos
+                    </button>
+
+                    <span class="modal-sin-correos" *ngIf="panel.egresados.length === 0">Sin destinatarios</span>
+                </div>
+            </div>
+            <!-- Asunto -->
+            <div class="campo-row">
+                <span class="campo-label">Asunto:</span>
+                <input class="campo-input" type="text" [(ngModel)]="correoAsunto" placeholder="Escribe el asunto..." />
+            </div>
+        </div>
+
+        <div class="modal-body">
+            <textarea class="correo-textarea" [(ngModel)]="correoMensaje" placeholder="Redacta tu mensaje aquí..."
+                rows="8"></textarea>
+        </div>
+
+        <div class="modal-foot">
+            <button class="btn-cancelar" (click)="cerrarModalCorreo()">Cancelar</button>
+            <button class="btn-enviar" (click)="enviarCorreo()" [disabled]="panel.egresados.length === 0">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="M22 2L11 13" />
+                    <path d="M22 2L15 22l-4-9-9-4 20-7z" />
+                </svg>
+                Enviar correo
+            </button>
+        </div>
     </div>
 
 </div>

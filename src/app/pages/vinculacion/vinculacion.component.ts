@@ -57,6 +57,11 @@ export class VinculacionComponent implements OnInit {
   todasLasCarreras: string[] = [];
   todosLosAnios: number[] = [];
 
+  modalCorreoVisible = false;
+  correoAsunto = '';
+  correoMensaje = '';
+  correosExpandido = false;
+
   // Datos
   totalEgresados = 0;
   satisfaccionProm = 0;
@@ -383,4 +388,30 @@ export class VinculacionComponent implements OnInit {
   }
 
   exportarPDF(): void { window.print(); }
+
+  abrirModalCorreo(): void {
+    if (this.panel.egresados.length === 0) return;
+    this.correosExpandido = false;
+    this.correoAsunto = this.panel.titulo;
+    this.correoMensaje = '';
+    this.modalCorreoVisible = true;
+  }
+
+  cerrarModalCorreo(): void {
+    this.modalCorreoVisible = false;
+  }
+
+  enviarCorreo(): void {
+    if (this.panel.egresados.length === 0) return;
+
+    const destinatarios = this.panel.egresados
+      .map(e => e.correo)
+      .filter(Boolean)
+      .join(',');
+
+    const asunto = encodeURIComponent(this.correoAsunto || this.panel.titulo);
+    const cuerpo = encodeURIComponent(this.correoMensaje);
+
+    window.location.href = `mailto:${destinatarios}?subject=${asunto}&body=${cuerpo}`;
+  }
 }
