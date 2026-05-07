@@ -1,1 +1,773 @@
-<app-sidebar></app-sidebar>
+<div class="comp-layout">
+
+    <!-- ══ SIDEBAR ══ -->
+    <app-sidebar></app-sidebar>
+
+    <!-- ══ CONTENIDO PRINCIPAL ══ -->
+    <main class="comp-main">
+
+        <!-- ── Header ── -->
+        <div class="stats-header">
+            <div class="header-left">
+                <h1 class="page-title">Comparativas</h1>
+                <p class="page-subtitle">
+                    Selecciona 2 o 3 carreras para comparar estadísticas de egresados
+                </p>
+            </div>
+            <button class="btn-export" (click)="limpiarSeleccion()" *ngIf="datos">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+                Nueva comparativa
+            </button>
+        </div>
+
+        <!-- ══ SELECTOR DE CARRERAS ══ -->
+        <div class="selector-panel">
+            <div class="selector-header">
+                <span class="selector-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.35-4.35" />
+                    </svg>
+                    Selección de carreras
+                </span>
+                <span class="selector-hint">Elige entre 2 y 3 carreras para comparar</span>
+            </div>
+
+            <div class="selector-grid">
+                <div class="selector-col" *ngFor="let i of [0, 1, 2]">
+                    <div class="selector-col-label">
+                        <span class="color-dot" [style.background]="colorCarrera(i)"></span>
+                        Carrera {{ i + 1 }}
+                        <span class="optional-badge" *ngIf="i === 2">opcional</span>
+                    </div>
+                    <select class="selector-select" [class.selected]="seleccion[i]"
+                        [style.border-color]="seleccion[i] ? colorCarrera(i) : ''"
+                        [style.border-width]="seleccion[i] ? '1.5px' : '1px'" [(ngModel)]="seleccion[i]">
+                        <option [ngValue]="null">Seleccionar</option>
+                        <option *ngFor="let c of opcionesPara(i)" [ngValue]="c">{{ c }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="selector-footer">
+                <div class="selector-counts" *ngIf="datos">
+                    <span *ngFor="let r of datos.resumen; let i = index" class="count-badge"
+                        [style.background]="colorCarreraLight(getColorIdx(r.nombre_carrera))"
+                        [style.color]="colorCarrera(getColorIdx(r.nombre_carrera))">
+                        {{ r.nombre_carrera }}: {{ r.total }} egresados
+                    </span>
+                </div>
+                <div class="selector-counts" *ngIf="!datos">
+                    <span class="count-badge-neutral" *ngFor="let c of seleccionActiva">
+                        {{ c }}
+                    </span>
+                </div>
+                <button class="btn-comparar" [disabled]="!puedeComparar || cargando" (click)="comparar()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <path d="M9 3v18M15 3v18M3 9h18M3 15h18" />
+                    </svg>
+                    {{ cargando ? 'Cargando...' : 'Comparar' }}
+                </button>
+            </div>
+        </div>
+
+        <!-- ── Loading ── -->
+        <div class="loading-state" *ngIf="cargando">
+            <div class="spinner"></div>
+            <p>Generando comparativa...</p>
+        </div>
+
+        <!-- ── Error ── -->
+        <div class="error-state" *ngIf="error && !cargando">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <p>No se pudo cargar la comparativa.</p>
+            <button class="btn-retry" (click)="comparar()">Reintentar</button>
+        </div>
+
+        <!-- ══ RESULTADOS ══ -->
+        <ng-container *ngIf="datos && !cargando">
+
+            <!-- ── Leyenda de carreras ── -->
+            <div class="leyenda-carreras">
+                <div class="leyenda-item" *ngFor="let r of datos.resumen; let i = index">
+                    <span class="leyenda-dot" [style.background]="colorCarrera(getColorIdx(r.nombre_carrera))"></span>
+                    <span class="leyenda-nombre">{{ r.nombre_carrera }}</span>
+                    <span class="leyenda-total">{{ r.total }} egresados</span>
+                </div>
+            </div>
+
+            <!-- ── KPI de líderes ── -->
+            <div class="lider-grid">
+
+                <div class="lider-card">
+                    <div class="lider-icon lider-icon-green">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="2" y="7" width="4" height="14" rx="1" />
+                            <rect x="9" y="3" width="4" height="18" rx="1" />
+                            <rect x="16" y="10" width="4" height="11" rx="1" />
+                        </svg>
+                    </div>
+                    <div class="lider-body">
+                        <span class="lider-label">Mayor empleo</span>
+                        <span class="lider-carrera"
+                            [style.color]="colorCarrera(getColorIdx(getLider('pct_empleados')?.carrera ?? ''))">
+                            {{ getLider('pct_empleados')?.carrera ?? '—' }}
+                        </span>
+                        <span class="lider-valor">{{ getLider('pct_empleados')?.valor }}%</span>
+                    </div>
+                </div>
+
+                <div class="lider-card">
+                    <div class="lider-icon lider-icon-amber">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14,2 14,8 20,8" />
+                        </svg>
+                    </div>
+                    <div class="lider-body">
+                        <span class="lider-label">Mayor titulación</span>
+                        <span class="lider-carrera"
+                            [style.color]="colorCarrera(getColorIdx(getLider('pct_titulados')?.carrera ?? ''))">
+                            {{ getLider('pct_titulados')?.carrera ?? '—' }}
+                        </span>
+                        <span class="lider-valor">{{ getLider('pct_titulados')?.valor }}%</span>
+                    </div>
+                </div>
+
+                <div class="lider-card">
+                    <div class="lider-icon lider-icon-rose">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polygon
+                                points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26 12,2" />
+                        </svg>
+                    </div>
+                    <div class="lider-body">
+                        <span class="lider-label">Mayor satisfacción</span>
+                        <span class="lider-carrera"
+                            [style.color]="colorCarrera(getColorIdx(getLider('satisfaccion_promedio')?.carrera ?? ''))">
+                            {{ getLider('satisfaccion_promedio')?.carrera ?? '—' }}
+                        </span>
+                        <span class="lider-valor">{{ getLider('satisfaccion_promedio')?.valor }}/5</span>
+                    </div>
+                </div>
+
+                <div class="lider-card">
+                    <div class="lider-icon lider-icon-blue">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="2" y1="12" x2="22" y2="12" />
+                            <path
+                                d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                        </svg>
+                    </div>
+                    <div class="lider-body">
+                        <span class="lider-label">Mayor movilidad</span>
+                        <span class="lider-carrera"
+                            [style.color]="colorCarrera(getColorIdx(getLider('pct_fuera_durango')?.carrera ?? ''))">
+                            {{ getLider('pct_fuera_durango')?.carrera ?? '—' }}
+                        </span>
+                        <span class="lider-valor">{{ getLider('pct_fuera_durango')?.valor }}% fuera</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ── Tabs de secciones ── -->
+            <div class="tabs-bar">
+                <button class="tab-btn" [class.active]="tabActiva === 'resumen'" (click)="setTab('resumen')">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                    </svg>
+                    Resumen global
+                </button>
+                <button class="tab-btn" [class.active]="tabActiva === 'empleo'" (click)="setTab('empleo')">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="7" width="4" height="14" rx="1" />
+                        <rect x="9" y="3" width="4" height="18" rx="1" />
+                        <rect x="16" y="10" width="4" height="11" rx="1" />
+                    </svg>
+                    Empleo
+                </button>
+                <button class="tab-btn" [class.active]="tabActiva === 'titulacion'" (click)="setTab('titulacion')">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14,2 14,8 20,8" />
+                    </svg>
+                    Titulación
+                </button>
+                <button class="tab-btn" [class.active]="tabActiva === 'sector'" (click)="setTab('sector')">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    </svg>
+                    Sector laboral
+                </button>
+                <button class="tab-btn" [class.active]="tabActiva === 'ingles_migracion'"
+                    (click)="setTab('ingles_migracion')">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="2" y1="12" x2="22" y2="12" />
+                        <path
+                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                    </svg>
+                    Inglés & Migración
+                </button>
+                <button class="tab-btn" [class.active]="tabActiva === 'satisfaccion'" (click)="setTab('satisfaccion')">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon
+                            points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26 12,2" />
+                    </svg>
+                    Satisfacción
+                </button>
+            </div>
+
+            <!-- ════ TAB: RESUMEN GLOBAL ════ -->
+            <ng-container *ngIf="tabActiva === 'resumen'">
+
+                <div class="seccion-label">
+                    <span class="seccion-dot dot-indigo"></span>
+                    Tabla resumen — todos los indicadores
+                </div>
+
+                <div class="chart-card tabla-resumen-card">
+                    <div class="tabla-resumen-wrap">
+                        <table class="tabla-resumen">
+                            <thead>
+                                <tr>
+                                    <th class="th-indicador">Indicador</th>
+                                    <th *ngFor="let r of datos.resumen; let i = index"
+                                        [style.color]="colorCarrera(getColorIdx(r.nombre_carrera))">
+                                        {{ r.nombre_carrera }}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="td-label">Total egresados</td>
+                                    <td *ngFor="let r of datos.resumen" class="td-val">{{ r.total }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="td-label">Empleados</td>
+                                    <td *ngFor="let r of datos.resumen" class="td-val">
+                                        <span class="td-pct"
+                                            [class.td-winner]="r.nombre_carrera === getLider('pct_empleados')?.carrera">
+                                            {{ r.pct_empleados }}%
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="td-label">Titulados</td>
+                                    <td *ngFor="let r of datos.resumen" class="td-val">
+                                        <span class="td-pct"
+                                            [class.td-winner]="r.nombre_carrera === getLider('pct_titulados')?.carrera">
+                                            {{ r.pct_titulados }}%
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="td-label">Satisfacción promedio</td>
+                                    <td *ngFor="let r of datos.resumen" class="td-val">
+                                        <span class="td-pct"
+                                            [class.td-winner]="r.nombre_carrera === getLider('satisfaccion_promedio')?.carrera">
+                                            {{ r.satisfaccion_promedio }}/5
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="td-label">Fuera de Durango</td>
+                                    <td *ngFor="let r of datos.resumen" class="td-val">
+                                        <span class="td-pct"
+                                            [class.td-winner]="r.nombre_carrera === getLider('pct_fuera_durango')?.carrera">
+                                            {{ r.pct_fuera_durango }}%
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="seccion-label" style="margin-top: 4px;">
+                    <span class="seccion-dot dot-purple"></span>
+                    Radar — perfil comparativo global
+                </div>
+
+                <div class="charts-row row-2">
+                    <div class="chart-card"
+                        (click)="abrirModal('radar', 'Perfil comparativo', 'Todos los indicadores normalizados a %', chartRadar)">
+                        <div class="chart-header">
+                            <div>
+                                <h3 class="chart-title">Perfil comparativo</h3>
+                                <p class="chart-sub">Todos los indicadores normalizados a %</p>
+                            </div>
+                            <span class="chart-badge">Radar</span>
+                        </div>
+                        <apx-chart [series]="chartRadar.series" [chart]="chartRadar.chart" [xaxis]="chartRadar.xaxis"
+                            [colors]="chartRadar.colors" [fill]="chartRadar.fill" [stroke]="chartRadar.stroke"
+                            [markers]="chartRadar.markers" [yaxis]="chartRadar.yaxis" [legend]="chartRadar.legend"
+                            [tooltip]="chartRadar.tooltip">
+                        </apx-chart>
+                        <div class="chart-card-hint">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                            </svg>
+                            Clic para expandir
+                        </div>
+                    </div>
+
+                    <div class="chart-card"
+                        (click)="abrirModal('bar', 'Heatmap de indicadores', 'Intensidad por carrera e indicador', chartHeatmap)">
+                        <div class="chart-header">
+                            <div>
+                                <h3 class="chart-title">Heatmap de indicadores</h3>
+                                <p class="chart-sub">Intensidad por carrera e indicador</p>
+                            </div>
+                            <span class="chart-badge">Heatmap</span>
+                        </div>
+                        <apx-chart [series]="chartHeatmap.series" [chart]="chartHeatmap.chart"
+                            [dataLabels]="chartHeatmap.dataLabels" [colors]="chartHeatmap.colors"
+                            [xaxis]="chartHeatmap.xaxis" [legend]="chartHeatmap.legend"
+                            [tooltip]="chartHeatmap.tooltip">
+                        </apx-chart>
+                        <div class="chart-card-hint">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                            </svg>
+                            Clic para expandir
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+
+            <!-- ════ TAB: EMPLEO ════ -->
+            <ng-container *ngIf="tabActiva === 'empleo'">
+
+                <div class="seccion-label">
+                    <span class="seccion-dot dot-green"></span>
+                    ¿Cuántos están empleados?
+                </div>
+
+                <div class="empleo-cards">
+                    <div class="empleo-stat-card" *ngFor="let e of datos.empleo; let i = index">
+                        <div class="empleo-stat-header"
+                            [style.border-top-color]="colorCarrera(getColorIdx(e.nombre_carrera))">
+                            <span class="empleo-carrera-nombre"
+                                [style.color]="colorCarrera(getColorIdx(e.nombre_carrera))">
+                                {{ e.nombre_carrera }}
+                            </span>
+                            <span class="empleo-total-badge"
+                                [style.background]="colorCarreraLight(getColorIdx(e.nombre_carrera))"
+                                [style.color]="colorCarrera(getColorIdx(e.nombre_carrera))">
+                                {{ e.total }} egresados
+                            </span>
+                        </div>
+                        <div class="empleo-big-pct" [style.color]="colorCarrera(getColorIdx(e.nombre_carrera))">
+                            {{ e.pct_empleados }}%
+                        </div>
+                        <p class="empleo-big-label">tasa de empleo</p>
+                        <div class="empleo-progress-track">
+                            <div class="empleo-progress-fill" [style.width]="e.pct_empleados + '%'"
+                                [style.background]="colorCarrera(getColorIdx(e.nombre_carrera))">
+                            </div>
+                        </div>
+                        <div class="empleo-desglose">
+                            <div class="empleo-desglose-item">
+                                <span class="empleo-desglose-dot" style="background:#10b981"></span>
+                                <span>Empleados</span>
+                                <strong>{{ e.empleados }}</strong>
+                            </div>
+                            <div class="empleo-desglose-item">
+                                <span class="empleo-desglose-dot" style="background:#ef4444"></span>
+                                <span>Desempleados</span>
+                                <strong>{{ e.desempleados }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="seccion-label" style="margin-top: 4px;">
+                    <span class="seccion-dot dot-indigo"></span>
+                    Comparativa de empleados vs desempleados
+                </div>
+
+                <div class="chart-card"
+                    (click)="abrirModal('bar', 'Empleabilidad comparada', 'Empleados vs desempleados por carrera', chartEmpleo)">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Empleados vs Desempleados</h3>
+                            <p class="chart-sub">Comparativa por carrera</p>
+                        </div>
+                        <span class="chart-badge">Barras agrupadas</span>
+                    </div>
+                    <apx-chart [series]="chartEmpleo.series" [chart]="chartEmpleo.chart" [xaxis]="chartEmpleo.xaxis"
+                        [colors]="chartEmpleo.colors" [plotOptions]="chartEmpleo.plotOptions"
+                        [dataLabels]="chartEmpleo.dataLabels" [legend]="chartEmpleo.legend" [grid]="chartEmpleo.grid"
+                        [tooltip]="chartEmpleo.tooltip">
+                    </apx-chart>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
+                </div>
+            </ng-container>
+
+            <!-- ════ TAB: TITULACIÓN ════ -->
+            <ng-container *ngIf="tabActiva === 'titulacion'">
+
+                <div class="seccion-label">
+                    <span class="seccion-dot dot-amber"></span>
+                    Titulado / En trámite / No titulado por carrera
+                </div>
+
+                <div class="charts-row row-1-full">
+                    <div class="chart-card"
+                        (click)="abrirModal('bar', 'Estado de titulación', 'Distribución porcentual por carrera', chartTitulacion)">
+                        <div class="chart-header">
+                            <div>
+                                <h3 class="chart-title">Estado de titulación</h3>
+                                <p class="chart-sub">Barras 100% apiladas por carrera</p>
+                            </div>
+                            <span class="chart-badge">Apiladas 100%</span>
+                        </div>
+                        <apx-chart [series]="chartTitulacion.series" [chart]="chartTitulacion.chart"
+                            [xaxis]="chartTitulacion.xaxis" [colors]="chartTitulacion.colors"
+                            [plotOptions]="chartTitulacion.plotOptions" [dataLabels]="chartTitulacion.dataLabels"
+                            [legend]="chartTitulacion.legend" [grid]="chartTitulacion.grid"
+                            [yaxis]="chartTitulacion.yaxis" [tooltip]="chartTitulacion.tooltip">
+                        </apx-chart>
+                        <div class="chart-card-hint">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                            </svg>
+                            Clic para expandir
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mini tabla titulación -->
+                <div class="seccion-label" style="margin-top: 4px;">
+                    <span class="seccion-dot dot-green"></span>
+                    Detalle numérico
+                </div>
+                <div class="chart-card tabla-resumen-card">
+                    <div class="tabla-resumen-wrap">
+                        <table class="tabla-resumen">
+                            <thead>
+                                <tr>
+                                    <th class="th-indicador">Carrera</th>
+                                    <th>Total</th>
+                                    <th>Titulados</th>
+                                    <th>En trámite</th>
+                                    <th>No titulados</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let t of datos.titulacion; let i = index">
+                                    <td class="td-label" [style.color]="colorCarrera(getColorIdx(t.nombre_carrera))">
+                                        <span class="color-dot-sm"
+                                            [style.background]="colorCarrera(getColorIdx(t.nombre_carrera))"></span>
+                                        {{ t.nombre_carrera }}
+                                    </td>
+                                    <td class="td-val">{{ t.total }}</td>
+                                    <td class="td-val">
+                                        <span class="td-pct"
+                                            [class.td-winner]="t.nombre_carrera === getLider('pct_titulados')?.carrera">
+                                            {{ t.titulados }} ({{ t.pct_titulados }}%)
+                                        </span>
+                                    </td>
+                                    <td class="td-val">{{ t.en_tramite }} ({{ t.pct_en_tramite }}%)</td>
+                                    <td class="td-val">{{ t.no_titulados }} ({{ t.pct_no_titulados }}%)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </ng-container>
+
+            <!-- ════ TAB: SECTOR LABORAL ════ -->
+            <ng-container *ngIf="tabActiva === 'sector'">
+
+                <div class="seccion-label">
+                    <span class="seccion-dot dot-blue"></span>
+                    Sector laboral por carrera
+                </div>
+
+                <div class="chart-card"
+                    (click)="abrirModal('bar', 'Sector laboral', 'Distribución de sectores por carrera', chartSectorCarrera)">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Distribución por sector</h3>
+                            <p class="chart-sub">Público · Privado · Freelance · Posgrado · Otros</p>
+                        </div>
+                        <span class="chart-badge">Barras agrupadas</span>
+                    </div>
+                    <apx-chart [series]="chartSectorCarrera.series" [chart]="chartSectorCarrera.chart"
+                        [xaxis]="chartSectorCarrera.xaxis" [colors]="chartSectorCarrera.colors"
+                        [plotOptions]="chartSectorCarrera.plotOptions" [dataLabels]="chartSectorCarrera.dataLabels"
+                        [legend]="chartSectorCarrera.legend" [grid]="chartSectorCarrera.grid"
+                        [yaxis]="chartSectorCarrera.yaxis" [tooltip]="chartSectorCarrera.tooltip">
+                    </apx-chart>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
+                </div>
+
+                <!-- Tabla sector -->
+                <div class="seccion-label" style="margin-top: 4px;">
+                    <span class="seccion-dot dot-indigo"></span>
+                    Desglose por sector y carrera
+                </div>
+                <div class="chart-card tabla-resumen-card">
+                    <div class="tabla-resumen-wrap">
+                        <table class="tabla-resumen">
+                            <thead>
+                                <tr>
+                                    <th class="th-indicador">Sector</th>
+                                    <th *ngFor="let r of datos.resumen; let i = index"
+                                        [style.color]="colorCarrera(getColorIdx(r.nombre_carrera))">
+                                        {{ r.nombre_carrera }}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let sector of getSectores()">
+                                    <td class="td-label">{{ sector }}</td>
+                                    <td *ngFor="let r of datos.resumen" class="td-val">
+                                        {{ getSectorValor(r.nombre_carrera, sector) }}%
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </ng-container>
+
+            <!-- ════ TAB: INGLÉS & MIGRACIÓN ════ -->
+            <ng-container *ngIf="tabActiva === 'ingles_migracion'">
+
+                <div class="seccion-label">
+                    <span class="seccion-dot dot-blue"></span>
+                    Nivel de inglés por carrera
+                </div>
+
+                <div class="chart-card"
+                    (click)="abrirModal('bar', 'Nivel de inglés', 'Distribución de niveles por carrera', chartInglesApilado)">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Nivel de inglés</h3>
+                            <p class="chart-sub">Distribución de niveles 100% apilados</p>
+                        </div>
+                        <span class="chart-badge">Apiladas 100%</span>
+                    </div>
+                    <apx-chart [series]="chartInglesApilado.series" [chart]="chartInglesApilado.chart"
+                        [xaxis]="chartInglesApilado.xaxis" [colors]="chartInglesApilado.colors"
+                        [plotOptions]="chartInglesApilado.plotOptions" [dataLabels]="chartInglesApilado.dataLabels"
+                        [legend]="chartInglesApilado.legend" [grid]="chartInglesApilado.grid"
+                        [yaxis]="chartInglesApilado.yaxis" [tooltip]="chartInglesApilado.tooltip">
+                    </apx-chart>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
+                </div>
+
+                <div class="seccion-label" style="margin-top: 4px;">
+                    <span class="seccion-dot dot-rose"></span>
+                    Migración — ¿qué carrera emigra más?
+                </div>
+
+                <div class="chart-card"
+                    (click)="abrirModal('bar', 'Migración por carrera', 'En Durango · Fuera de Durango · Extranjero', chartMigracion)">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Distribución geográfica</h3>
+                            <p class="chart-sub">En Durango · Fuera de Durango · Extranjero</p>
+                        </div>
+                        <span class="chart-badge">Barras agrupadas</span>
+                    </div>
+                    <apx-chart [series]="chartMigracion.series" [chart]="chartMigracion.chart"
+                        [xaxis]="chartMigracion.xaxis" [colors]="chartMigracion.colors"
+                        [plotOptions]="chartMigracion.plotOptions" [dataLabels]="chartMigracion.dataLabels"
+                        [legend]="chartMigracion.legend" [grid]="chartMigracion.grid"
+                        [tooltip]="chartMigracion.tooltip">
+                    </apx-chart>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
+                </div>
+
+                <!-- Mini tabla migración -->
+                <div class="chart-card tabla-resumen-card" style="margin-top: 12px;">
+                    <div class="tabla-resumen-wrap">
+                        <table class="tabla-resumen">
+                            <thead>
+                                <tr>
+                                    <th class="th-indicador">Carrera</th>
+                                    <th>En Durango</th>
+                                    <th>Fuera de Dgo.</th>
+                                    <th>Extranjero</th>
+                                    <th>% Fuera Dgo.</th>
+                                    <th>% Extranjero</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let m of datos.migracion">
+                                    <td class="td-label" [style.color]="colorCarrera(getColorIdx(m.nombre_carrera))">
+                                        <span class="color-dot-sm"
+                                            [style.background]="colorCarrera(getColorIdx(m.nombre_carrera))"></span>
+                                        {{ m.nombre_carrera }}
+                                    </td>
+                                    <td class="td-val">{{ m.en_durango }}</td>
+                                    <td class="td-val">{{ m.fuera_durango_mexico }}</td>
+                                    <td class="td-val">{{ m.en_extranjero }}</td>
+                                    <td class="td-val">
+                                        <span class="td-pct"
+                                            [class.td-winner]="m.nombre_carrera === getLider('pct_fuera_durango')?.carrera">
+                                            {{ m.pct_fuera_durango }}%
+                                        </span>
+                                    </td>
+                                    <td class="td-val">{{ m.pct_extranjero }}%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </ng-container>
+
+            <!-- ════ TAB: SATISFACCIÓN ════ -->
+            <ng-container *ngIf="tabActiva === 'satisfaccion'">
+
+                <div class="seccion-label">
+                    <span class="seccion-dot dot-rose"></span>
+                    Satisfacción de formación académica
+                </div>
+
+                <!-- Cards de satisfacción -->
+                <div class="empleo-cards">
+                    <div class="empleo-stat-card" *ngFor="let s of datos.satisfaccion; let i = index">
+                        <div class="empleo-stat-header"
+                            [style.border-top-color]="colorCarrera(getColorIdx(s.nombre_carrera))">
+                            <span class="empleo-carrera-nombre"
+                                [style.color]="colorCarrera(getColorIdx(s.nombre_carrera))">
+                                {{ s.nombre_carrera }}
+                            </span>
+                            <span class="empleo-total-badge"
+                                [style.background]="colorCarreraLight(getColorIdx(s.nombre_carrera))"
+                                [style.color]="colorCarrera(getColorIdx(s.nombre_carrera))">
+                                {{ s.total }} egresados
+                            </span>
+                        </div>
+                        <div class="empleo-big-pct" [style.color]="colorCarrera(getColorIdx(s.nombre_carrera))">
+                            {{ s.promedio }}<span style="font-size:16px;font-weight:400;color:#9ca3af">/5</span>
+                        </div>
+                        <p class="empleo-big-label">satisfacción promedio</p>
+                        <div class="empleo-progress-track">
+                            <div class="empleo-progress-fill" [style.width]="(s.promedio * 20) + '%'"
+                                [style.background]="colorCarrera(getColorIdx(s.nombre_carrera))">
+                            </div>
+                        </div>
+                        <div class="satisfaccion-desglose">
+                            <div class="sat-row"><span>Muy satisfecho</span><strong>{{ s.muy_satisfecho }}</strong>
+                            </div>
+                            <div class="sat-row"><span>Satisfecho</span><strong>{{ s.satisfecho }}</strong></div>
+                            <div class="sat-row"><span>Neutral</span><strong>{{ s.neutral }}</strong></div>
+                            <div class="sat-row"><span>Insatisfecho</span><strong>{{ s.insatisfecho }}</strong></div>
+                            <div class="sat-row"><span>Muy insatisfecho</span><strong>{{ s.muy_insatisfecho }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="seccion-label" style="margin-top: 4px;">
+                    <span class="seccion-dot dot-indigo"></span>
+                    Comparativa visual
+                </div>
+
+                <div class="chart-card"
+                    (click)="abrirModal('bar', 'Satisfacción académica', 'Promedio de satisfacción por carrera (sobre 5)', chartSatisfaccion)">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Satisfacción promedio</h3>
+                            <p class="chart-sub">Sobre una escala de 1 a 5</p>
+                        </div>
+                        <span class="chart-badge">Barras</span>
+                    </div>
+                    <apx-chart [series]="chartSatisfaccion.series" [chart]="chartSatisfaccion.chart"
+                        [xaxis]="chartSatisfaccion.xaxis" [colors]="chartSatisfaccion.colors"
+                        [plotOptions]="chartSatisfaccion.plotOptions" [dataLabels]="chartSatisfaccion.dataLabels"
+                        [legend]="chartSatisfaccion.legend" [grid]="chartSatisfaccion.grid"
+                        [yaxis]="chartSatisfaccion.yaxis" [tooltip]="chartSatisfaccion.tooltip">
+                    </apx-chart>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
+                </div>
+            </ng-container>
+
+        </ng-container>
+        <!-- fin ng-container datos -->
+
+        <!-- ── Modal gráfica expandida ── -->
+        <div class="chart-modal-overlay" *ngIf="modalAbierto" (click)="cerrarModal()">
+            <div class="chart-modal" (click)="$event.stopPropagation()">
+                <div class="chart-modal-head">
+                    <div>
+                        <h3 class="chart-modal-title">{{ modalTitulo }}</h3>
+                        <p class="chart-modal-sub">{{ modalSubtitulo }}</p>
+                    </div>
+                    <button class="chart-modal-close" (click)="cerrarModal()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="chart-modal-body">
+                    <ng-container *ngIf="modalTipo === 'bar'">
+                        <apx-chart [series]="modalChart.series" [chart]="modalChart.chart" [xaxis]="modalChart.xaxis"
+                            [yaxis]="modalChart.yaxis" [colors]="modalChart.colors"
+                            [plotOptions]="modalChart.plotOptions" [dataLabels]="modalChart.dataLabels"
+                            [legend]="modalChart.legend" [grid]="modalChart.grid" [tooltip]="modalChart.tooltip">
+                        </apx-chart>
+                    </ng-container>
+                    <ng-container *ngIf="modalTipo === 'radar'">
+                        <apx-chart [series]="modalChart.series" [chart]="modalChart.chart" [xaxis]="modalChart.xaxis"
+                            [colors]="modalChart.colors" [fill]="modalChart.fill" [stroke]="modalChart.stroke"
+                            [markers]="modalChart.markers" [yaxis]="modalChart.yaxis" [legend]="modalChart.legend"
+                            [tooltip]="modalChart.tooltip">
+                        </apx-chart>
+                    </ng-container>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
