@@ -751,6 +751,10 @@
     white-space: nowrap;
 }
 
+.tabla-resumen th:not(.th-indicador) {
+    text-align: center;
+}
+
 .th-indicador {
     color: #9ca3af !important;
     font-weight: 500 !important;
