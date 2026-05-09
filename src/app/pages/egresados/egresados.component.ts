@@ -40,6 +40,9 @@ export class EgresadosComponent implements OnInit {
   anios: number[] = [];
   situaciones: string[] = [];
 
+  // URL base para las imágenes
+  private readonly BASE_URL = 'http://localhost:3000';
+
   constructor(private egresadosService: EgresadosService) { }
 
   ngOnInit(): void {
@@ -67,20 +70,16 @@ export class EgresadosComponent implements OnInit {
   aplicarFiltros(): void {
     this.egresadosFiltrados = this.egresados.filter(e => {
 
-      // Búsqueda por texto
       const q = this.busqueda.toLowerCase();
       if (q && !e.nombre_completo.toLowerCase().includes(q) &&
         !e.nombre_carrera.toLowerCase().includes(q) &&
         !e.empresa.toLowerCase().includes(q)) return false;
 
-      // Selects
       if (this.filtroCarrera && e.nombre_carrera !== this.filtroCarrera) return false;
       if (this.filtroAnio && e.anio_egreso !== +this.filtroAnio) return false;
       if (this.filtroSituacion && e.situacion_laboral !== this.filtroSituacion) return false;
 
-      // Chips — solo aplican si no está activo 'todos'
       if (!this.filtrosChip.has('todos')) {
-
         if (this.filtrosChip.has('contacto') && !e.autorizo_contacto) return false;
         if (this.filtrosChip.has('eventos') && !e.autorizo_eventos) return false;
 
@@ -153,6 +152,11 @@ export class EgresadosComponent implements OnInit {
     return partes[0][0].toUpperCase();
   }
 
+  getFotoUrl(fotoUrl: string | null): string | null {
+    if (!fotoUrl) return null;
+    return `${this.BASE_URL}/${fotoUrl}`;
+  }
+
   getTotalEmpleados(): number {
     return this.egresados.filter(e =>
       e.situacion_laboral?.toLowerCase().includes('empleado') ||
@@ -164,7 +168,6 @@ export class EgresadosComponent implements OnInit {
     return this.egresados.filter(e => e.autorizo_contacto).length;
   }
 
-  // Abre el modal — ya NO llama confirm()
   eliminarEgresado(id: number): void {
     const egresado = this.egresados.find(e => e.id_egresado === id) ?? null;
     this.egresadoPendiente = egresado;
@@ -273,7 +276,6 @@ export class EgresadosComponent implements OnInit {
     return map[estatus] ?? estatus;
   }
 
-  // Métodos nuevos
   abrirPerfil(id: number): void {
     this.drawerVisible = true;
     this.perfilCargando = true;
@@ -318,7 +320,6 @@ export class EgresadosComponent implements OnInit {
   }
 
   exportarPDF(): void {
-    // Implementación pendiente
     this.mostrarToast('Función de exportar PDF próximamente.', false);
   }
 }

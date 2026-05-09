@@ -101,17 +101,27 @@
                 </td>
               </tr>
               <tr *ngFor="let r of respuestasFiltradas" class="table-row">
+
+                <!-- Nombre + avatar/foto -->
                 <td>
                   <div class="name-cell">
-                    <div class="avatar" [class.avatar-f]="r.genero === 'Femenino'">
+
+                    <!-- Con foto -->
+                    <img *ngIf="getFotoUrl(r.foto_url)" [src]="getFotoUrl(r.foto_url)!" [alt]="r.nombre_completo"
+                      class="avatar avatar-foto" />
+
+                    <!-- Sin foto → iniciales -->
+                    <div *ngIf="!getFotoUrl(r.foto_url)" class="avatar" [class.avatar-f]="r.genero === 'Femenino'">
                       {{ getInitials(r.nombre_completo) }}
                     </div>
+
                     <div class="name-info">
                       <span class="name-text">{{ r.nombre_completo }}</span>
                       <span class="name-sub">{{ r.empresa || '—' }}</span>
                     </div>
                   </div>
                 </td>
+
                 <td class="cell-secondary">{{ r.nombre_carrera }}</td>
                 <td class="cell-secondary">{{ formatFecha(r.fecha_registro) }}</td>
                 <td>
@@ -173,7 +183,7 @@
 
       <ng-container *ngIf="!perfilCargando && perfilSeleccionado">
 
-        <!-- HEADER DRAWER -->
+        <!-- HEADER DRAWER — foto/avatar centrado arriba, datos centrados abajo -->
         <div class="drawer-head">
           <div class="drawer-head-top">
             <span class="drawer-label">Perfil del egresado</span>
@@ -183,11 +193,22 @@
               </svg>
             </button>
           </div>
+
+          <!-- Hero centrado -->
           <div class="drawer-hero">
-            <div class="drawer-avatar" [class.drawer-avatar-f]="perfilSeleccionado.genero === 'Femenino'">
+
+            <!-- Con foto -->
+            <img *ngIf="getFotoUrl(perfilSeleccionado.foto_url)" [src]="getFotoUrl(perfilSeleccionado.foto_url)!"
+              [alt]="perfilSeleccionado.nombre_completo" class="drawer-avatar-foto" />
+
+            <!-- Sin foto → avatar iniciales grande -->
+            <div *ngIf="!getFotoUrl(perfilSeleccionado.foto_url)" class="drawer-avatar drawer-avatar-lg"
+              [class.drawer-avatar-f]="perfilSeleccionado.genero === 'Femenino'">
               {{ getInitials(perfilSeleccionado.nombre_completo) }}
             </div>
-            <div>
+
+            <!-- Info centrada -->
+            <div class="drawer-hero-info">
               <div class="drawer-name">{{ perfilSeleccionado.nombre_completo }}</div>
               <div class="drawer-sub">
                 {{ perfilSeleccionado.empresa || '—' }}
@@ -204,6 +225,7 @@
                 </span>
               </div>
             </div>
+
           </div>
         </div>
 
@@ -288,7 +310,7 @@
                 <span class="df-val">{{ perfilSeleccionado.certificacion_vigente }}</span>
               </div>
               <div class="drawer-field full"
-                *ngIf="perfilSeleccionado && perfilSeleccionado.certificaciones && perfilSeleccionado.certificaciones.length > 0">
+                *ngIf="perfilSeleccionado.certificaciones && perfilSeleccionado.certificaciones.length > 0">
                 <span class="df-label">Certificaciones obtenidas</span>
                 <div class="tag-list">
                   <span class="tag tag-blue" *ngFor="let c of perfilSeleccionado.certificaciones">{{ c }}</span>

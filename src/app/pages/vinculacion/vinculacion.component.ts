@@ -89,6 +89,9 @@ export class VinculacionComponent implements OnInit {
 
   satColores = SAT_COLORES;
 
+  // URL base para imágenes
+  private readonly BASE_URL = 'http://localhost:3000';
+
   get roundedSatisfaccion(): number {
     return Math.round(this.satisfaccionProm);
   }
@@ -100,6 +103,12 @@ export class VinculacionComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarTodo();
+  }
+
+  // Foto de perfil
+  getFotoUrl(fotoUrl: string | null | undefined): string | null {
+    if (!fotoUrl) return null;
+    return `${this.BASE_URL}/${fotoUrl}`;
   }
 
   // Filtros
@@ -124,11 +133,11 @@ export class VinculacionComponent implements OnInit {
     const anio = this.filtroAnio ? +this.filtroAnio : undefined;
 
     forkJoin({
-      stats: this.vinculacionSvc.getEstadisticas(carrera, anio),
+      stats:      this.vinculacionSvc.getEstadisticas(carrera, anio),
       colaborTots: this.vinculacionSvc.getTotalesColaboraciones(carrera, anio),
-      habTots: this.vinculacionSvc.getTotalesHabilidades(carrera, anio),
-      distSat: this.vinculacionSvc.getDistribucionSatisfaccion(carrera, anio),
-      totalEg: this.estadisticasSvc.getEstadisticas(),
+      habTots:    this.vinculacionSvc.getTotalesHabilidades(carrera, anio),
+      distSat:    this.vinculacionSvc.getDistribucionSatisfaccion(carrera, anio),
+      totalEg:    this.estadisticasSvc.getEstadisticas(),
     }).subscribe({
       next: ({ stats, colaborTots, habTots, distSat, totalEg }) => {
 
@@ -160,21 +169,21 @@ export class VinculacionComponent implements OnInit {
 
         // Autorizaciones
         const autContacto = +kpis.autorizo_contacto || 0;
-        const autEventos = +kpis.autorizo_eventos || 0;
-        const totalEst = (stats.participacionCarrera as any[])
+        const autEventos  = +kpis.autorizo_eventos   || 0;
+        const totalEst    = (stats.participacionCarrera as any[])
           .reduce((acc: number, r: any) => acc + (+r.autorizo_contacto || 0), 0);
 
-        this.autorizaciones[0].total = totalEst;
+        this.autorizaciones[0].total      = totalEst;
         this.autorizaciones[0].porcentaje = this.pct(totalEst, this.totalEgresados);
-        this.autorizaciones[1].total = autContacto;
+        this.autorizaciones[1].total      = autContacto;
         this.autorizaciones[1].porcentaje = this.pct(autContacto, this.totalEgresados);
-        this.autorizaciones[2].total = autEventos;
+        this.autorizaciones[2].total      = autEventos;
         this.autorizaciones[2].porcentaje = this.pct(autEventos, this.totalEgresados);
 
         // Distribución de satisfacción
         const totalConRespuesta = distSat.reduce((s, r) => s + (+r.total || 0), 0);
         this.distribucionSatisfaccion = [5, 4, 3, 2, 1].map((n) => {
-          const fila = distSat.find(r => +r.nivel === n);
+          const fila  = distSat.find(r => +r.nivel === n);
           const count = fila ? +fila.total : 0;
           return {
             nivel: n,
@@ -183,43 +192,43 @@ export class VinculacionComponent implements OnInit {
         });
 
         // Colaboraciones
-        const otroColab = colaborTots.find(c => c.descripcion === OTRO_KEY);
+        const otroColab   = colaborTots.find(c => c.descripcion === OTRO_KEY);
         const noParticipa = colaborTots.find(
           c => c.descripcion !== OTRO_KEY &&
-            c.descripcion.toLowerCase().includes('no me es posible')
+               c.descripcion.toLowerCase().includes('no me es posible')
         );
         const resto = colaborTots.filter(
           c => c.descripcion !== OTRO_KEY &&
-            !c.descripcion.toLowerCase().includes('no me es posible')
+               !c.descripcion.toLowerCase().includes('no me es posible')
         );
 
         const ordenadas = [
           ...resto.sort((a, b) => (+b.total || 0) - (+a.total || 0)),
           ...(noParticipa ? [noParticipa] : []),
-          ...(otroColab ? [otroColab] : []),
+          ...(otroColab   ? [otroColab]   : []),
         ];
 
         this.colaboraciones = ordenadas.map(c => ({
           descripcion: c.descripcion === OTRO_KEY ? 'Otro' : c.descripcion,
-          total: +c.total || 0,
-          porcentaje: this.pct(+c.total || 0, this.totalEgresados),
-          esFinal: c.descripcion.toLowerCase().includes('no me es posible'),
-          esOtro: c.descripcion === OTRO_KEY,
+          total:       +c.total || 0,
+          porcentaje:  this.pct(+c.total || 0, this.totalEgresados),
+          esFinal:     c.descripcion.toLowerCase().includes('no me es posible'),
+          esOtro:      c.descripcion === OTRO_KEY,
         }));
 
         // Habilidades
-        const otroHab = habTots.find(h => h.habilidad === OTRO_KEY);
-        const restoHab = habTots.filter(h => h.habilidad !== OTRO_KEY);
+        const otroHab    = habTots.find(h => h.habilidad === OTRO_KEY);
+        const restoHab   = habTots.filter(h => h.habilidad !== OTRO_KEY);
         const ordenadasHab = [
           ...restoHab.sort((a, b) => (+b.total || 0) - (+a.total || 0)),
           ...(otroHab ? [otroHab] : []),
         ];
 
         this.habilidades = ordenadasHab.map(h => ({
-          habilidad: h.habilidad === OTRO_KEY ? 'Otro' : h.habilidad,
-          total: +h.total || 0,
+          habilidad:  h.habilidad === OTRO_KEY ? 'Otro' : h.habilidad,
+          total:      +h.total || 0,
           porcentaje: this.pct(+h.total || 0, this.totalEgresados),
-          esOtro: h.habilidad === OTRO_KEY,
+          esOtro:     h.habilidad === OTRO_KEY,
         }));
 
         this.cargando = false;
@@ -270,19 +279,19 @@ export class VinculacionComponent implements OnInit {
     this.filaActiva = key;
 
     const carrera = this.filtroCarrera || undefined;
-    const anio = this.filtroAnio ? +this.filtroAnio : undefined;
+    const anio    = this.filtroAnio ? +this.filtroAnio : undefined;
 
     if (row.esOtro) {
       this.abrirPanel('Otro — respuesta libre', true);
       this.vinculacionSvc.getEgresadosColaboracionOtro(carrera, anio).subscribe({
         next: (eg) => {
           this.panel.egresados = eg;
-          this.panel.cargando = false;
-          row.total = eg.length;
+          this.panel.cargando  = false;
+          row.total      = eg.length;
           row.porcentaje = this.pct(eg.length, this.totalEgresados);
         },
         error: () => {
-          this.panel.error = 'No se pudieron cargar los egresados.';
+          this.panel.error    = 'No se pudieron cargar los egresados.';
           this.panel.cargando = false;
         },
       });
@@ -291,12 +300,12 @@ export class VinculacionComponent implements OnInit {
       this.vinculacionSvc.getEgresadosPorColaboracion(row.descripcion, carrera, anio).subscribe({
         next: (eg) => {
           this.panel.egresados = eg;
-          this.panel.cargando = false;
-          row.total = eg.length;
+          this.panel.cargando  = false;
+          row.total      = eg.length;
           row.porcentaje = this.pct(eg.length, this.totalEgresados);
         },
         error: () => {
-          this.panel.error = 'No se pudieron cargar los egresados.';
+          this.panel.error    = 'No se pudieron cargar los egresados.';
           this.panel.cargando = false;
         },
       });
@@ -309,19 +318,19 @@ export class VinculacionComponent implements OnInit {
     this.filaActiva = key;
 
     const carrera = this.filtroCarrera || undefined;
-    const anio = this.filtroAnio ? +this.filtroAnio : undefined;
+    const anio    = this.filtroAnio ? +this.filtroAnio : undefined;
 
     if (row.esOtro) {
       this.abrirPanel('Otro — respuesta libre', true);
       this.vinculacionSvc.getEgresadosHabilidadOtro(carrera, anio).subscribe({
         next: (eg) => {
           this.panel.egresados = eg;
-          this.panel.cargando = false;
-          row.total = eg.length;
+          this.panel.cargando  = false;
+          row.total      = eg.length;
           row.porcentaje = this.pct(eg.length, this.totalEgresados);
         },
         error: () => {
-          this.panel.error = 'No se pudieron cargar los egresados.';
+          this.panel.error    = 'No se pudieron cargar los egresados.';
           this.panel.cargando = false;
         },
       });
@@ -330,12 +339,12 @@ export class VinculacionComponent implements OnInit {
       this.vinculacionSvc.getEgresadosPorHabilidad(row.habilidad, carrera, anio).subscribe({
         next: (eg) => {
           this.panel.egresados = eg;
-          this.panel.cargando = false;
-          row.total = eg.length;
+          this.panel.cargando  = false;
+          row.total      = eg.length;
           row.porcentaje = this.pct(eg.length, this.totalEgresados);
         },
         error: () => {
-          this.panel.error = 'No se pudieron cargar los egresados.';
+          this.panel.error    = 'No se pudieron cargar los egresados.';
           this.panel.cargando = false;
         },
       });
@@ -350,23 +359,23 @@ export class VinculacionComponent implements OnInit {
     this.abrirPanel(auth.label, false);
 
     const carrera = this.filtroCarrera || undefined;
-    const anio = this.filtroAnio ? +this.filtroAnio : undefined;
+    const anio    = this.filtroAnio ? +this.filtroAnio : undefined;
 
     this.vinculacionSvc.getEgresadosPorAutorizacion(auth.tipo, carrera, anio).subscribe({
       next: (eg) => {
         this.panel.egresados = eg;
-        this.panel.cargando = false;
-        auth.total = eg.length;
+        this.panel.cargando  = false;
+        auth.total      = eg.length;
         auth.porcentaje = this.pct(eg.length, this.totalEgresados);
       },
       error: () => {
-        this.panel.error = 'No se pudieron cargar los egresados.';
+        this.panel.error    = 'No se pudieron cargar los egresados.';
         this.panel.cargando = false;
       },
     });
   }
 
-  // Panel: helpers
+  // Panel helpers
   private abrirPanel(titulo: string, mostrarDescripcionOtro: boolean): void {
     this.panel = {
       titulo,
@@ -380,7 +389,7 @@ export class VinculacionComponent implements OnInit {
 
   cerrarPanel(): void {
     this.panelVisible = false;
-    this.filaActiva = null;
+    this.filaActiva   = null;
   }
 
   esFilaActiva(key: string): boolean {
@@ -392,7 +401,7 @@ export class VinculacionComponent implements OnInit {
   abrirModalCorreo(): void {
     if (this.panel.egresados.length === 0) return;
     this.correosExpandido = false;
-    this.correoAsunto = this.panel.titulo;
+    this.correoAsunto  = this.panel.titulo;
     this.correoMensaje = '';
     this.modalCorreoVisible = true;
   }

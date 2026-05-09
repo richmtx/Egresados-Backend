@@ -1104,6 +1104,13 @@
     height: 13px;
 }
 
+.avatar-foto {
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1.5px solid #e5e7eb;
+    flex-shrink: 0;
+}
+
 /* Responsive */
 @media (max-width: 1100px) {
     .two-col-layout {

@@ -27,6 +27,7 @@ export interface EgresadoDetalle {
   autorizo_estadisticas: boolean;
   autorizo_contacto: boolean;
   autorizo_eventos: boolean;
+  foto_url: string | null;
 }
 
 export interface EgresadoPerfil extends EgresadoDetalle {
@@ -44,6 +45,7 @@ export interface EgresadoPerfil extends EgresadoDetalle {
   numero_control: string;
   telefono: string;
   ciudad_residencia: string;
+  foto_url: string | null; 
 }
 
 @Injectable({

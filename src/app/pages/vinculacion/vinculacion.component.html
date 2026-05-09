@@ -306,9 +306,16 @@
                 </div>
 
                 <div *ngFor="let e of panel.egresados" class="panel-egresado">
-                    <div class="avatar avatar-sm" [ngClass]="getAvatarClass(e.genero)">
+
+                    <!-- Con foto -->
+                    <img *ngIf="getFotoUrl(e.foto_url)" [src]="getFotoUrl(e.foto_url)!" [alt]="e.nombre_completo"
+                        class="avatar avatar-sm avatar-foto" />
+
+                    <!-- Sin foto → iniciales con color por género -->
+                    <div *ngIf="!getFotoUrl(e.foto_url)" class="avatar avatar-sm" [ngClass]="getAvatarClass(e.genero)">
                         {{ getIniciales(e.nombre_completo) }}
                     </div>
+
                     <div class="panel-eg-info">
                         <span class="panel-eg-nombre">{{ e.nombre_completo }}</span>
                         <span class="panel-eg-carrera">{{ e.nombre_carrera }}</span>
@@ -322,6 +329,7 @@
                             {{ e.telefono || '—' }}
                         </span>
                     </div>
+
                 </div>
 
             </div>

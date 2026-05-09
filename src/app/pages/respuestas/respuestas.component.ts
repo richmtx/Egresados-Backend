@@ -11,6 +11,7 @@ export interface RespuestaPerfil extends Respuesta {
   habilidades_otro: string[];
   colaboraciones: string[];
   colaboraciones_otro: string[];
+  foto_url: string | null;
 }
 
 @Component({
@@ -45,6 +46,9 @@ export class RespuestasComponent implements OnInit {
   toastMensaje = '';
   toastError = false;
   private toastTimer: any;
+
+  // URL base para imágenes
+  private readonly BASE_URL = 'http://localhost:3000';
 
   get totalRespuestas() { return this.respuestas.length; }
   get autorizaronContacto() { return this.respuestas.filter(r => r.autorizo_contacto).length; }
@@ -115,9 +119,14 @@ export class RespuestasComponent implements OnInit {
     });
   }
 
-  // ── Drawer ────────────────────────────────────────────────────────────────────
+  // Foto de perfil
+  getFotoUrl(fotoUrl: string | null): string | null {
+    if (!fotoUrl) return null;
+    return `${this.BASE_URL}/${fotoUrl}`;
+  }
+
+  // Drawer
   abrirPerfil(id: number, fila: Respuesta): void {
-    // Marcar como revisado en la tabla al abrir
     this.marcarRevisado(id);
     fila.revisado = true;
 
@@ -135,6 +144,7 @@ export class RespuestasComponent implements OnInit {
           habilidades_otro: data.habilidades_otro ?? [],
           colaboraciones: data.colaboraciones ?? [],
           colaboraciones_otro: data.colaboraciones_otro ?? [],
+          foto_url: data.foto_url ?? null,
         };
         this.perfilCargando = false;
       },
@@ -163,7 +173,7 @@ export class RespuestasComponent implements OnInit {
     this.toastTimer = setTimeout(() => this.toastVisible = false, 3200);
   }
 
-  // ── localStorage ─────────────────────────────────────────────────────────────
+  // localStorage
   private isBrowser(): boolean { return isPlatformBrowser(this.platformId); }
 
   private marcarRevisado(id: number): void {
@@ -186,7 +196,7 @@ export class RespuestasComponent implements OnInit {
     catch { return new Set(); }
   }
 
-  // ── Helpers visuales ─────────────────────────────────────────────────────────
+  // Helpers visuales
   getInitials(nombre: string): string {
     if (!nombre) return '?';
     const parts = nombre.trim().split(' ');

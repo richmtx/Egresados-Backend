@@ -149,12 +149,20 @@
                             <!-- FILAS -->
                             <tr *ngFor="let e of egresadosFiltrados" class="table-row">
 
-                                <!-- Nombre -->
+                                <!-- Nombre + avatar/foto -->
                                 <td>
                                     <div class="name-cell">
-                                        <div class="avatar" [class.avatar-f]="e.genero === 'Femenino'">
+
+                                        <!-- Con foto -->
+                                        <img *ngIf="getFotoUrl(e.foto_url)" [src]="getFotoUrl(e.foto_url)!"
+                                            [alt]="e.nombre_completo" class="avatar avatar-foto" />
+
+                                        <!-- Sin foto → iniciales -->
+                                        <div *ngIf="!getFotoUrl(e.foto_url)" class="avatar"
+                                            [class.avatar-f]="e.genero === 'Femenino'">
                                             {{ getIniciales(e.nombre_completo) }}
                                         </div>
+
                                         <div class="name-info">
                                             <span class="name-text">{{ e.nombre_completo }}</span>
                                             <span class="name-sub">{{ e.empresa || '—' }}</span>
@@ -319,7 +327,7 @@
 
                 <ng-container *ngIf="!perfilCargando && perfilSeleccionado">
 
-                    <!-- HEADER -->
+                    <!-- HEADER DRAWER — foto centrada arriba, datos centrados abajo -->
                     <div class="drawer-head">
                         <div class="drawer-head-top">
                             <span class="drawer-label">Perfil del egresado</span>
@@ -331,12 +339,20 @@
                             </button>
                         </div>
 
+                        <!-- Hero centrado -->
                         <div class="drawer-hero">
-                            <div class="drawer-avatar"
+
+                            <!-- Foto o avatar centrado -->
+                            <img *ngIf="getFotoUrl(perfilSeleccionado.foto_url)"
+                                [src]="getFotoUrl(perfilSeleccionado.foto_url)!"
+                                [alt]="perfilSeleccionado.nombre_completo" class="drawer-avatar-foto" />
+                            <div *ngIf="!getFotoUrl(perfilSeleccionado.foto_url)" class="drawer-avatar drawer-avatar-lg"
                                 [class.drawer-avatar-f]="perfilSeleccionado.genero === 'Femenino'">
                                 {{ getIniciales(perfilSeleccionado.nombre_completo) }}
                             </div>
-                            <div>
+
+                            <!-- Info centrada -->
+                            <div class="drawer-hero-info">
                                 <div class="drawer-name">{{ perfilSeleccionado.nombre_completo }}</div>
                                 <div class="drawer-sub">
                                     {{ perfilSeleccionado.empresa || '—' }}
@@ -355,6 +371,7 @@
                                     </span>
                                 </div>
                             </div>
+
                         </div>
                     </div>
 
