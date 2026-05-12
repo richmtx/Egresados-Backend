@@ -11,6 +11,8 @@ import { NotificacionesComponent } from './pages/notificaciones/notificaciones.c
 import { VinculacionComponent } from './pages/vinculacion/vinculacion.component';
 import { GenerosComponent } from './pages/generos/generos.component';
 import { ComparativasComponent } from './pages/comparativas/comparativas.component';
+import { ReportesComponent } from './pages/reportes/reportes.component';
+import { UsuariosComponent } from './pages/usuarios/usuarios.component';
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -25,4 +27,6 @@ export const routes: Routes = [
   { path: 'vinculacion', component: VinculacionComponent},
   { path: 'generos', component: GenerosComponent},
   { path: 'comparativas', component: ComparativasComponent},
+  { path: 'reportes', component: ReportesComponent},
+  { path: 'usuarios', component: UsuariosComponent},
 ];
