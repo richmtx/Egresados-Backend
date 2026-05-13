@@ -363,4 +363,7 @@ export class ComparativasComponent implements OnInit, OnDestroy {
       document.body.style.overflow = '';
     }
   }
+
+  // Exportar PDF
+  exportar(): void {}
 }

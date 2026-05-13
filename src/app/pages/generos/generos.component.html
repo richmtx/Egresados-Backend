@@ -1,9 +1,9 @@
 <div class="stats-layout">
 
-    <!-- ══ SIDEBAR ══ -->
+    <!-- SIDEBAR -->
     <app-sidebar></app-sidebar>
 
-    <!-- ══ CONTENIDO PRINCIPAL ══ -->
+    <!-- CONTENIDO PRINCIPAL -->
     <main class="stats-main">
 
         <!-- ── Header ── -->
@@ -25,7 +25,7 @@
             </button>
         </div>
 
-        <!-- ── Filtros ── -->
+        <!-- Filtros -->
         <div class="filtros-bar">
             <select class="filtro-select" [(ngModel)]="filtroCarrera" (change)="onFiltroChange()">
                 <option value="">Todas las carreras</option>
@@ -584,84 +584,86 @@
 
             </div>
 
-            <!-- ══════════════════════════════════════════════════════
-           SECCIÓN 6: POSGRADO
-      ══════════════════════════════════════════════════════ -->
-            <div class="seccion-label">
-                <span class="seccion-dot dot-teal"></span>
-                Posgrado por género
-            </div>
+            <!-- SECCIÓN 6: POSGRADO — solo visible sin filtro de carrera -->
+            <ng-container *ngIf="!filtroCarrera">
 
-            <div class="charts-row row-2">
-
-                <!-- ¿Quién estudia más posgrado? -->
-                <div class="chart-card" (click)="abrirModalPosgradoResumen()">
-                    <div class="chart-header">
-                        <div>
-                            <h3 class="chart-title">¿Quién continúa estudiando?</h3>
-                            <p class="chart-sub">Egresados con posgrado por género</p>
-                        </div>
-                    </div>
-                    <div class="posgrado-resumen" *ngIf="posgradoResumen.length > 0; else sinPosgrado">
-                        <div class="posgrado-item" *ngFor="let item of posgradoResumen">
-                            <div class="posgrado-genero-header">
-                                <span class="genero-dot-lg"
-                                    [ngClass]="item.genero === 'Hombre' ? 'dot-blue-fill' : 'dot-rose-fill'"></span>
-                                <span class="posgrado-genero-label">
-                                    {{ item.genero === 'Hombre' ? 'Hombres' : 'Mujeres' }}
-                                </span>
-                                <span class="posgrado-total-badge"
-                                    [ngClass]="item.genero === 'Hombre' ? 'badge-blue' : 'badge-rose'">
-                                    {{ item.total }}
-                                </span>
-                            </div>
-                            <div class="posgrado-big-number"
-                                [ngClass]="item.genero === 'Hombre' ? 'num-blue' : 'num-rose'">
-                                {{ item.pct }}%
-                            </div>
-                            <p class="posgrado-sub">del total de {{ item.genero === 'Hombre' ? 'hombres' : 'mujeres' }}
-                            </p>
-                        </div>
-                    </div>
-                    <ng-template #sinPosgrado>
-                        <div class="empty-geo">
-                            <p>Sin datos de posgrado disponibles</p>
-                        </div>
-                    </ng-template>
-
-                    <!-- Hint expandir -->
-                    <div class="chart-card-hint">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
-                        </svg>
-                        Clic para expandir
-                    </div>
+                <div class="seccion-label">
+                    <span class="seccion-dot dot-teal"></span>
+                    Posgrado por género
                 </div>
 
-                <!-- Distribución tipo posgrado H/M -->
-                <div class="chart-card"
-                    (click)="abrirModal('bar', 'Tipo de Posgrado por Género', 'Maestría · Posgrado por género', chartPosgradoGenero)">
-                    <div class="chart-header">
-                        <div>
-                            <h3 class="chart-title">Tipo de posgrado</h3>
-                            <p class="chart-sub">Maestría · Posgrado por género</p>
+                <div class="charts-row row-2">
+
+                    <!-- ¿Quién estudia más posgrado? -->
+                    <div class="chart-card" (click)="abrirModalPosgradoResumen()">
+                        <div class="chart-header">
+                            <div>
+                                <h3 class="chart-title">¿Quién continúa estudiando?</h3>
+                                <p class="chart-sub">Egresados con posgrado por género</p>
+                            </div>
                         </div>
-                        <span class="chart-badge">Agrupadas</span>
+                        <div class="posgrado-resumen" *ngIf="posgradoResumen.length > 0; else sinPosgrado">
+                            <div class="posgrado-item" *ngFor="let item of posgradoResumen">
+                                <div class="posgrado-genero-header">
+                                    <span class="genero-dot-lg"
+                                        [ngClass]="item.genero === 'Hombre' ? 'dot-blue-fill' : 'dot-rose-fill'"></span>
+                                    <span class="posgrado-genero-label">
+                                        {{ item.genero === 'Hombre' ? 'Hombres' : 'Mujeres' }}
+                                    </span>
+                                    <span class="posgrado-total-badge"
+                                        [ngClass]="item.genero === 'Hombre' ? 'badge-blue' : 'badge-rose'">
+                                        {{ item.total }}
+                                    </span>
+                                </div>
+                                <div class="posgrado-big-number"
+                                    [ngClass]="item.genero === 'Hombre' ? 'num-blue' : 'num-rose'">
+                                    {{ item.pct }}%
+                                </div>
+                                <p class="posgrado-sub">
+                                    del total de {{ item.genero === 'Hombre' ? 'hombres' : 'mujeres' }}
+                                </p>
+                            </div>
+                        </div>
+                        <ng-template #sinPosgrado>
+                            <div class="empty-geo">
+                                <p>Sin datos de posgrado disponibles</p>
+                            </div>
+                        </ng-template>
+                        <div class="chart-card-hint">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                            </svg>
+                            Clic para expandir
+                        </div>
                     </div>
-                    <apx-chart [series]="chartPosgradoGenero.series" [chart]="chartPosgradoGenero.chart"
-                        [xaxis]="chartPosgradoGenero.xaxis" [colors]="chartPosgradoGenero.colors"
-                        [plotOptions]="chartPosgradoGenero.plotOptions" [dataLabels]="chartPosgradoGenero.dataLabels"
-                        [legend]="chartPosgradoGenero.legend" [grid]="chartPosgradoGenero.grid">
-                    </apx-chart>
-                    <div class="chart-card-hint">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
-                        </svg>
-                        Clic para expandir
+
+                    <!-- Distribución tipo posgrado H/M -->
+                    <div class="chart-card"
+                        (click)="abrirModal('bar', 'Tipo de Posgrado por Género', 'Maestría · Posgrado por género', chartPosgradoGenero)">
+                        <div class="chart-header">
+                            <div>
+                                <h3 class="chart-title">Tipo de posgrado</h3>
+                                <p class="chart-sub">Maestría · Posgrado por género</p>
+                            </div>
+                            <span class="chart-badge">Agrupadas</span>
+                        </div>
+                        <apx-chart [series]="chartPosgradoGenero.series" [chart]="chartPosgradoGenero.chart"
+                            [xaxis]="chartPosgradoGenero.xaxis" [colors]="chartPosgradoGenero.colors"
+                            [plotOptions]="chartPosgradoGenero.plotOptions"
+                            [dataLabels]="chartPosgradoGenero.dataLabels" [legend]="chartPosgradoGenero.legend"
+                            [grid]="chartPosgradoGenero.grid">
+                        </apx-chart>
+                        <div class="chart-card-hint">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                            </svg>
+                            Clic para expandir
+                        </div>
                     </div>
+
                 </div>
 
-            </div>
+            </ng-container>
 
             <!-- ══════════════════════════════════════════════════════
                 SECCIÓN 7: INGLÉS

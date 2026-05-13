@@ -368,7 +368,7 @@ export class GenerosComponent implements OnInit, OnDestroy {
     const datosH = carreras.map(c => +(res.composicionCarreraGenero.find(d => d.nombre_carrera === c && d.genero === 'Hombre')?.porcentaje ?? 0));
     const datosM = carreras.map(c => +(res.composicionCarreraGenero.find(d => d.nombre_carrera === c && d.genero === 'Mujer')?.porcentaje ?? 0));
 
-    // ✅ Extraer cantidades reales por carrera
+    // Extraer cantidades reales por carrera
     const cantidadesH = carreras.map(c => res.composicionCarreraGenero.find(d => d.nombre_carrera === c && d.genero === 'Hombre')?.total ?? 0);
     const cantidadesM = carreras.map(c => res.composicionCarreraGenero.find(d => d.nombre_carrera === c && d.genero === 'Mujer')?.total ?? 0);
 
@@ -444,19 +444,44 @@ export class GenerosComponent implements OnInit, OnDestroy {
 
   // 4. Tasa de empleo H/M
   private buildChartEmpleabilidadGenero(res: EstadisticasGeneroResponse): void {
-    const pctH = +(res.empleabilidadGenero.find(e => e.genero === 'Hombre')?.pct_empleados ?? 0);
-    const pctM = +(res.empleabilidadGenero.find(e => e.genero === 'Mujer')?.pct_empleados ?? 0);
+    const empleH = res.empleabilidadGenero.find(e => e.genero === 'Hombre');
+    const empleM = res.empleabilidadGenero.find(e => e.genero === 'Mujer');
+
+    const pctH = +(empleH?.pct_empleados ?? 0);
+    const pctM = +(empleM?.pct_empleados ?? 0);
+
+    const totalH = +(empleH?.empleados ?? 0);
+    const totalM = +(empleM?.empleados ?? 0);
 
     this.chartEmpleabilidadGenero = {
       series: [{ name: '% Empleados', data: [pctH, pctM] }],
       chart: this.baseChart('bar', 230),
       colors: [this.COLOR_H, this.COLOR_M],
       plotOptions: { bar: { distributed: true, columnWidth: '50%', borderRadius: 5 } },
-      dataLabels: { enabled: true, formatter: (v: number) => v.toFixed(1) + '%', style: { fontFamily: this.chartFontFamily, fontSize: '13px', fontWeight: '600' } },
-      xaxis: { categories: ['Hombres', 'Mujeres'], labels: { style: { fontFamily: this.chartFontFamily, fontSize: '12px', colors: '#64748b' } } },
-      yaxis: { min: 0, max: 100, labels: { formatter: (v: number) => v + '%', style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
+      dataLabels: {
+        enabled: true,
+        formatter: (v: number) => v.toFixed(1) + '%',
+        style: { fontFamily: this.chartFontFamily, fontSize: '13px', fontWeight: '600' }
+      },
+      xaxis: {
+        categories: ['Hombres', 'Mujeres'],
+        labels: { style: { fontFamily: this.chartFontFamily, fontSize: '12px', colors: '#64748b' } }
+      },
+      yaxis: {
+        min: 0, max: 100,
+        labels: { formatter: (v: number) => v + '%', style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } }
+      },
       legend: { show: false },
       grid: this.baseGrid,
+      tooltip: {
+        y: {
+          formatter: (value: number, opts: any) => {
+            const cantidad = opts?.dataPointIndex === 0 ? totalH : totalM;
+            const etiqueta = opts?.dataPointIndex === 0 ? 'hombres' : 'mujeres';
+            return `${value.toFixed(1)}%  (${cantidad} ${etiqueta})`;
+          }
+        }
+      },
     };
   }
 
@@ -468,16 +493,60 @@ export class GenerosComponent implements OnInit, OnDestroy {
       data: sectores.map(sector => +(res.sectorLaboralGenero.find(s => s.genero === genero && s.sector === sector)?.porcentaje ?? 0)),
     }));
 
+    const cantidadesH = sectores.map(sector =>
+      res.sectorLaboralGenero.find(s => s.genero === 'Hombre' && s.sector === sector)?.total ?? 0
+    );
+    const cantidadesM = sectores.map(sector =>
+      res.sectorLaboralGenero.find(s => s.genero === 'Mujer' && s.sector === sector)?.total ?? 0
+    );
+
+    const abreviarSector = (s: string): string => {
+      const mapa: Record<string, string> = {
+        'Empleado en el sector privado': 'Sector privado',
+        'Empleado en el sector público': 'Sector público',
+        'Empresario / Trabajo por cuenta propia (Freelance)': 'Cuenta propia',
+        'Desempleado': 'Desempleado',
+        'No especificado': 'No especificado',
+      };
+      return mapa[s] ?? (s.length > 18 ? s.slice(0, 16) + '…' : s);
+    };
+
     this.chartSectorGenero = {
       series,
-      chart: { ...this.baseChart('bar', 230), stacked: true },
+      chart: { ...this.baseChart('bar', 280), stacked: true },
       colors: [this.COLOR_H, this.COLOR_M],
       plotOptions: { bar: { columnWidth: '55%', borderRadius: 3 } },
-      dataLabels: { enabled: false },
-      xaxis: { categories: sectores, labels: { style: { fontFamily: this.chartFontFamily, fontSize: '10px', colors: '#64748b' }, rotate: -20 } },
+      dataLabels: {
+        enabled: true,
+        formatter: (v: number) => v > 2 ? v.toFixed(0) + '%' : '',
+        style: { fontFamily: this.chartFontFamily, fontSize: '10px', fontWeight: '600' }
+      },
+      xaxis: {
+        categories: sectores.map(abreviarSector),
+        labels: {
+          style: { fontFamily: this.chartFontFamily, fontSize: '10px', colors: '#64748b' },
+          rotate: -35,
+          rotateAlways: true,
+          trim: false,
+          maxHeight: 100,
+        }
+      },
       legend: { ...this.baseLegend, position: 'top' },
       grid: this.baseGrid,
-      tooltip: { y: { formatter: (v: number) => v.toFixed(1) + '%' } },
+      tooltip: {
+        x: {
+          formatter: (_val: any, opts: any) => sectores[opts?.dataPointIndex] ?? _val
+        },
+        y: {
+          formatter: (value: number, opts: any) => {
+            const index = opts?.dataPointIndex;
+            const seriesIndex = opts?.seriesIndex;
+            const cantidad = seriesIndex === 0 ? cantidadesH[index] : cantidadesM[index];
+            const etiqueta = seriesIndex === 0 ? 'hombres' : 'mujeres';
+            return `${value.toFixed(1)}%  (${cantidad} ${etiqueta})`;
+          }
+        }
+      },
     };
   }
 
@@ -511,6 +580,14 @@ export class GenerosComponent implements OnInit, OnDestroy {
   // 7. Titulación H/M (barras apiladas 100%)
   private buildChartTitulacionGenero(res: EstadisticasGeneroResponse): void {
     const etiquetas = res.titulacionGenero.map(t => t.genero === 'Hombre' ? 'Hombres' : 'Mujeres');
+
+    // Totales reales por género y estado de titulación
+    const totalesPorGenero = res.titulacionGenero.map(t => ({
+      titulados: +(t.titulados ?? 0),
+      en_tramite: +(t.en_tramite ?? 0),
+      no_titulados: +(t.no_titulados ?? 0),
+    }));
+
     this.chartTitulacionGenero = {
       series: [
         { name: 'Titulado', data: res.titulacionGenero.map(t => +(t.pct_titulados ?? 0)) },
@@ -520,12 +597,40 @@ export class GenerosComponent implements OnInit, OnDestroy {
       chart: { ...this.baseChart('bar', 260), stacked: true, stackType: '100%' },
       colors: ['#10b981', '#f59e0b', '#ef4444'],
       plotOptions: { bar: { columnWidth: '50%', borderRadius: 4 } },
-      dataLabels: { enabled: true, formatter: (v: number) => v.toFixed(0) + '%', style: { fontFamily: this.chartFontFamily, fontSize: '11px', fontWeight: '600' } },
-      xaxis: { categories: etiquetas, labels: { style: { fontFamily: this.chartFontFamily, fontSize: '12px', colors: '#64748b' } } },
-      yaxis: { labels: { formatter: (v: number) => v + '%', style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
+      dataLabels: {
+        enabled: true,
+        formatter: (v: number) => v.toFixed(0) + '%',
+        style: { fontFamily: this.chartFontFamily, fontSize: '11px', fontWeight: '600' }
+      },
+      xaxis: {
+        categories: etiquetas,
+        labels: { style: { fontFamily: this.chartFontFamily, fontSize: '12px', colors: '#64748b' } }
+      },
+      yaxis: {
+        labels: { formatter: (v: number) => v + '%', style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } }
+      },
       legend: { ...this.baseLegend, position: 'top' },
       grid: this.baseGrid,
-      tooltip: { y: { formatter: (v: number) => v.toFixed(1) + '%' } },
+      tooltip: {
+        y: {
+          formatter: (value: number, opts: any) => {
+            const generoIdx = opts?.dataPointIndex;
+            const seriesIdx = opts?.seriesIndex;
+            const datos = totalesPorGenero[generoIdx];
+            const cantidad =
+              seriesIdx === 0 ? datos.titulados :
+                seriesIdx === 1 ? datos.en_tramite :
+                  datos.no_titulados;
+
+            const etiqueta =
+              seriesIdx === 0 ? 'titulados' :
+                seriesIdx === 1 ? 'en trámite' :
+                  'no titulados';
+
+            return `${value.toFixed(1)}%  (${cantidad} ${etiqueta})`;
+          }
+        }
+      },
     };
   }
 

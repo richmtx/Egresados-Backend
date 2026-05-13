@@ -905,6 +905,34 @@
     padding: 20px 24px 24px;
 }
 
+.selector-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.btn-exportar {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background 0.15s, opacity 0.15s;
+    background: #003366;
+    color: #fff;
+    border: none;
+}
+
+.btn-exportar:hover {
+    background: #00254d;
+}
+
 /* ── Responsive ── */
 @media (max-width: 1200px) {
     .lider-grid {
