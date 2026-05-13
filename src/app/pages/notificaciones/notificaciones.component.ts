@@ -48,7 +48,7 @@ export class NotificacionesComponent implements OnInit {
     const noLeidas = this.todas.filter(n => !n.leida);
     this.conteos.recientes = noLeidas.length;
     this.conteos.encuestas = noLeidas.filter(n =>
-      n.tipo === 'nueva_encuesta'
+      ['nueva_encuesta', 'nueva_encuesta_ubicacion'].includes(n.tipo)
     ).length;
     this.conteos.sistema = noLeidas.filter(n =>
       ['contacto', 'eventos', 'exportacion', 'actualizacion'].includes(n.tipo)
@@ -60,7 +60,9 @@ export class NotificacionesComponent implements OnInit {
     if (tab === 'recientes') {
       this.filtradas = this.todas;
     } else if (tab === 'encuestas') {
-      this.filtradas = this.todas.filter(n => n.tipo === 'nueva_encuesta');
+      this.filtradas = this.todas.filter(n =>
+        ['nueva_encuesta', 'nueva_encuesta_ubicacion'].includes(n.tipo)
+      );
     } else {
       // sistema: contacto, eventos, exportacion, actualizacion
       this.filtradas = this.todas.filter(n =>
@@ -150,6 +152,7 @@ export class NotificacionesComponent implements OnInit {
   getIconClass(tipo: string): string {
     const map: Record<string, string> = {
       nueva_encuesta: 'icon-blue',
+      nueva_encuesta_ubicacion: 'icon-red',
       contacto: 'icon-green',
       eventos: 'icon-purple',
       exportacion: 'icon-green',
@@ -161,6 +164,7 @@ export class NotificacionesComponent implements OnInit {
   getTagClass(tipo: string): string {
     const map: Record<string, string> = {
       nueva_encuesta: 'tag-blue',
+      nueva_encuesta_ubicacion: 'tag-red',
       contacto: 'tag-green',
       eventos: 'tag-purple',
       exportacion: 'tag-green',
@@ -172,6 +176,7 @@ export class NotificacionesComponent implements OnInit {
   getTagLabel(tipo: string): string {
     const map: Record<string, string> = {
       nueva_encuesta: 'Sin revisar',
+      nueva_encuesta_ubicacion: 'Ubicación',
       contacto: 'Contacto autorizado',
       eventos: 'Eventos autorizado',
       exportacion: 'Exportación',

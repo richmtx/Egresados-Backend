@@ -46,6 +46,7 @@
             [class.unread-purple]="!n.leida && n.tipo === 'eventos'"
             [class.unread-amber]=" !n.leida && n.tipo === 'actualizacion'"
             [class.unread-red]="   !n.leida && !['nueva_encuesta','contacto','eventos','exportacion','actualizacion'].includes(n.tipo)"
+            [class.unread-red-ubicacion]="!n.leida && n.tipo === 'nueva_encuesta_ubicacion'"
             (click)="marcarLeida(n)">
 
             <!-- Ícono -->
@@ -73,10 +74,15 @@
                 stroke-width="1.8" stroke-linecap="round">
                 <path d="M2 8a6 6 0 1110.93-3M14 2v4h-4" />
               </svg>
-              <svg *ngIf="!['nueva_encuesta','contacto','eventos','exportacion','actualizacion'].includes(n.tipo)"
+              <svg *ngIf="!['nueva_encuesta','contacto','eventos','exportacion','actualizacion','nueva_encuesta_ubicacion'].includes(n.tipo)"
                 viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
                 <path d="M8 2a5 5 0 015 5v2l1 2H2l1-2V7a5 5 0 015-5z" />
                 <path d="M6.5 13a1.5 1.5 0 003 0" />
+              </svg>
+              <svg *ngIf="n.tipo === 'nueva_encuesta_ubicacion'" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round">
+                <path d="M8 2a4 4 0 014 4c0 3-4 8-4 8S4 9 4 6a4 4 0 014-4z" />
+                <circle cx="8" cy="6" r="1.2" />
               </svg>
             </div>
 
