@@ -364,21 +364,81 @@ export class GenerosComponent implements OnInit, OnDestroy {
   // 3. Composición por carrera (100% apiladas)
   private buildChartComposicionCarrera(res: EstadisticasGeneroResponse): void {
     const carreras = [...new Set(res.composicionCarreraGenero.map(c => c.nombre_carrera))];
+
     const datosH = carreras.map(c => +(res.composicionCarreraGenero.find(d => d.nombre_carrera === c && d.genero === 'Hombre')?.porcentaje ?? 0));
     const datosM = carreras.map(c => +(res.composicionCarreraGenero.find(d => d.nombre_carrera === c && d.genero === 'Mujer')?.porcentaje ?? 0));
-    const abreviar = (s: string) => s.replace('Ingeniería ', 'Ing. ').replace('Sistemas Computacionales (Presencial / Virtual)', 'Sistemas Comp.').replace('Sistemas Computacionales', 'Sistemas Comp.');
+
+    // ✅ Extraer cantidades reales por carrera
+    const cantidadesH = carreras.map(c => res.composicionCarreraGenero.find(d => d.nombre_carrera === c && d.genero === 'Hombre')?.total ?? 0);
+    const cantidadesM = carreras.map(c => res.composicionCarreraGenero.find(d => d.nombre_carrera === c && d.genero === 'Mujer')?.total ?? 0);
+
+    const abreviar = (s: string): string => {
+      const mapa: Record<string, string> = {
+        'Arquitectura': 'Arquitectura',
+        'Ingeniería Civil': 'Ing. Civil',
+        'Ingeniería Eléctrica': 'Ing. Eléctrica',
+        'Ingeniería Electrónica': 'Ing. Electrónica',
+        'Ingeniería Industrial (Presencial / A distancia)': 'Ing. Industrial',
+        'Ingeniería Mecánica': 'Ing. Mecánica',
+        'Ingeniería Mecatrónica': 'Ing. Mecatrónica',
+        'Ingeniería Química': 'Ing. Química',
+        'Ingeniería Bioquímica': 'Ing. Bioquímica',
+        'Ingeniería Sistemas Computacionales (Presencial / Virtual)': 'Ing. Sis. Comp.',
+        'Ingeniería Gestión Empresarial': 'Ing. Gest. Emp.',
+        'Ingeniería Tecnologías de la Información y Comunicaciones (TIC\'s)': 'Ing. TIC\'s',
+        'Ingeniería Informática': 'Ing. Informática',
+        'Licenciatura Administración (Presencial / A distancia)': 'Lic. Admin.',
+        'Maestría': 'Maestría',
+        'Posgrado': 'Posgrado',
+      };
+      return mapa[s] ?? s;
+    };
 
     this.chartComposicionCarrera = {
-      series: [{ name: 'Hombres', data: datosH }, { name: 'Mujeres', data: datosM }],
-      chart: { ...this.baseChart('bar', 300), stacked: true, stackType: '100%' },
+      series: [
+        { name: 'Hombres', data: datosH },
+        { name: 'Mujeres', data: datosM }
+      ],
+      chart: { ...this.baseChart('bar', 360), stacked: true, stackType: '100%' },
       colors: [this.COLOR_H, this.COLOR_M],
       plotOptions: { bar: { borderRadius: 3 } },
-      dataLabels: { enabled: true, formatter: (v: number) => v.toFixed(0) + '%', style: { fontFamily: this.chartFontFamily, fontSize: '10px', fontWeight: '600' } },
-      xaxis: { categories: carreras.map(abreviar), labels: { style: { fontFamily: this.chartFontFamily, fontSize: '10px', colors: '#64748b' }, rotate: -20 } },
-      yaxis: { labels: { formatter: (v: number) => v + '%', style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
+      dataLabels: {
+        enabled: true,
+        formatter: (v: number) => v.toFixed(0) + '%',
+        style: { fontFamily: this.chartFontFamily, fontSize: '10px', fontWeight: '600' }
+      },
+      xaxis: {
+        categories: carreras.map(abreviar),
+        labels: {
+          style: { fontFamily: this.chartFontFamily, fontSize: '10px', colors: '#64748b' },
+          rotate: -45,
+          rotateAlways: true,
+          trim: false,
+          maxHeight: 120,
+        }
+      },
+      yaxis: {
+        labels: {
+          formatter: (v: number) => v + '%',
+          style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' }
+        }
+      },
       legend: { ...this.baseLegend, position: 'top' },
       grid: this.baseGrid,
-      tooltip: { y: { formatter: (v: number) => v.toFixed(1) + '%' } },
+      tooltip: {
+        x: {
+          formatter: (_val: any, opts: any) => carreras[opts?.dataPointIndex] ?? _val
+        },
+        // ✅ Aquí se inyecta la cantidad real según el género (seriesIndex)
+        y: {
+          formatter: (value: number, opts: any) => {
+            const index = opts?.dataPointIndex;
+            const seriesIndex = opts?.seriesIndex;
+            const cantidad = seriesIndex === 0 ? cantidadesH[index] : cantidadesM[index];
+            return `${value.toFixed(1)}%  (${cantidad} ${seriesIndex === 0 ? 'hombres' : 'mujeres'})`;
+          }
+        }
+      },
     };
   }
 

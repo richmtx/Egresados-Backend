@@ -31,7 +31,7 @@ export class TitulacionComponent implements OnInit {
   carrerasDisponibles: string[] = [];
   aniosDisponibles: number[] = [];
 
-  // KPIs 
+  // KPIs
   totalEgresados = 0;
   totalTitulados = 0;
   totalEnTramite = 0;
@@ -40,7 +40,7 @@ export class TitulacionComponent implements OnInit {
   pctEnTramite = 0;
   pctNoTitulados = 0;
 
-  // Posgrado 
+  // Posgrado
   totalPosgrado = 0;
   totalMaestria = 0;
   totalDoctorado = 0;
@@ -59,15 +59,47 @@ export class TitulacionComponent implements OnInit {
   chartDonaConfig: any = {};
   chartLineaConfig: any = {};
 
-  // Gráfica 1: Barras apiladas por carrera
   barrasSeries: ApexAxisChartSeries = [];
-  barrasChart: ApexChart = { type: 'bar', height: 360, stacked: true, stackType: '100%', toolbar: { show: false }, fontFamily: 'inherit' };
-  barrasXAxis: ApexXAxis = { categories: [], labels: { style: { fontSize: '11px' } } };
+  barrasChart: ApexChart = {
+    type: 'bar',
+    height: 420,
+    stacked: true,
+    stackType: '100%',
+    toolbar: { show: false },
+    fontFamily: 'inherit',
+  };
+
+  barrasXAxis: ApexXAxis = {
+    categories: [],
+    labels: {
+      style: { fontSize: '10px' },
+      rotate: -45,
+      rotateAlways: true,
+      trim: false,        
+      hideOverlappingLabels: false,
+    },
+  };
+
   barrasYAxis: ApexYAxis = { labels: { formatter: (v: number) => v + '%' } };
   barrasColors: string[] = ['#639922', '#EF9F27', '#E24B4A'];
   barrasDataLabels: ApexDataLabels = { enabled: false };
   barrasPlotOptions: ApexPlotOptions = { bar: { horizontal: false, borderRadius: 2 } };
-  barrasLegend: ApexLegend = { show: false };
+
+  barrasLegend: ApexLegend = {
+    show: true,
+    position: 'top',
+    horizontalAlign: 'left',
+    markers: {
+      shape: 'circle',
+    },
+    labels: {
+      colors: ['#374151', '#374151', '#374151'],
+    },
+    fontSize: '13px',
+    fontFamily: 'inherit',
+    itemMargin: { horizontal: 12 },
+  };
+
   barrasTooltip: ApexTooltip = { y: { formatter: (v: number) => v.toFixed(1) + '%' } };
 
   // Gráfica 2: Dona de posgrado
@@ -173,19 +205,74 @@ export class TitulacionComponent implements OnInit {
 
   private construirGraficas(): void {
 
-    // Barras apiladas
+    // Totales por carrera para mostrarlos en el tooltip
+    const totalesPorCarrera = this.rawCarrera.map(c => Number((c as any).total ?? 0));
+
     this.barrasXAxis = {
       categories: this.rawCarrera.map(c => c.nombre_carrera),
-      labels: { style: { fontSize: '9px' }, rotate: -35, rotateAlways: true }
+      labels: {
+        style: { fontSize: '10px' },
+        rotate: -45,
+        rotateAlways: true,
+        trim: false,   
+        hideOverlappingLabels: false,
+      },
     };
+
     this.barrasSeries = [
-      { name: 'Titulados', data: [...this.rawCarrera.map(c => Number(c.pct_titulados))] },
-      { name: 'En trámite', data: [...this.rawCarrera.map(c => Number(c.pct_en_tramite))] },
-      { name: 'No titulados', data: [...this.rawCarrera.map(c => Number(c.pct_no_titulados))] },
+      { name: 'Titulados', data: this.rawCarrera.map(c => Number(c.pct_titulados)) },
+      { name: 'En trámite', data: this.rawCarrera.map(c => Number(c.pct_en_tramite)) },
+      { name: 'No titulados', data: this.rawCarrera.map(c => Number(c.pct_no_titulados)) },
     ];
+
+    this.barrasTooltip = {
+      custom: ({ series, seriesIndex, dataPointIndex, w }: any) => {
+        const carrera = w.globals.labels[dataPointIndex] as string;
+        const pct = (series[seriesIndex][dataPointIndex] as number).toFixed(1);
+        const total = totalesPorCarrera[dataPointIndex];
+        const seriesName = w.globals.seriesNames[seriesIndex] as string;
+        const colores = ['#639922', '#EF9F27', '#E24B4A'];
+        const color = colores[seriesIndex] ?? '#6b7280';
+
+        return `
+          <div style="
+            padding: 10px 14px;
+            font-family: inherit;
+            font-size: 13px;
+            min-width: 190px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.12);
+          ">
+            <div style="font-weight:600; margin-bottom:8px; color:#111827;">
+              ${carrera}
+            </div>
+            <div style="display:flex; align-items:center; gap:7px; margin-bottom:5px;">
+              <span style="
+                display:inline-block; width:10px; height:10px;
+                border-radius:50%; background:${color}; flex-shrink:0;
+              "></span>
+              <span style="color:#6b7280;">${seriesName}:</span>
+              <strong style="color:#111827;">${pct}%</strong>
+            </div>
+            <div style="
+              border-top:1px solid #f3f4f6;
+              padding-top:6px;
+              margin-top:2px;
+              color:#6b7280;
+              font-size:12px;
+            ">
+              Total egresados:
+              <strong style="color:#111827;">${total}</strong>
+            </div>
+          </div>`;
+      },
+    };
+
+    // Forzar re-render de ApexCharts al cambiar objeto
     this.barrasChart = { ...this.barrasChart };
 
-    // Dona
+    // Dona 
     this.donaLabels = [...this.rawPosgrado.map(p => p.tipo_posgrado)];
     this.donaSeries = [...this.rawPosgrado.map(p => Number(p.total))];
     this.donaChart = { ...this.donaChart };
@@ -193,7 +280,7 @@ export class TitulacionComponent implements OnInit {
     // Línea de tendencia
     this.lineaXAxis = {
       categories: [...this.rawAnio.map(a => String(a.anio_egreso))],
-      labels: { style: { fontSize: '12px' } }
+      labels: { style: { fontSize: '12px' } },
     };
     this.lineaSeries = [
       { name: 'Titulados', data: [...this.rawAnio.map(a => Number(a.titulados))] },
@@ -202,7 +289,7 @@ export class TitulacionComponent implements OnInit {
         name: 'No titulados',
         data: [...this.rawAnio.map(a =>
           Math.max(0, Number(a.total) - Number(a.titulados) - Number(a.en_tramite))
-        )]
+        )],
       },
     ];
     this.lineaChart = { ...this.lineaChart };
@@ -219,6 +306,7 @@ export class TitulacionComponent implements OnInit {
       legend: this.barrasLegend,
       tooltip: this.barrasTooltip,
     };
+
     this.chartDonaConfig = {
       series: this.donaSeries,
       chart: this.donaChart,
@@ -227,6 +315,7 @@ export class TitulacionComponent implements OnInit {
       legend: this.donaLegend,
       dataLabels: this.donaDataLabels,
     };
+
     this.chartLineaConfig = {
       series: this.lineaSeries,
       chart: this.lineaChart,
@@ -241,9 +330,7 @@ export class TitulacionComponent implements OnInit {
   }
 
   // Filtros
-  onFiltroChange(): void {
-    this.cargarDatos();
-  }
+  onFiltroChange(): void { this.cargarDatos(); }
 
   aplicarFiltros(): void { this.cargarDatos(); }
 
@@ -273,7 +360,7 @@ export class TitulacionComponent implements OnInit {
     this.modalAbierto = false;
   }
 
-  // Badge de semáforo
+  // Badge semáforo
   getBadge(pct: number): string {
     if (pct >= 70) return 'badge-alto';
     if (pct >= 50) return 'badge-medio';
@@ -285,5 +372,4 @@ export class TitulacionComponent implements OnInit {
     if (pct >= 50) return 'Medio';
     return 'Bajo';
   }
-
 }

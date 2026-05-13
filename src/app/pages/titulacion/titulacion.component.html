@@ -3,7 +3,7 @@
 
   <main class="tit-main">
 
-    <!-- ── Header ─────────────────────────────────────────────────── -->
+    <!-- Header -->
     <div class="tit-header">
       <div class="header-left">
         <h1 class="page-title">Titulación</h1>
@@ -22,7 +22,7 @@
       </button>
     </div>
 
-    <!-- ── Filtros ─────────────────────────────────────────────────── -->
+    <!-- Filtros -->
     <div class="filtros-bar">
       <div class="filtro-item">
         <select class="filtro-select" [(ngModel)]="filtroCarrera" (change)="onFiltroChange()">
@@ -45,13 +45,13 @@
       </button>
     </div>
 
-    <!-- ── Loading ─────────────────────────────────────────────────── -->
+    <!-- Loading -->
     <div class="loading-state" *ngIf="cargando">
       <div class="spinner"></div>
       <p>Cargando estadísticas...</p>
     </div>
 
-    <!-- ── Error ───────────────────────────────────────────────────── -->
+    <!-- Error -->
     <div class="error-state" *ngIf="error && !cargando">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5">
         <circle cx="12" cy="12" r="10" />
@@ -62,7 +62,7 @@
       <button class="btn-retry" (click)="cargarDatos()">Reintentar</button>
     </div>
 
-    <!-- ══ CONTENIDO ══════════════════════════════════════════════════ -->
+    <!-- CONTENIDO -->
     <ng-container *ngIf="!cargando && !error">
 
       <!-- KPI Cards -->
@@ -129,7 +129,7 @@
 
       </div>
 
-      <!-- ── Sección: Estado de titulación ─────────────────────────── -->
+      <!-- Sección: Estado de titulación -->
       <div class="seccion-label">
         <span class="seccion-dot dot-green"></span>
         Estado de Titulación
@@ -231,7 +231,7 @@
         </div>
       </div>
 
-      <!-- ── Sección: Tendencia ─────────────────────────────────────── -->
+      <!-- Sección: Tendencia -->
       <div class="seccion-label">
         <span class="seccion-dot dot-cyan"></span>
         Tendencia por Año
@@ -260,7 +260,7 @@
         </div>
       </div>
 
-      <!-- ── Sección: Detalle ───────────────────────────────────────── -->
+      <!-- Sección: Detalle -->
       <div class="seccion-label">
         <span class="seccion-dot dot-purple"></span>
         Detalle por Carrera
@@ -320,7 +320,7 @@
 
     </ng-container>
 
-    <!-- ── Modal gráfica expandida ── -->
+    <!-- Modal gráfica expandida -->
     <div class="chart-modal-overlay" *ngIf="modalAbierto" (click)="cerrarModal()">
       <div class="chart-modal" (click)="$event.stopPropagation()">
         <div class="chart-modal-head">

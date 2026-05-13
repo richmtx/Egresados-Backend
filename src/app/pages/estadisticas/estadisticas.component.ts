@@ -34,6 +34,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
   modalSubtitulo = '';
   modalTipo = '';
   modalChart: any = {};
+  chartInglesCarreraModal: any;
 
   abrirModal(tipo: string, titulo: string, subtitulo: string, chartConfig: any): void {
 
@@ -204,6 +205,14 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
     });
   }
 
+  get leyendaSituacion(): { label: string; color: string }[] {
+    if (!this.datos) return [];
+    return this.datos.situacionLaboral.map((s, i) => ({
+      label: s.situacion,
+      color: this.PALETTE[i % this.PALETTE.length]
+    }));
+  }
+
   onFiltroChange(): void {
     this.cargarEstadisticas();
   }
@@ -255,45 +264,149 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
     this.buildFueraMexico(data);
   }
 
-  // 1. Situación laboral – Pie 
+  // 1. Situacion laboral – Barras
   private buildSituacionLaboral(data: EstadisticasResponse): void {
+    const total = data.situacionLaboral.reduce((s, i) => s + +i.total, 0);
+    const sorted = [...data.situacionLaboral].sort((a, b) => +b.total - +a.total);
+
+    // Abreviaciones para el eje X
+    const abrevSituacion = (s: string): string => s
+      .replace('Empleado en el sector privado', 'Sector privado')
+      .replace('Empleado en el sector público', 'Sector público')
+      .replace('Empresario / Trabajo por cuenta propia (Freelance)', 'Freelance')
+      .replace('Estudiando Posgrado', 'Posgrado')
+      .replace('Dedicado al hogar u otras actividades', 'Hogar / Otras');
+
     this.chartSituacion = {
-      series: data.situacionLaboral.map(s => +s.total),
-      chart: this.baseChart('pie', 280),
-      labels: data.situacionLaboral.map(s => s.situacion),
-      colors: this.PALETTE,
-      legend: { ...this.baseLegend, position: 'bottom' },
+      series: [{ name: 'Egresados', data: sorted.map(s => +s.total) }],
+      chart: {
+        ...this.baseChart('bar', 300),
+      },
+      xaxis: {
+        categories: sorted.map(s => abrevSituacion(s.situacion)),
+        labels: {
+          style: {
+            fontFamily: this.chartFontFamily,
+            fontSize: '11px',
+            colors: '#374151'
+          },
+          rotate: -30,
+          rotateAlways: true,
+          trim: false,
+          maxHeight: 80
+        },
+        axisBorder: { show: false },
+        axisTicks: { show: false }
+      },
+      yaxis: {
+        labels: {
+          style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#6b7280' }
+        }
+      },
+      plotOptions: {
+        bar: {
+          horizontal: false,
+          borderRadius: 5,
+          columnWidth: '50%',
+          dataLabels: { position: 'top' }
+        }
+      },
       dataLabels: {
         enabled: true,
-        style: { fontFamily: this.chartFontFamily, fontSize: '11px', fontWeight: '600' },
+        formatter: (val: number) => {
+          const pct = ((val / total) * 100).toFixed(1);
+          return `${pct}%`;
+        },
+        offsetY: -20,
+        style: {
+          fontFamily: this.chartFontFamily,
+          fontSize: '10px',
+          fontWeight: '700',
+          colors: ['#374151']
+        },
         dropShadow: { enabled: false }
       },
-      tooltip: { y: { formatter: (v: number) => `${v} egresados` } },
-      responsive: [{ breakpoint: 600, options: { chart: { height: 240 }, legend: { position: 'bottom' } } }]
+      colors: this.PALETTE,
+      distributed: true,
+      legend: { show: false },
+      grid: {
+        borderColor: 'rgba(100,116,139,.08)',
+        xaxis: { lines: { show: false } },
+        yaxis: { lines: { show: true } }
+      },
+      tooltip: {
+        // Mostrar nombre completo en tooltip aunque el eje muestre abreviado
+        x: { formatter: (_: any, opts: any) => sorted[opts.dataPointIndex]?.situacion ?? '' },
+        y: {
+          formatter: (v: number) => {
+            const pct = ((v / total) * 100).toFixed(1);
+            return `${v} egresados (${pct}%)`;
+          }
+        }
+      }
     };
   }
 
   // 2. Empleabilidad por carrera – Barras
   private buildEmpCarrera(data: EstadisticasResponse): void {
-    const labels = data.empleabilidadCarrera.map(e => this.abrevCarrera(e.nombre_carrera));
-    const empleados = data.empleabilidadCarrera.map(e => +e.empleados);
-    const total = data.empleabilidadCarrera.map(e => +e.total);
+    const items = data.empleabilidadCarrera;
+
+    const sorted = [...items].sort((a, b) =>
+      (+b.empleados / +b.total) - (+a.empleados / +a.total)
+    );
+
+    const labels = sorted.map(e => this.abrevCarrera(e.nombre_carrera));
+    const empleados = sorted.map(e => +e.empleados);
+    const total = sorted.map(e => +e.total);
 
     this.chartEmpCarrera = {
       series: [
         { name: 'Empleados', data: empleados },
         { name: 'Total', data: total }
       ],
-      chart: this.baseChart('bar', 280),
+      chart: {
+        ...this.baseChart('bar', Math.max(320, labels.length * 52)),
+      },
       xaxis: {
         categories: labels,
-        labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' }, rotate: -20 }
+        labels: {
+          style: { fontFamily: this.chartFontFamily, fontSize: '12px', colors: '#374151' },
+          maxWidth: 260
+        },
+        axisBorder: { show: false },
+        axisTicks: { show: false }
+      },
+      yaxis: {
+        labels: {
+          style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#6b7280' }
+        }
+      },
+      plotOptions: {
+        bar: {
+          horizontal: true,
+          borderRadius: 4,
+          barHeight: '60%',
+          dataLabels: { position: 'center' }
+        }
+      },
+      dataLabels: {
+        enabled: true,
+        style: {
+          fontFamily: this.chartFontFamily,
+          fontSize: '11px',
+          fontWeight: '600',
+          colors: ['#fff']
+        },
+        formatter: (val: number) => val > 0 ? `${val}` : ''
       },
       colors: ['#6366f1', '#e2e8f0'],
-      plotOptions: { bar: { borderRadius: 5, columnWidth: '55%' } },
-      dataLabels: { enabled: false },
       legend: { ...this.baseLegend, position: 'top' },
-      grid: this.baseGrid
+      grid: {
+        borderColor: 'rgba(100,116,139,.08)',
+        xaxis: { lines: { show: true } },
+        yaxis: { lines: { show: false } }
+      },
+      tooltip: { y: { formatter: (v: number) => `${v} egresados` } }
     };
   }
 
@@ -390,12 +503,35 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
       })
     }));
 
+    // Vista normal: sin etiquetas en X
     this.chartInglesCarrera = {
       series,
       chart: this.baseChart('bar', 260),
       xaxis: {
         categories: carreras.map(c => this.abrevCarrera(c)),
-        labels: { style: { fontFamily: this.chartFontFamily, fontSize: '10px', colors: '#64748b' }, rotate: -20 }
+        labels: { show: false } // oculta etiquetas
+      },
+      colors: niveles.map(n => coloresNivel[n] || this.PALETTE[0]),
+      plotOptions: { bar: { borderRadius: 4, columnWidth: '65%' } },
+      dataLabels: { enabled: false },
+      legend: { ...this.baseLegend, position: 'top' },
+      grid: this.baseGrid
+    };
+
+    // Modal expandido: con etiquetas completas
+    this.chartInglesCarreraModal = {
+      series,
+      chart: this.baseChart('bar', 420),
+      xaxis: {
+        categories: carreras.map(c => this.abrevCarrera(c)),
+        tickAmount: carreras.length,
+        labels: {
+          style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' },
+          rotate: -45,
+          rotateAlways: true,
+          hideOverlappingLabels: false,
+          trim: false
+        }
       },
       colors: niveles.map(n => coloresNivel[n] || this.PALETTE[0]),
       plotOptions: { bar: { borderRadius: 4, columnWidth: '65%' } },
@@ -449,7 +585,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
           horizontal: true,
           borderRadius: 5,
           barHeight: '52%',
-          distributed: false,     
+          distributed: false,
           dataLabels: { position: 'center' }
         }
       },
@@ -524,15 +660,41 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
   // 11. Participación por carrera – Barras apiladas
   private buildParticipacion(data: EstadisticasResponse): void {
     const labels = data.participacionCarrera.map(p => this.abrevCarrera(p.nombre_carrera));
+    const series = [
+      { name: 'Autorizó contacto', data: data.participacionCarrera.map(p => +p.autorizo_contacto) },
+      { name: 'Autorizó eventos', data: data.participacionCarrera.map(p => +p.autorizo_eventos) }
+    ];
+
+    // Vista normal: sin etiquetas
     this.chartParticipacion = {
-      series: [
-        { name: 'Autorizó contacto', data: data.participacionCarrera.map(p => +p.autorizo_contacto) },
-        { name: 'Autorizó eventos', data: data.participacionCarrera.map(p => +p.autorizo_eventos) }
-      ],
+      series,
       chart: { ...this.baseChart('bar', 280), stacked: false },
       xaxis: {
         categories: labels,
-        labels: { style: { fontFamily: this.chartFontFamily, fontSize: '10px', colors: '#64748b' }, rotate: -20 }
+        labels: { show: false }
+      },
+      colors: ['#6366f1', '#10b981'],
+      plotOptions: { bar: { borderRadius: 4, columnWidth: '55%' } },
+      dataLabels: { enabled: false },
+      legend: { ...this.baseLegend, position: 'top' },
+      grid: this.baseGrid
+    };
+
+    // Modal expandido: con todas las etiquetas visibles
+    // Vista normal: con todas las etiquetas
+    this.chartParticipacion = {
+      series,
+      chart: { ...this.baseChart('bar', 280), stacked: false },
+      xaxis: {
+        categories: labels,
+        tickAmount: labels.length,
+        labels: {
+          style: { fontFamily: this.chartFontFamily, fontSize: '10px', colors: '#64748b' },
+          rotate: -45,
+          rotateAlways: true,
+          hideOverlappingLabels: false,
+          trim: false
+        }
       },
       colors: ['#6366f1', '#10b981'],
       plotOptions: { bar: { borderRadius: 4, columnWidth: '55%' } },
@@ -603,7 +765,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
       tooltip: { y: { formatter: (v: number) => `${v} egresado${v !== 1 ? 's' : ''}` } }
     };
   }
-  
+
   // INSIGHTS AUTOMÁTICOS
   private generarInsights(data: EstadisticasResponse): void {
     const insights = [];

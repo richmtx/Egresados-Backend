@@ -1,12 +1,12 @@
 <div class="stats-layout">
 
-  <!-- ══ SIDEBAR ══ -->
+  <!-- SIDEBAR -->
   <app-sidebar></app-sidebar>
 
-  <!-- ══ CONTENIDO PRINCIPAL ══ -->
+  <!-- CONTENIDO PRINCIPAL -->
   <main class="stats-main">
 
-    <!-- ── Header ── -->
+    <!-- Header -->
     <div class="stats-header">
       <div class="header-left">
         <h1 class="page-title">Estadísticas</h1>
@@ -25,7 +25,7 @@
       </button>
     </div>
 
-    <!-- ── Filtros ── -->
+    <!-- Filtros -->
     <div class="filtros-bar">
       <div class="filtro-item">
         <select class="filtro-select" [(ngModel)]="filtroCarrera" (change)="onFiltroChange()">
@@ -173,19 +173,23 @@
       </div>
 
       <div class="charts-row row-1-2">
-        <!-- Situación laboral – Pie -->
-        <div class="chart-card" (click)="abrirModal('pie', 'Situación Laboral', 'Distribución actual', chartSituacion)">
+
+        <!-- Situación Laboral – Barras -->
+        <div class="chart-card" (click)="abrirModal('bar', 'Situación Laboral', 'Distribución actual', chartSituacion)">
           <div class="chart-header">
             <div>
               <h3 class="chart-title">Situación Laboral</h3>
               <p class="chart-sub">Distribución actual</p>
             </div>
-            <span class="chart-badge">Pastel</span>
+            <span class="chart-badge">Barras</span>
           </div>
-          <apx-chart [series]="chartSituacion.series" [chart]="chartSituacion.chart" [labels]="chartSituacion.labels"
-            [colors]="chartSituacion.colors" [legend]="chartSituacion.legend" [dataLabels]="chartSituacion.dataLabels"
-            [tooltip]="chartSituacion.tooltip" [responsive]="chartSituacion.responsive">
+
+          <apx-chart [series]="chartSituacion.series" [chart]="chartSituacion.chart" [xaxis]="chartSituacion.xaxis"
+            [yaxis]="chartSituacion.yaxis" [colors]="chartSituacion.colors" [plotOptions]="chartSituacion.plotOptions"
+            [dataLabels]="chartSituacion.dataLabels" [legend]="chartSituacion.legend" [grid]="chartSituacion.grid"
+            [tooltip]="chartSituacion.tooltip">
           </apx-chart>
+
           <div class="chart-card-hint">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
@@ -302,7 +306,7 @@
 
         <!-- Inglés por carrera – Barras agrupadas -->
         <div class="chart-card"
-          (click)="abrirModal('bar', 'Inglés por Carrera', 'Niveles desglosados', chartInglesCarrera)">
+          (click)="abrirModal('bar', 'Inglés por Carrera', 'Niveles desglosados', chartInglesCarreraModal)">
           <div class="chart-header">
             <div>
               <h3 class="chart-title">Inglés por Carrera</h3>
@@ -403,32 +407,10 @@
       <!-- ── Sección: Participación ── -->
       <div class="seccion-label">
         <span class="seccion-dot dot-purple"></span>
-        Participación y Sector
+        Participaciones
       </div>
 
-      <div class="charts-row row-2">
-        <!-- Sector laboral – Pie -->
-        <div class="chart-card"
-          (click)="abrirModal('pie', 'Sector de Trabajo', 'Público · Privado · Posgrado · Otros', chartSector)">
-          <div class="chart-header">
-            <div>
-              <h3 class="chart-title">Sector de Trabajo</h3>
-              <p class="chart-sub">Público · Privado · Posgrado · Otros</p>
-            </div>
-            <span class="chart-badge">Pastel</span>
-          </div>
-          <apx-chart [series]="chartSector.series" [chart]="chartSector.chart" [labels]="chartSector.labels"
-            [colors]="chartSector.colors" [legend]="chartSector.legend" [dataLabels]="chartSector.dataLabels"
-            [tooltip]="chartSector.tooltip">
-          </apx-chart>
-          <div class="chart-card-hint">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
-            </svg>
-            Clic para expandir
-          </div>
-        </div>
-
+      <div class="charts-row row-1">
         <!-- Participación por carrera – Barras apiladas -->
         <div class="chart-card"
           (click)="abrirModal('bar', 'Autorizaciones por Carrera', 'Contacto laboral y eventos', chartParticipacion)">

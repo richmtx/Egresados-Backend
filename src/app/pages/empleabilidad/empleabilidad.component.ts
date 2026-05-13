@@ -137,19 +137,27 @@ export class EmpleabilidadComponent implements OnInit {
       ],
       chart: {
         type: 'bar',
-        height: 380,
+        height: 420,
         stacked: true,
         toolbar: { show: false },
-        fontFamily: 'inherit'
+        fontFamily: 'inherit',
+        margin: { bottom: 30 },
       },
       plotOptions: { bar: { borderRadius: 0, columnWidth: '55%' } },
       dataLabels: { enabled: false },
       xaxis: {
         categories: carreras,
         labels: {
-          style: { fontSize: '10px', colors: Array(carreras.length).fill('#6b7280') },
-          rotate: -35,
+          style: {
+            fontSize: '10px',
+            colors: Array(carreras.length).fill('#6b7280')
+          },
+          rotate: -45,
           rotateAlways: true,
+          hideOverlappingLabels: false,
+          trim: false,
+          maxHeight: 160,
+          formatter: (val: string) => val,
         },
         axisBorder: { show: false },
         axisTicks: { show: false },
@@ -280,15 +288,18 @@ export class EmpleabilidadComponent implements OnInit {
 
     this.chartCoincidencia = {
       series: [{ name: 'Coincidencia laboral', data: porcentajes }],
-      chart: { type: 'bar', height: 280, toolbar: { show: false }, fontFamily: 'inherit' },
+      chart: { type: 'bar', height: 420, toolbar: { show: false }, fontFamily: 'inherit' },
       plotOptions: { bar: { borderRadius: 4, columnWidth: '50%' } },
       dataLabels: { enabled: false },
       xaxis: {
         categories: carreras,
         labels: {
           style: { fontSize: '10px', colors: ['#94a3b8'] },
-          rotate: -35,
+          rotate: -45,
           rotateAlways: true,
+          hideOverlappingLabels: false,
+          trim: false,            
+          maxHeight: 160, 
         },
         axisBorder: { show: false },
         axisTicks: { show: false },
