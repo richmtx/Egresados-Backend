@@ -78,6 +78,26 @@
             </a>
         </div>
 
+        <!-- ACCESO PÚBLICO -->
+        <div class="nav-section">
+            <span class="nav-section-label">Acceso Público</span>
+
+            <a class="nav-item" [class.active]="activeRoute === 'directorio'" (click)="setRoute('directorio')">
+                <span class="nav-icon">
+                    <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="5.5" cy="5" r="2.5" />
+                        <circle cx="12.5" cy="5" r="2.5" />
+                        <path d="M1 14c0-2.5 2-4.5 4.5-4.5S10 11.5 10 14" />
+                        <path d="M12.5 9.5c2.5 0 4.5 2 4.5 4.5" />
+                        <line x1="13" y1="12" x2="17" y2="12" />
+                        <line x1="15" y1="10" x2="15" y2="14" />
+                    </svg>
+                </span>
+                <span class="nav-label">Directorio de Egresados</span>
+            </a>
+        </div>
+
         <!-- ANÁLISIS -->
         <div class="nav-section">
             <span class="nav-section-label">Análisis</span>
@@ -157,7 +177,7 @@
                 <span class="nav-icon">
                     <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
                         stroke-linejoin="round">
-                        
+
                         <circle cx="6" cy="7" r="3.5" />
                         <line x1="6" y1="10.5" x2="6" y2="14" />
                         <line x1="4" y1="12.5" x2="8" y2="12.5" />

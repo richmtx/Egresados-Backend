@@ -209,7 +209,7 @@ export class EgresadosComponent implements OnInit {
           this.mostrarToast('Error al eliminar. Intenta de nuevo.', true);
         }
       });
-    }, 5000);
+    }, 10000);
   }
 
   deshacerEliminar(): void {

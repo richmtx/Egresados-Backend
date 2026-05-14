@@ -13,6 +13,7 @@ import { GenerosComponent } from './pages/generos/generos.component';
 import { ComparativasComponent } from './pages/comparativas/comparativas.component';
 import { ReportesComponent } from './pages/reportes/reportes.component';
 import { UsuariosComponent } from './pages/usuarios/usuarios.component';
+import { DirectorioComponent } from './pages/directorio/directorio.component';
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -29,4 +30,5 @@ export const routes: Routes = [
   { path: 'comparativas', component: ComparativasComponent},
   { path: 'reportes', component: ReportesComponent},
   { path: 'usuarios', component: UsuariosComponent},
+  { path: 'directorio', component: DirectorioComponent}
 ];
