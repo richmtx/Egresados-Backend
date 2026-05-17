@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
   providedIn: 'root'
@@ -9,26 +10,39 @@ export class AuthService {
 
   private apiUrl = 'http://localhost:3000/usuarios/login';
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) { }
 
   login(usuario: string, contrasena: string): Observable<any> {
     return this.http.post(this.apiUrl, { usuario, contrasena });
   }
 
   guardarSesion(usuarioData: any): void {
-    sessionStorage.setItem('usuario', JSON.stringify(usuarioData));
+    if (isPlatformBrowser(this.platformId)) {
+      sessionStorage.setItem('usuario', JSON.stringify(usuarioData));
+    }
   }
 
   cerrarSesion(): void {
-    sessionStorage.removeItem('usuario');
+    if (isPlatformBrowser(this.platformId)) {
+      sessionStorage.removeItem('usuario');
+    }
   }
 
   estaAutenticado(): boolean {
-    return !!sessionStorage.getItem('usuario');
+    if (isPlatformBrowser(this.platformId)) {
+      return !!sessionStorage.getItem('usuario');
+    }
+    return false;
   }
 
   getUsuario(): any {
-    const data = sessionStorage.getItem('usuario');
-    return data ? JSON.parse(data) : null;
+    if (isPlatformBrowser(this.platformId)) {
+      const data = sessionStorage.getItem('usuario');
+      return data ? JSON.parse(data) : null;
+    }
+    return null;
   }
 }
