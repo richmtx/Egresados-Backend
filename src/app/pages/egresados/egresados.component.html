@@ -8,15 +8,29 @@
             <div class="header-left">
                 <h1 class="page-title">Egresados</h1>
                 <p class="page-subtitle">
-                    {{ egresadosFiltrados.length }} de {{ egresados.length }} egresados registrados
+                    <strong style="color: #000;">{{ egresadosFiltrados.length }}</strong> de <strong
+                        style="color: #000;">{{ egresados.length }}</strong> egresados registrados
                 </p>
             </div>
-            <button class="btn-export">
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-                    <path d="M3 12v2a1 1 0 001 1h8a1 1 0 001-1v-2M8 2v9M5 8l3 3 3-3" />
-                </svg>
-                Exportar
-            </button>
+            <div class="header-actions">
+                <button class="btn-send-email" *ngIf="egresadosFiltrados.length > 0" (click)="abrirModalCorreo()"
+                    [title]="'Enviar correo a ' + egresadosFiltrados.length + ' egresado(s) filtrados'">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round">
+                        <path d="M2 4h12a1 1 0 011 1v7a1 1 0 01-1 1H2a1 1 0 01-1-1V5a1 1 0 011-1z" />
+                        <path d="M1 4l7 5 7-5" />
+                    </svg>
+                    Enviar correo
+                    <span class="btn-send-email-count">{{ egresadosFiltrados.length }}</span>
+                </button>
+                <button class="btn-export">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round">
+                        <path d="M3 12v2a1 1 0 001 1h8a1 1 0 001-1v-2M8 2v9M5 8l3 3 3-3" />
+                    </svg>
+                    Exportar
+                </button>
+            </div>
         </div>
 
         <!-- ESTADO: CARGANDO -->
@@ -71,21 +85,21 @@
                         <circle cx="7" cy="7" r="4" />
                         <path d="M10 10l3 3" />
                     </svg>
-                    <input type="text" placeholder="Buscar por nombre, carrera, empresa…"
+                    <input type="text" placeholder="Buscar por nombre, carrera, empresa…" [value]="busqueda"
                         (input)="onBusqueda($event)" />
                 </div>
 
-                <select (change)="onFiltroCarrera($event)">
+                <select [(ngModel)]="filtroCarrera" (ngModelChange)="aplicarFiltros()">
                     <option value="">Todas las carreras</option>
                     <option *ngFor="let c of carreras" [value]="c">{{ c }}</option>
                 </select>
 
-                <select (change)="onFiltroAnio($event)">
+                <select [(ngModel)]="filtroAnio" (ngModelChange)="aplicarFiltros()">
                     <option value="">Todos los años</option>
                     <option *ngFor="let a of anios" [value]="a">{{ a }}</option>
                 </select>
 
-                <select (change)="onFiltroSituacion($event)">
+                <select [(ngModel)]="filtroSituacion" (ngModelChange)="aplicarFiltros()">
                     <option value="">Situación laboral</option>
                     <option *ngFor="let s of situaciones" [value]="s">{{ s }}</option>
                 </select>
@@ -112,6 +126,15 @@
                     <button class="chip-btn" [class.active]="isChipActivo('no-titulado')"
                         (click)="onFiltroChip('no-titulado')">
                         No titulado
+                    </button>
+
+                    <!-- Botón limpiar -->
+                    <button *ngIf="hayFiltrosActivos()" class="chip-btn chip-clear" (click)="limpiarFiltros()">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round">
+                            <path d="M3 3l10 10M13 3L3 13" />
+                        </svg>
+                        Limpiar
                     </button>
                 </div>
             </div>
@@ -327,7 +350,7 @@
 
                 <ng-container *ngIf="!perfilCargando && perfilSeleccionado">
 
-                    <!-- HEADER DRAWER — foto centrada arriba, datos centrados abajo -->
+                    <!-- HEADER DRAWER -->
                     <div class="drawer-head">
                         <div class="drawer-head-top">
                             <span class="drawer-label">Perfil del egresado</span>
@@ -342,7 +365,6 @@
                         <!-- Hero centrado -->
                         <div class="drawer-hero">
 
-                            <!-- Foto o avatar centrado -->
                             <img *ngIf="getFotoUrl(perfilSeleccionado.foto_url)"
                                 [src]="getFotoUrl(perfilSeleccionado.foto_url)!"
                                 [alt]="perfilSeleccionado.nombre_completo" class="drawer-avatar-foto" />
@@ -351,7 +373,6 @@
                                 {{ getIniciales(perfilSeleccionado.nombre_completo) }}
                             </div>
 
-                            <!-- Info centrada -->
                             <div class="drawer-hero-info">
                                 <div class="drawer-name">{{ perfilSeleccionado.nombre_completo }}</div>
                                 <div class="drawer-sub">
@@ -569,6 +590,88 @@
 
                 </ng-container>
             </div>
+
+            <!-- ═══════════════════════════════════════════════════════
+                 MODAL NUEVO MENSAJE / CORREO MASIVO
+            ════════════════════════════════════════════════════════ -->
+            <div class="correo-overlay" *ngIf="modalCorreoVisible" (click)="cerrarModalCorreo()">
+                <div class="correo-modal" (click)="$event.stopPropagation()">
+
+                    <!-- Cabecera -->
+                    <div class="correo-modal-head">
+                        <div class="correo-modal-head-info">
+                            <span class="correo-modal-pretitle">NUEVO MENSAJE</span>
+                            <span class="correo-modal-title">{{ resumenFiltros }}</span>
+                        </div>
+                        <button class="correo-modal-close" (click)="cerrarModalCorreo()">
+                            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round">
+                                <path d="M1 1l12 12M13 1L1 13" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Cuerpo -->
+                    <div class="correo-modal-body">
+
+                        <!-- Campo Para -->
+                        <div class="correo-field">
+                            <label class="correo-field-label">Para:</label>
+                            <div class="correo-chips-wrap" [class.correo-chips-expanded]="correosExpandidos">
+                                <span class="correo-chip"
+                                    *ngFor="let email of (correosExpandidos ? correosDestinatarios : chipsVisibles)">
+                                    {{ email }}
+                                </span>
+                                <span class="correo-chip correo-chip-more"
+                                    *ngIf="!correosExpandidos && correosRestantes > 0"
+                                    (click)="correosExpandidos = true" style="cursor:pointer">
+                                    +{{ correosRestantes }} más
+                                </span>
+                                <span class="correo-chip correo-chip-less" *ngIf="correosExpandidos"
+                                    (click)="correosExpandidos = false" style="cursor:pointer">
+                                    Ver menos
+                                </span>
+                                <span class="correo-no-destinatarios" *ngIf="correosDestinatarios.length === 0">
+                                    Sin destinatarios con correo registrado
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Campo Asunto -->
+                        <div class="correo-field correo-field-inline">
+                            <label class="correo-field-label">Asunto:</label>
+                            <input class="correo-input-asunto" type="text" [(ngModel)]="correoAsunto"
+                                placeholder="Escribe el asunto del correo…" />
+                        </div>
+
+                        <!-- Área de mensaje -->
+                        <div class="correo-field correo-field-message">
+                            <textarea class="correo-textarea" [(ngModel)]="correoMensaje"
+                                placeholder="Redacta tu mensaje aquí…" rows="9">
+                            </textarea>
+                        </div>
+
+                    </div>
+
+                    <!-- Footer con acciones -->
+                    <div class="correo-modal-foot">
+                        <button class="correo-btn-cancel" (click)="cerrarModalCorreo()">
+                            Cancelar
+                        </button>
+                        <button class="correo-btn-send" (click)="enviarCorreo()"
+                            [disabled]="correosDestinatarios.length === 0 || !correoAsunto.trim()">
+                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round">
+                                <path d="M14 2L9 14l-2-5-5-2 12-5z" />
+                                <path d="M14 2L7 9" />
+                            </svg>
+                            Enviar correo
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
         </ng-container>
 
     </main>

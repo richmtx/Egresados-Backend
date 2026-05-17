@@ -60,7 +60,7 @@
 
 .btn-export svg {
   width: 15px;
-  height: 15px;
+  height: 17px;
   flex-shrink: 0;
 }
 
@@ -210,7 +210,7 @@
 .chip-btn {
   padding: 6px 13px;
   font-size: 12px;
-  border-radius: 20px;
+  border-radius: 8px;
   border: 0.5px solid #d1d5db;
   background: #f9fafb;
   color: #6b7280;
@@ -228,6 +228,85 @@
   background: #611232;
   color: #fff;
   border-color: #611232;
+}
+
+.chip-btn.chip-clear {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 0.5px solid #fecaca;
+}
+
+.chip-btn.chip-clear svg {
+  width: 11px;
+  height: 11px;
+  stroke: #b91c1c;
+}
+
+.chip-btn.chip-clear:hover {
+  background: #fee2e2;
+}
+
+.chip-btn.chip-clear:hover svg {
+  stroke: #dc2626;
+}
+
+/* Header actions */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-send-email {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  background: #003366;
+  color: #fff;
+  border: 1px solid #003366;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.btn-send-email:hover {
+  background: #00254d;
+}
+
+.btn-send-email:hover .btn-send-email-count {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.btn-send-email svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.btn-send-email-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 16px;
+  padding: 0 5px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  transition: background 0.15s, color 0.15s;
+  line-height: 1;
 }
 
 /* Tabla */
@@ -512,9 +591,7 @@ tr:last-child td {
   flex-wrap: wrap;
   gap: 8px;
   flex-shrink: 0;
-  /* ← agrega: evita que el footer se comprima */
   background: #fff;
-  /* ← agrega: asegura fondo blanco visible */
 }
 
 .footer-info {
@@ -719,35 +796,60 @@ tr:last-child td {
   left: 50%;
   transform: translateX(-50%) translateY(80px);
   background: #1f2937;
-  color: #fff;
-  padding: 11px 20px;
+  color: #003366;
   border-radius: 10px;
-  font-size: 13px;
-  font-weight: 500;
+  padding: 12px 16px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 24px;
+  min-width: 280px;
+  max-width: 420px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   z-index: 1100;
   opacity: 0;
   transition: transform 0.25s ease, opacity 0.25s ease;
-  white-space: nowrap;
+  pointer-events: none;
 }
 
-.toast svg {
+.toast.toast-visible {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: all;
+}
+
+.toast.toast-error {
+  background: #7f1d1d;
+}
+
+.toast-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.toast-left svg {
   width: 15px;
   height: 15px;
   flex-shrink: 0;
-  color: #86efac;
+  color: #9ca3af;
 }
 
-.toast-error svg {
-  color: #fca5a5;
+.toast-btn {
+  background: transparent;
+  border: none;
+  color: #fbbf24;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: color 0.15s;
 }
 
-.toast-visible {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
+.toast-btn:hover {
+  color: #f59e0b;
 }
 
 /* ── Drawer overlay ── */
@@ -842,8 +944,10 @@ tr:last-child td {
 
 .drawer-hero {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 4px;
 }
 
 .drawer-avatar {
@@ -1074,69 +1178,6 @@ tr:last-child td {
   height: 14px;
 }
 
-/* Toast */
-.toast {
-  position: fixed;
-  bottom: 28px;
-  left: 50%;
-  transform: translateX(-50%) translateY(80px);
-  background: #1f2937;
-  color: #f9fafb;
-  border-radius: 10px;
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  min-width: 280px;
-  max-width: 420px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  z-index: 1100;
-  opacity: 0;
-  transition: transform 0.25s ease, opacity 0.25s ease;
-  pointer-events: none;
-}
-
-.toast.toast-visible {
-  transform: translateX(-50%) translateY(0);
-  opacity: 1;
-  pointer-events: all;
-}
-
-.toast.toast-error {
-  background: #7f1d1d;
-}
-
-.toast-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-}
-
-.toast-left svg {
-  width: 15px;
-  height: 15px;
-  flex-shrink: 0;
-  color: #9ca3af;
-}
-
-.toast-btn {
-  background: transparent;
-  border: none;
-  color: #fbbf24;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0;
-  flex-shrink: 0;
-  transition: color 0.15s;
-}
-
-.toast-btn:hover {
-  color: #f59e0b;
-}
-
 /* Foto en tabla */
 .avatar-foto {
   width: 32px;
@@ -1145,14 +1186,6 @@ tr:last-child td {
   object-fit: cover;
   flex-shrink: 0;
   border: 1.5px solid #e5e7eb;
-}
-
-.drawer-hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding-bottom: 4px;
 }
 
 .drawer-avatar-foto {
@@ -1197,4 +1230,308 @@ tr:last-child td {
   flex-wrap: wrap;
   justify-content: center;
   margin-top: 4px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MODAL NUEVO MENSAJE / CORREO MASIVO
+   Reemplaza COMPLETO el bloque anterior del modal correo
+══════════════════════════════════════════════════════════════ */
+
+.correo-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.18s ease;
+}
+
+.correo-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.16);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.22s ease;
+}
+
+/* ── Cabecera ── */
+.correo-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  /* ← línea bajo el título */
+  gap: 12px;
+}
+
+.correo-modal-head-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.correo-modal-pretitle {
+  font-size: 10px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.correo-modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.3;
+}
+
+.correo-modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #e5e7eb;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.correo-modal-close:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.correo-modal-close svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* ── Cuerpo modal ── */
+.correo-modal-body {
+  padding: 0 24px 4px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Fila label + cajita */
+.correo-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid #e5e7eb;
+  /* ← línea entre campos */
+}
+
+/* Quita la línea inferior en el textarea (último campo) */
+.correo-field-message {
+  border-bottom: none;
+  align-items: flex-start;
+}
+
+.correo-field-label {
+  font-size: 13px;
+  color: #6b7280;
+  padding-top: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  width: 52px;
+}
+
+/* ── Cajita destinatarios ── */
+.correo-chips-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+  min-height: 48px;
+  max-height: 120px;
+  /* altura colapsada */
+  overflow-y: auto;
+  transition: max-height 0.25s ease;
+}
+
+/* Cuando está expandido: sin límite de altura, con scroll */
+.correo-chips-wrap.correo-chips-expanded {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* Scrollbar discreta */
+.correo-chips-wrap::-webkit-scrollbar {
+  width: 4px;
+}
+
+.correo-chips-wrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.correo-chips-wrap::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.correo-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  background: #dbeafe;
+  color: #1e40af;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  border: 0.5px solid #bfdbfe;
+}
+
+.correo-chip-more {
+  background: #e0e7ff;
+  color: #3730a3;
+  border: 0.5px solid #c7d2fe;
+  font-weight: 600;
+}
+
+.correo-chip-less {
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 0.5px solid #e5e7eb;
+  font-weight: 600;
+}
+
+.correo-no-destinatarios {
+  font-size: 12px;
+  color: #9ca3af;
+  font-style: italic;
+  padding-top: 2px;
+}
+
+/* ── Cajita asunto ── */
+.correo-field-inline {
+  align-items: center;
+}
+
+.correo-input-asunto {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+  font-size: 13px;
+  color: #111827;
+  outline: none;
+  transition: border-color 0.15s;
+  font-family: inherit;
+}
+
+.correo-input-asunto:focus {
+  border-color: #003366;
+  background: #fff;
+}
+
+.correo-input-asunto::placeholder {
+  color: #d1d5db;
+}
+
+/* ── Cajita textarea (redimensionable solo vertical-derecha) ── */
+.correo-textarea {
+  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+  font-size: 13px;
+  color: #111827;
+  line-height: 1.6;
+  resize: vertical;
+  /* ← redimensionable solo en alto */
+  outline: none;
+  font-family: inherit;
+  min-height: 180px;
+  transition: border-color 0.15s;
+}
+
+.correo-textarea:focus {
+  border-color: #003366;
+  background: #fff;
+}
+
+.correo-textarea::placeholder {
+  color: #d1d5db;
+}
+
+/* ── Footer ── */
+.correo-modal-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 8px;
+}
+
+.correo-btn-cancel {
+  padding: 9px 22px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.correo-btn-cancel:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.correo-btn-send {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 22px;
+  background: #003366;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.correo-btn-send:hover:not(:disabled) {
+  background: #00254d;
+}
+
+.correo-btn-send:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.correo-btn-send svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }

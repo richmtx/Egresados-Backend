@@ -16,7 +16,7 @@
                     <line x1="19" y1="8" x2="19" y2="14" />
                     <line x1="22" y1="11" x2="16" y2="11" />
                 </svg>
-                Nuevo usuario invitado
+                Nuevo usuario
             </button>
         </div>
 
@@ -137,8 +137,8 @@
                             <td>
                                 <button class="estado-btn"
                                     [ngClass]="u.estado === 'activo' ? 'estado-activo' : 'estado-inactivo'"
-                                    [disabled]="u.rol === 'admin'" (click)="toggleEstado(u)"
-                                    [title]="u.rol === 'admin' ? '' : 'Clic para cambiar estado'">
+                                    [disabled]="u.id_usuario === adminActual?.id_usuario" (click)="toggleEstado(u)"
+                                    [title]="u.id_usuario === adminActual?.id_usuario ? '' : 'Clic para cambiar estado'">
                                     <span class="estado-dot"></span>
                                     {{ u.estado === 'activo' ? 'Activo' : 'Inactivo' }}
                                 </button>
@@ -153,8 +153,7 @@
                             <!-- Acciones -->
                             <td>
                                 <div class="actions-cell">
-                                    <!-- Solo invitados se pueden eliminar -->
-                                    <button *ngIf="u.rol === 'invitado'" class="action-btn action-btn-danger"
+                                    <button *ngIf="puedeEliminar(u)" class="action-btn action-btn-danger"
                                         title="Eliminar usuario" (click)="confirmarEliminar(u)">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                                             stroke="currentColor" stroke-width="2">
@@ -164,8 +163,8 @@
                                             <path d="M9 6V4h6v2" />
                                         </svg>
                                     </button>
-                                    <!-- Admins no tienen acción de eliminar -->
-                                    <span *ngIf="u.rol === 'admin'" class="no-action">—</span>
+                                    <!-- Propio usuario o último admin — sin acción -->
+                                    <span *ngIf="!puedeEliminar(u)" class="no-action">—</span>
                                 </div>
                             </td>
 
@@ -229,7 +228,7 @@
                                     stroke-width="2.5">
                                     <polyline points="20 6 9 17 4 12" />
                                 </svg>
-                                Enviar notificaciones
+                                Consultar notificaciones
                             </div>
                             <div class="perm-item perm-ok">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -282,8 +281,8 @@
             </div>
 
             <!-- Historial de actividad -->
-            <div class="section-card">
-                <div class="section-header">
+            <div class="section-card historial-card">
+                <div class="section-header" (click)="abrirHistorial()" style="cursor:pointer">
                     <span class="section-title">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2">
@@ -292,15 +291,24 @@
                         </svg>
                         Historial de actividad
                     </span>
-                    <span class="total-badge">Últimas {{ historial.length }}</span>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="total-badge">Últimas {{ historial.length }}</span>
+                        <span class="historial-expand-hint">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                            </svg>
+                            Ver todo
+                        </span>
+                    </div>
                 </div>
 
                 <div class="loading-state" *ngIf="cargandoHistorial">
                     <div class="spinner"></div>
                 </div>
 
-                <div class="historial-list" *ngIf="!cargandoHistorial">
-                    <div class="log-item" *ngFor="let h of historial">
+                <div class="historial-list historial-list-compact" *ngIf="!cargandoHistorial">
+                    <div class="log-item" *ngFor="let h of historial | slice:0:6">
                         <div class="log-dot" [ngClass]="'dot-' + iconoAccion(h.accion)"></div>
                         <div class="log-body">
                             <p class="log-text">
@@ -313,6 +321,10 @@
                         Sin actividad registrada aún.
                     </div>
                 </div>
+
+                <div class="historial-footer" *ngIf="historial.length > 0" (click)="abrirHistorial()">
+                    <span>Clic para ver el historial completo</span>
+                </div>
             </div>
 
         </div>
@@ -321,6 +333,7 @@
 </div>
 
 <!-- ══ MODAL CREAR INVITADO ══ -->
+<!-- ══ MODAL CREAR USUARIO ══ -->
 <div class="modal-overlay" *ngIf="modalAbierto" (click)="cerrarModal()">
     <div class="modal" (click)="$event.stopPropagation()">
 
@@ -339,6 +352,12 @@
             <div class="credenciales-box">
                 <p class="cred-hint">Guarda estas credenciales antes de cerrar. No se volverán a mostrar.</p>
                 <div class="cred-row">
+                    <span class="cred-label">Rol</span>
+                    <span class="badge" [ngClass]="usuarioCreado.rol === 'admin' ? 'badge-admin' : 'badge-guest'">
+                        {{ labelRol(usuarioCreado.rol) }}
+                    </span>
+                </div>
+                <div class="cred-row">
                     <span class="cred-label">Usuario</span>
                     <code class="cred-val">{{ usuarioCreado.usuario }}</code>
                 </div>
@@ -347,7 +366,7 @@
                     <code class="cred-val">{{ usuarioCreado.contrasena }}</code>
                 </div>
             </div>
-            <div class="modal-footer" style="flex-direction: column; align-items: stretch; gap: 10px;">
+            <div class="modal-footer" style="flex-direction:column;align-items:stretch;gap:10px;">
                 <div class="cred-copiado" *ngIf="copiado">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2.5">
@@ -355,7 +374,7 @@
                     </svg>
                     Credenciales copiadas al portapapeles
                 </div>
-                <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <div style="display:flex;justify-content:flex-end;gap:8px;">
                     <button class="btn-secondary" (click)="copiarCredenciales()">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2">
@@ -372,7 +391,7 @@
         <!-- Formulario -->
         <ng-template #formulario>
             <div class="modal-header">
-                <h2 class="modal-title">Nuevo usuario invitado</h2>
+                <h2 class="modal-title">Nuevo usuario</h2>
                 <button class="modal-close" (click)="cerrarModal()">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2.5">
@@ -386,18 +405,55 @@
                 <div class="field">
                     <label class="field-label">Nombre completo</label>
                     <input class="field-input" type="text" placeholder="Ej. Juan Pérez López" [(ngModel)]="nuevoNombre"
-                        (keyup.enter)="crearInvitado()" />
+                        (keyup.enter)="crearUsuario()" />
                 </div>
 
-                <div class="info-box">
+                <!-- Selector de rol -->
+                <div class="field">
+                    <label class="field-label">Rol asignado</label>
+                    <div class="rol-selector">
+                        <button class="rol-option" [class.rol-option-active-guest]="nuevoRol === 'invitado'"
+                            (click)="nuevoRol = 'invitado'">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                            </svg>
+                            Invitado
+                        </button>
+                        <button class="rol-option" [class.rol-option-active-admin]="nuevoRol === 'admin'"
+                            (click)="nuevoRol = 'admin'">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                            </svg>
+                            Admin principal
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Info dinámica según rol -->
+                <div class="info-box" *ngIf="nuevoRol === 'invitado'">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        style="flex-shrink:0; margin-top:1px">
+                        style="flex-shrink:0;margin-top:1px">
                         <circle cx="12" cy="12" r="10" />
                         <line x1="12" y1="8" x2="12" y2="12" />
                         <line x1="12" y1="16" x2="12.01" y2="16" />
                     </svg>
-                    <span>El nombre de usuario y la contraseña se generan automáticamente. El rol asignado será
-                        <strong>Invitado</strong>, con acceso únicamente al directorio de egresados.</span>
+                    <span>El usuario y contraseña se generan automáticamente. Tendrá acceso <strong>únicamente al
+                            directorio de egresados</strong>.</span>
+                </div>
+
+                <div class="info-box info-box-warning" *ngIf="nuevoRol === 'admin'">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        style="flex-shrink:0;margin-top:1px">
+                        <path
+                            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                        <line x1="12" y1="9" x2="12" y2="13" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                    <span>El nuevo admin tendrá <strong>acceso total al sistema</strong>: puede crear y eliminar
+                        usuarios, exportar datos y ver el historial.</span>
                 </div>
 
                 <div class="error-msg" *ngIf="errorModal">{{ errorModal }}</div>
@@ -405,40 +461,79 @@
 
             <div class="modal-footer">
                 <button class="btn-secondary" (click)="cerrarModal()">Cancelar</button>
-                <button class="btn-primary" (click)="crearInvitado()" [disabled]="creando || !nuevoNombre.trim()">
+                <button class="btn-primary" (click)="crearUsuario()" [disabled]="creando || !nuevoNombre.trim()">
                     <div class="spinner-sm" *ngIf="creando"></div>
                     {{ creando ? 'Creando...' : 'Crear usuario' }}
                 </button>
             </div>
         </ng-template>
-
     </div>
 </div>
 
 <!-- ══ MODAL CONFIRMAR ELIMINACIÓN ══ -->
 <div class="modal-overlay" *ngIf="modalEliminar" (click)="cancelarEliminar()">
-    <div class="modal modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+
+        <div class="modal-icon-wrap">
+            <div class="modal-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                    <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+                    <path d="M10 11v6M14 11v6" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="modal-body">
+            <h2 class="modal-title">¿Eliminar usuario?</h2>
+            <p class="modal-desc">
+                Estás a punto de eliminar a
+                <strong>{{ usuarioAEliminar?.nombre_completo }}</strong>
+                ({{ usuarioAEliminar?.rol === 'admin' ? 'Admin principal' : 'Invitado' }}).
+                Esta acción no se puede deshacer.
+            </p>
+            <div class="error-msg" *ngIf="errorEliminar" style="margin-top:10px">{{ errorEliminar }}</div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" (click)="cancelarEliminar()">Cancelar</button>
+            <button class="btn-modal-confirm" (click)="eliminarUsuario()" [disabled]="eliminando">
+                <div class="spinner-sm spinner-sm-white" *ngIf="eliminando"></div>
+                <svg *ngIf="!eliminando" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+                    stroke-linecap="round">
+                    <path d="M3 4h10M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" />
+                </svg>
+                {{ eliminando ? 'Eliminando...' : 'Sí, eliminar' }}
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- ══ MODAL HISTORIAL COMPLETO ══ -->
+<div class="modal-overlay" *ngIf="modalHistorial" (click)="cerrarHistorial()">
+    <div class="modal modal-historial" (click)="$event.stopPropagation()">
         <div class="modal-header">
-            <h2 class="modal-title modal-title-danger">Eliminar usuario</h2>
-            <button class="modal-close" (click)="cancelarEliminar()">
+            <h2 class="modal-title">Historial de actividad</h2>
+            <button class="modal-close" (click)="cerrarHistorial()">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <line x1="18" y1="6" x2="6" y2="18" />
                     <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
             </button>
         </div>
-        <div class="modal-body">
-            <p class="confirm-text">
-                ¿Seguro que deseas eliminar al usuario <strong>{{ usuarioAEliminar?.usuario }}</strong>?
-                Esta acción no se puede deshacer y el usuario perderá el acceso inmediatamente.
-            </p>
-        </div>
-        <div class="modal-footer">
-            <button class="btn-secondary" (click)="cancelarEliminar()">Cancelar</button>
-            <button class="btn-danger" (click)="eliminarUsuario()" [disabled]="eliminando">
-                <div class="spinner-sm spinner-sm-white" *ngIf="eliminando"></div>
-                {{ eliminando ? 'Eliminando...' : 'Sí, eliminar' }}
-            </button>
+        <div class="historial-modal-body">
+            <div class="log-item" *ngFor="let h of historialCompleto">
+                <div class="log-dot" [ngClass]="'dot-' + iconoAccion(h.accion)"></div>
+                <div class="log-body">
+                    <p class="log-text">
+                        <strong>{{ h.usuario.nombre_completo }}</strong> — {{ h.descripcion }}
+                    </p>
+                    <span class="log-time">{{ tiempoRelativo(h.fecha_accion) }}</span>
+                </div>
+            </div>
+            <div class="log-empty" *ngIf="historialCompleto.length === 0">
+                Sin actividad registrada aún.
+            </div>
         </div>
     </div>
 </div>

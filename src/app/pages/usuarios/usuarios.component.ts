@@ -13,32 +13,33 @@ import { UsuariosService, Usuario, HistorialItem } from './usuarios.service';
 })
 export class UsuariosComponent implements OnInit {
 
-  // Datos
   usuarios: Usuario[] = [];
   historial: HistorialItem[] = [];
+  historialCompleto: HistorialItem[] = [];
 
-  // Estado de carga
   cargando = false;
   cargandoHistorial = false;
   error = '';
 
-  // Modal crear invitado
+  // Modal crear usuario
   modalAbierto = false;
   nuevoNombre = '';
+  nuevoRol: 'admin' | 'invitado' = 'invitado';
   creando = false;
   errorModal = '';
-  usuarioCreado: { usuario: string; contrasena: string } | null = null;
+  usuarioCreado: { usuario: string; contrasena: string; rol: 'admin' | 'invitado' } | null = null;
+  copiado = false;
 
-  // Modal confirmar eliminación
+  // Modal eliminar
   modalEliminar = false;
   usuarioAEliminar: Usuario | null = null;
   eliminando = false;
+  errorEliminar = '';
 
-  // Admin activo (simulado — viene del login)
-  // En tu sistema real lo leerás de localStorage o del servicio de auth
+  // Modal historial
+  modalHistorial = false;
+
   adminActual: Usuario | null = null;
-
-  copiado = false;
 
   constructor(
     private usuariosService: UsuariosService,
@@ -48,20 +49,19 @@ export class UsuariosComponent implements OnInit {
   ngOnInit(): void {
     this.cargarUsuarios();
     this.cargarHistorial();
-    this.leerAdminLocal();
-  }
-
-  leerAdminLocal(): void {
     this.adminActual = this.authService.getUsuario();
   }
 
-  // Getters para las cards
   get totalAdmins(): number {
     return this.usuarios.filter(u => u.rol === 'admin').length;
   }
 
   get totalInvitados(): number {
     return this.usuarios.filter(u => u.rol === 'invitado').length;
+  }
+
+  get invitadosActivos(): number {
+    return this.usuarios.filter(u => u.rol === 'invitado' && u.estado === 'activo').length;
   }
 
   get ultimoAcceso(): { nombre: string; tiempo: string } | null {
@@ -75,7 +75,14 @@ export class UsuariosComponent implements OnInit {
     };
   }
 
-  // Carga de datos
+  // Determina si el admin actual puede eliminar a un usuario
+  puedeEliminar(u: Usuario): boolean {
+    if (!this.adminActual) return false;
+    // No puede eliminarse a sí mismo
+    if (u.id_usuario === this.adminActual.id_usuario) return false;
+    return true;
+  }
+
   cargarUsuarios(): void {
     this.cargando = true;
     this.error = '';
@@ -93,29 +100,42 @@ export class UsuariosComponent implements OnInit {
     });
   }
 
-  // Modal crear invitado
+  // ── Modal crear ──
   abrirModal(): void {
     this.modalAbierto = true;
     this.nuevoNombre = '';
+    this.nuevoRol = 'invitado';
     this.errorModal = '';
     this.usuarioCreado = null;
+    this.copiado = false;
   }
 
   cerrarModal(): void {
     this.modalAbierto = false;
     this.usuarioCreado = null;
     this.nuevoNombre = '';
+    this.nuevoRol = 'invitado';
     this.errorModal = '';
+    this.copiado = false;
   }
 
-  crearInvitado(): void {
+  crearUsuario(): void {
     if (!this.nuevoNombre.trim()) { this.errorModal = 'El nombre es obligatorio.'; return; }
     if (!this.adminActual) { this.errorModal = 'No se detectó sesión de administrador.'; return; }
     this.creando = true;
     this.errorModal = '';
-    this.usuariosService.crearInvitado(this.nuevoNombre.trim(), this.adminActual.id_usuario).subscribe({
+
+    const peticion = this.nuevoRol === 'admin'
+      ? this.usuariosService.crearAdmin(this.nuevoNombre.trim(), this.adminActual.id_usuario)
+      : this.usuariosService.crearInvitado(this.nuevoNombre.trim(), this.adminActual.id_usuario);
+
+    peticion.subscribe({
       next: (res) => {
-        this.usuarioCreado = { usuario: res.usuario.usuario, contrasena: res.contrasena_temporal };
+        this.usuarioCreado = {
+          usuario: res.usuario.usuario,
+          contrasena: res.contrasena_temporal,
+          rol: res.usuario.rol
+        };
         this.creando = false;
         this.cargarUsuarios();
         this.cargarHistorial();
@@ -136,30 +156,33 @@ export class UsuariosComponent implements OnInit {
     });
   }
 
-  // Cambiar estado (activo / inactivo)
+  // ── Estado ──
   toggleEstado(u: Usuario): void {
-    if (u.rol === 'admin' || !this.adminActual) return;
+    if (!this.adminActual) return;
     const nuevoEstado = u.estado === 'activo' ? 'inactivo' : 'activo';
     this.usuariosService.cambiarEstado(u.id_usuario, nuevoEstado, this.adminActual.id_usuario).subscribe({
       next: () => { u.estado = nuevoEstado; this.cargarHistorial(); },
-      error: () => { }
+      error: (err) => { console.error(err?.error?.message); }
     });
   }
 
-  // Modal eliminar
+  // ── Modal eliminar ──
   confirmarEliminar(u: Usuario): void {
     this.usuarioAEliminar = u;
+    this.errorEliminar = '';
     this.modalEliminar = true;
   }
 
   cancelarEliminar(): void {
     this.modalEliminar = false;
     this.usuarioAEliminar = null;
+    this.errorEliminar = '';
   }
 
   eliminarUsuario(): void {
     if (!this.usuarioAEliminar || !this.adminActual) return;
     this.eliminando = true;
+    this.errorEliminar = '';
     this.usuariosService.eliminarUsuario(this.usuarioAEliminar.id_usuario, this.adminActual.id_usuario).subscribe({
       next: () => {
         this.eliminando = false;
@@ -168,11 +191,27 @@ export class UsuariosComponent implements OnInit {
         this.cargarUsuarios();
         this.cargarHistorial();
       },
-      error: () => { this.eliminando = false; }
+      error: (err) => {
+        this.errorEliminar = err?.error?.message ?? 'No se pudo eliminar el usuario.';
+        this.eliminando = false;
+      }
     });
   }
 
-  // Helpers
+  // ── Modal historial ──
+  abrirHistorial(): void {
+    this.modalHistorial = true;
+    this.usuariosService.getHistorial(100).subscribe({
+      next: (data) => this.historialCompleto = data,
+      error: () => { }
+    });
+  }
+
+  cerrarHistorial(): void {
+    this.modalHistorial = false;
+  }
+
+  // ── Helpers ──
   iniciales(nombre: string): string {
     return nombre.trim().split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
   }
@@ -204,7 +243,7 @@ export class UsuariosComponent implements OnInit {
     return rol === 'admin' ? 'av-purple' : 'av-blue';
   }
 
-  get invitadosActivos(): number {
-    return this.usuarios.filter(u => u.rol === 'invitado' && u.estado === 'activo').length;
+  labelRol(rol: string): string {
+    return rol === 'admin' ? 'Admin principal' : 'Invitado';
   }
 }

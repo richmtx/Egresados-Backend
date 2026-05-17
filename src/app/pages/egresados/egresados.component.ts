@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { SidebarComponent } from "../../components/sidebar/sidebar.component";
 import { EgresadosService, EgresadoDetalle, EgresadoPerfil } from './egresados.service';
 
 @Component({
   selector: 'app-egresados',
-  imports: [SidebarComponent, CommonModule],
+  imports: [SidebarComponent, CommonModule, FormsModule],
   templateUrl: './egresados.component.html',
   styleUrl: './egresados.component.css'
 })
@@ -42,6 +43,14 @@ export class EgresadosComponent implements OnInit {
 
   // URL base para las imágenes
   private readonly BASE_URL = 'http://localhost:3000';
+
+  // ── Modal correo ──
+  modalCorreoVisible = false;
+  correoAsunto = '';
+  correoMensaje = '';
+  readonly MAX_CHIPS_VISIBLES = 5;
+  correoCargando = false;
+  correosExpandidos = false;
 
   constructor(private egresadosService: EgresadosService) { }
 
@@ -321,5 +330,81 @@ export class EgresadosComponent implements OnInit {
 
   exportarPDF(): void {
     this.mostrarToast('Función de exportar PDF próximamente.', false);
+  }
+
+  // ── Modal correo: helpers ──
+
+  /** Correos de los egresados actualmente filtrados que tengan correo */
+  get correosDestinatarios(): string[] {
+    return this.egresadosFiltrados
+      .map(e => (e as any).correo as string)
+      .filter(c => !!c);
+  }
+
+  /** Chips visibles (primeros N) */
+  get chipsVisibles(): string[] {
+    return this.correosDestinatarios.slice(0, this.MAX_CHIPS_VISIBLES);
+  }
+
+  /** Cuántos correos quedan ocultos */
+  get correosRestantes(): number {
+    return Math.max(0, this.correosDestinatarios.length - this.MAX_CHIPS_VISIBLES);
+  }
+
+  /** Resumen de filtros activos para el asunto por defecto */
+  get resumenFiltros(): string {
+    const partes: string[] = [];
+    if (this.filtroCarrera) partes.push(this.filtroCarrera);
+    if (this.filtroAnio) partes.push(`Generación ${this.filtroAnio}`);
+    if (this.filtroSituacion) partes.push(this.filtroSituacion);
+    if (!this.filtrosChip.has('todos')) {
+      const labels: Record<string, string> = {
+        contacto: 'Con autorización de contacto',
+        eventos: 'Con autorización de eventos',
+        titulado: 'Titulados',
+        'en-tramite': 'En trámite',
+        'no-titulado': 'No titulados',
+      };
+      this.filtrosChip.forEach(c => { if (labels[c]) partes.push(labels[c]); });
+    }
+    return partes.length ? partes.join(' · ') : 'Egresados';
+  }
+
+  abrirModalCorreo(): void {
+    this.correoAsunto = this.resumenFiltros;
+    this.correoMensaje = '';
+    this.modalCorreoVisible = true;
+    this.correosExpandidos = false;
+  }
+
+  cerrarModalCorreo(): void {
+    this.modalCorreoVisible = false;
+  }
+
+  enviarCorreo(): void {
+    // Aquí se conectará con el backend en el futuro
+    // Por ahora solo muestra toast de confirmación
+    this.cerrarModalCorreo();
+    this.mostrarToast(`Correo enviado a ${this.correosDestinatarios.length} egresado(s).`, false);
+  }
+
+  hayFiltrosActivos(): boolean {
+    return (
+      this.busqueda !== '' ||
+      this.filtroCarrera !== '' ||
+      this.filtroAnio !== '' ||
+      this.filtroSituacion !== '' ||
+      !this.filtrosChip.has('todos')
+    );
+  }
+
+  limpiarFiltros(): void {
+    this.busqueda = '';
+    this.filtroCarrera = '';
+    this.filtroAnio = '';
+    this.filtroSituacion = '';
+    this.filtrosChip.clear();
+    this.filtrosChip.add('todos');
+    this.aplicarFiltros();
   }
 }

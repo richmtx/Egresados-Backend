@@ -21,7 +21,7 @@ export interface HistorialItem {
     fecha_accion: string;
 }
 
-export interface CrearInvitadoResponse {
+export interface CrearUsuarioResponse {
     usuario: Usuario;
     contrasena_temporal: string;
 }
@@ -37,8 +37,12 @@ export class UsuariosService {
         return this.http.get<Usuario[]>(this.base);
     }
 
-    crearInvitado(nombre_completo: string, admin_id: number): Observable<CrearInvitadoResponse> {
-        return this.http.post<CrearInvitadoResponse>(`${this.base}/invitado`, { nombre_completo, admin_id });
+    crearInvitado(nombre_completo: string, admin_id: number): Observable<CrearUsuarioResponse> {
+        return this.http.post<CrearUsuarioResponse>(`${this.base}/invitado`, { nombre_completo, admin_id });
+    }
+
+    crearAdmin(nombre_completo: string, admin_id: number): Observable<CrearUsuarioResponse> {
+        return this.http.post<CrearUsuarioResponse>(`${this.base}/admin`, { nombre_completo, admin_id });
     }
 
     cambiarEstado(id: number, estado: 'activo' | 'inactivo', admin_id: number): Observable<any> {
