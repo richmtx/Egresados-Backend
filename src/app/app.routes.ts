@@ -14,21 +14,29 @@ import { ComparativasComponent } from './pages/comparativas/comparativas.compone
 import { ReportesComponent } from './pages/reportes/reportes.component';
 import { UsuariosComponent } from './pages/usuarios/usuarios.component';
 import { DirectorioComponent } from './pages/directorio/directorio.component';
+import { authGuard, adminGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
-  { path: 'dashboard', component: DashboardComponent },
-  { path: 'egresados', component: EgresadosComponent },
-  { path: 'respuestas', component: RespuestasComponent },
-  { path: 'estadisticas', component: EstadisticasComponent},
-  { path: 'empleabilidad', component: EmpleabilidadComponent},
-  { path: 'distribucion', component: DistribucionComponent},
-  { path: 'titulacion', component: TitulacionComponent},
-  { path: 'notificaciones', component: NotificacionesComponent},
-  { path: 'vinculacion', component: VinculacionComponent},
-  { path: 'generos', component: GenerosComponent},
-  { path: 'comparativas', component: ComparativasComponent},
-  { path: 'reportes', component: ReportesComponent},
-  { path: 'usuarios', component: UsuariosComponent},
-  { path: 'directorio', component: DirectorioComponent}
+
+  // Solo admins
+  { path: 'dashboard', component: DashboardComponent, canActivate: [adminGuard] },
+  { path: 'egresados', component: EgresadosComponent, canActivate: [adminGuard] },
+  { path: 'respuestas', component: RespuestasComponent, canActivate: [adminGuard] },
+  { path: 'estadisticas', component: EstadisticasComponent, canActivate: [adminGuard] },
+  { path: 'empleabilidad', component: EmpleabilidadComponent, canActivate: [adminGuard] },
+  { path: 'distribucion', component: DistribucionComponent, canActivate: [adminGuard] },
+  { path: 'titulacion', component: TitulacionComponent, canActivate: [adminGuard] },
+  { path: 'notificaciones', component: NotificacionesComponent, canActivate: [adminGuard] },
+  { path: 'vinculacion', component: VinculacionComponent, canActivate: [adminGuard] },
+  { path: 'generos', component: GenerosComponent, canActivate: [adminGuard] },
+  { path: 'comparativas', component: ComparativasComponent, canActivate: [adminGuard] },
+  { path: 'reportes', component: ReportesComponent, canActivate: [adminGuard] },
+  { path: 'usuarios', component: UsuariosComponent, canActivate: [adminGuard] },
+
+  // Accesible para admin e invitado (solo requiere login)
+  { path: 'directorio', component: DirectorioComponent, canActivate: [authGuard] },
+
+  // Cualquier ruta no encontrada → login
+  { path: '**', redirectTo: '' }
 ];
