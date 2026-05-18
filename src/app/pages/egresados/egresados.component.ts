@@ -437,14 +437,32 @@ export class EgresadosComponent implements OnInit {
     URL.revokeObjectURL(url);
   }
 
-  // Exportar PDF (lista filtrada)
+  // Exportar PDF — lista filtrada (botón del dropdown)
+  exportarListaPDF(): void {
+    this.exportando = true;
+    this.exportMenuVisible = false;
+    const fecha = new Date().toISOString().split('T')[0];
+
+    this.egresadosService.exportarPdf(this.getFiltrosExport()).subscribe({
+      next: (blob) => {
+        this.descargarArchivo(blob, `egresados_${fecha}.pdf`);
+        this.exportando = false;
+        this.mostrarToast('PDF exportado correctamente.', false);
+      },
+      error: () => {
+        this.exportando = false;
+        this.mostrarToast('Error al exportar el PDF.', true);
+      }
+    });
+  }
+
+  // Exportar PDF — perfil individual (botón del drawer)
   exportarPDF(): void {
     if (!this.perfilSeleccionado) return;
 
     const id = this.perfilSeleccionado.id_egresado;
     const nombre = this.perfilSeleccionado.nombre_completo
-      .replace(/\s+/g, '_')
-      .toLowerCase();
+      .replace(/\s+/g, '_').toLowerCase();
     const fecha = new Date().toISOString().split('T')[0];
 
     this.egresadosService.exportarPerfilPdf(id).subscribe({
