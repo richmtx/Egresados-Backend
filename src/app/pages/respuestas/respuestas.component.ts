@@ -249,8 +249,4 @@ export class RespuestasComponent implements OnInit {
     const map: Record<string, string> = { '1': 'Titulado', '2': 'En trámite', '3': 'No titulado' };
     return map[estatus] ?? estatus;
   }
-
-  exportar(): void {
-    console.log('Exportar respuestas:', this.respuestasFiltradas);
-  }
 }
