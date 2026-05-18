@@ -23,13 +23,68 @@
                     Enviar correo
                     <span class="btn-send-email-count">{{ egresadosFiltrados.length }}</span>
                 </button>
-                <button class="btn-export">
-                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
-                        stroke-linecap="round">
-                        <path d="M3 12v2a1 1 0 001 1h8a1 1 0 001-1v-2M8 2v9M5 8l3 3 3-3" />
-                    </svg>
-                    Exportar
-                </button>
+                <!-- Botón exportar con dropdown -->
+                <div class="export-wrap" (clickOutside)="cerrarExportMenu()">
+                    <button class="btn-export" [class.btn-export-loading]="exportando" (click)="toggleExportMenu()"
+                        [disabled]="exportando">
+
+                        <!-- Spinner mientras exporta -->
+                        <svg *ngIf="exportando" class="export-spinner" viewBox="0 0 16 16" fill="none"
+                            stroke="currentColor" stroke-width="1.5">
+                            <circle cx="8" cy="8" r="6" stroke-dasharray="28" stroke-dashoffset="10" />
+                        </svg>
+
+                        <!-- Ícono descarga normal -->
+                        <svg *ngIf="!exportando" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round">
+                            <path d="M3 12v2a1 1 0 001 1h8a1 1 0 001-1v-2M8 2v9M5 8l3 3 3-3" />
+                        </svg>
+
+                        {{ exportando ? 'Exportando...' : 'Exportar' }}
+
+                        <!-- Chevron -->
+                        <svg *ngIf="!exportando" viewBox="0 0 10 10" fill="none" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" style="width:10px;height:10px;margin-left:2px">
+                            <path d="M2 3.5l3 3 3-3" />
+                        </svg>
+                    </button>
+
+                    <!-- Dropdown -->
+                    <div class="export-dropdown" *ngIf="exportMenuVisible">
+
+                        <button class="export-option" (click)="exportarPDF()">
+                            <span class="export-option-icon pdf">
+                                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+                                    stroke-linecap="round">
+                                    <rect x="2" y="1" width="12" height="14" rx="1.5" />
+                                    <path d="M5 6h4M5 9h6M5 12h3" />
+                                </svg>
+                            </span>
+                            <span class="export-option-label">
+                                <span class="export-option-name">Exportar como PDF</span>
+                                <span class="export-option-sub">Documento imprimible</span>
+                            </span>
+                            <span class="export-option-count">{{ egresadosFiltrados.length }} reg.</span>
+                        </button>
+
+                        <div class="export-option-divider"></div>
+
+                        <button class="export-option" (click)="exportarExcel()">
+                            <span class="export-option-icon excel">
+                                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+                                    stroke-linecap="round">
+                                    <rect x="2" y="1" width="12" height="14" rx="1.5" />
+                                    <path d="M5 6l2 3 2-3M5 12h6M5 9h6" />
+                                </svg>
+                            </span>
+                            <span class="export-option-label">
+                                <span class="export-option-name">Exportar como Excel</span>
+                                <span class="export-option-sub">Hoja de cálculo .xlsx</span>
+                            </span>
+                            <span class="export-option-count">{{ egresadosFiltrados.length }} reg.</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -324,12 +379,24 @@
             <!-- TOAST DESHACER -->
             <div class="toast" [class.toast-visible]="toastVisible" [class.toast-error]="toastError">
                 <div class="toast-left">
-                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
-                        stroke-linecap="round">
-                        <path *ngIf="!toastError" d="M3 4h10M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" />
-                        <path *ngIf="toastError" d="M8 3v5M8 11v1" />
-                    </svg>
-                    <span>{{ toastMensaje }}</span>
+
+                    <!-- Ícono éxito: palomita verde -->
+                    <span *ngIf="!toastError" class="toast-icon toast-icon-success">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 8l3.5 3.5L13 4" />
+                        </svg>
+                    </span>
+
+                    <!-- Ícono error: tachita roja -->
+                    <span *ngIf="toastError" class="toast-icon toast-icon-error">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round">
+                            <path d="M4 4l8 8M12 4l-8 8" />
+                        </svg>
+                    </span>
+
+                    <span class="toast-msg">{{ toastMensaje }}</span>
                 </div>
                 <button class="toast-btn" *ngIf="!toastError && egresadoEliminadoTemporal" (click)="deshacerEliminar()">
                     Deshacer

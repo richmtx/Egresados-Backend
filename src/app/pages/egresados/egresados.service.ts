@@ -45,7 +45,7 @@ export interface EgresadoPerfil extends EgresadoDetalle {
   numero_control: string;
   telefono: string;
   ciudad_residencia: string;
-  foto_url: string | null; 
+  foto_url: string | null;
 }
 
 @Injectable({
@@ -67,5 +67,57 @@ export class EgresadosService {
 
   deleteEgresado(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/egresados/${id}`);
+  }
+
+  exportarPdf(filtros: {
+    nombre?: string;
+    empresa?: string;
+    carrera?: string;
+    anio?: string;
+    situacion_laboral?: string;
+    estatus_titulacion?: string;
+    autorizo_contacto?: boolean;
+    autorizo_eventos?: boolean;
+    autorizo_estadisticas?: boolean;
+  }): Observable<Blob> {
+    const params = this.buildParams(filtros);
+    return this.http.get(`${this.apiUrl}/egresados/export/pdf`, {
+      params,
+      responseType: 'blob',
+    });
+  }
+
+  exportarExcel(filtros: {
+    nombre?: string;
+    empresa?: string;
+    carrera?: string;
+    anio?: string;
+    situacion_laboral?: string;
+    estatus_titulacion?: string;
+    autorizo_contacto?: boolean;
+    autorizo_eventos?: boolean;
+    autorizo_estadisticas?: boolean;
+  }): Observable<Blob> {
+    const params = this.buildParams(filtros);
+    return this.http.get(`${this.apiUrl}/egresados/export/excel`, {
+      params,
+      responseType: 'blob',
+    });
+  }
+
+  private buildParams(filtros: Record<string, any>): Record<string, string> {
+    const params: Record<string, string> = {};
+    Object.entries(filtros).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params[key] = String(value);
+      }
+    });
+    return params;
+  }
+
+  exportarPerfilPdf(id: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/egresados/${id}/export/pdf`, {
+      responseType: 'blob',
+    });
   }
 }

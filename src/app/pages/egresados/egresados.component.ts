@@ -52,6 +52,9 @@ export class EgresadosComponent implements OnInit {
   correoCargando = false;
   correosExpandidos = false;
 
+  exportMenuVisible = false;
+  exportando = false;
+
   constructor(private egresadosService: EgresadosService) { }
 
   ngOnInit(): void {
@@ -247,7 +250,7 @@ export class EgresadosComponent implements OnInit {
     this.toastMensaje = mensaje;
     this.toastError = esError;
     this.toastVisible = true;
-    this.toastTimer = setTimeout(() => this.toastVisible = false, 3200);
+    this.toastTimer = setTimeout(() => this.toastVisible = false, 4500);
   }
 
   getSituacionClass(situacion: string): string {
@@ -328,12 +331,7 @@ export class EgresadosComponent implements OnInit {
     ];
   }
 
-  exportarPDF(): void {
-    this.mostrarToast('Función de exportar PDF próximamente.', false);
-  }
-
   // ── Modal correo: helpers ──
-
   /** Correos de los egresados actualmente filtrados que tengan correo */
   get correosDestinatarios(): string[] {
     return this.egresadosFiltrados
@@ -406,5 +404,84 @@ export class EgresadosComponent implements OnInit {
     this.filtrosChip.clear();
     this.filtrosChip.add('todos');
     this.aplicarFiltros();
+  }
+
+  // Construcción de filtros activos para exportar
+  private getFiltrosExport(): Record<string, any> {
+    const filtros: Record<string, any> = {};
+
+    if (this.busqueda) filtros['nombre'] = this.busqueda;
+    if (this.filtroCarrera) filtros['carrera'] = this.filtroCarrera;
+    if (this.filtroAnio) filtros['anio'] = this.filtroAnio;
+    if (this.filtroSituacion) filtros['situacion_laboral'] = this.filtroSituacion;
+
+    // Chips de titulación
+    if (this.filtrosChip.has('titulado')) filtros['estatus_titulacion'] = 'Titulado';
+    if (this.filtrosChip.has('en-tramite')) filtros['estatus_titulacion'] = 'En trámite';
+    if (this.filtrosChip.has('no-titulado')) filtros['estatus_titulacion'] = 'No titulado';
+
+    // Chips de autorización
+    if (this.filtrosChip.has('contacto')) filtros['autorizo_contacto'] = true;
+    if (this.filtrosChip.has('eventos')) filtros['autorizo_eventos'] = true;
+
+    return filtros;
+  }
+
+  // Descarga genérica
+  private descargarArchivo(blob: Blob, nombreArchivo: string): void {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = nombreArchivo;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Exportar PDF (lista filtrada)
+  exportarPDF(): void {
+    if (!this.perfilSeleccionado) return;
+
+    const id = this.perfilSeleccionado.id_egresado;
+    const nombre = this.perfilSeleccionado.nombre_completo
+      .replace(/\s+/g, '_')
+      .toLowerCase();
+    const fecha = new Date().toISOString().split('T')[0];
+
+    this.egresadosService.exportarPerfilPdf(id).subscribe({
+      next: (blob) => {
+        this.descargarArchivo(blob, `perfil_${nombre}_${fecha}.pdf`);
+        this.mostrarToast('PDF del perfil exportado correctamente.', false);
+      },
+      error: () => {
+        this.mostrarToast('Error al exportar el PDF del perfil.', true);
+      }
+    });
+  }
+
+  // Exportar Excel (lista filtrada)
+  exportarExcel(): void {
+    this.exportando = true;
+    this.exportMenuVisible = false;
+    const fecha = new Date().toISOString().split('T')[0];
+
+    this.egresadosService.exportarExcel(this.getFiltrosExport()).subscribe({
+      next: (blob) => {
+        this.descargarArchivo(blob, `egresados_${fecha}.xlsx`);
+        this.exportando = false;
+        this.mostrarToast('Excel exportado correctamente.', false);
+      },
+      error: () => {
+        this.exportando = false;
+        this.mostrarToast('Error al exportar el Excel.', true);
+      }
+    });
+  }
+
+  toggleExportMenu(): void {
+    this.exportMenuVisible = !this.exportMenuVisible;
+  }
+
+  cerrarExportMenu(): void {
+    this.exportMenuVisible = false;
   }
 }
