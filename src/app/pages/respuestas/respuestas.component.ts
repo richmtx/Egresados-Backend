@@ -1,9 +1,10 @@
 import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser, CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { RespuestasService, Respuesta } from './respuestas.service';
+import { AuthService } from '../../services/auth.service';
 
 export interface RespuestaPerfil extends Respuesta {
   certificaciones: string[];
@@ -57,6 +58,7 @@ export class RespuestasComponent implements OnInit {
 
   constructor(
     private respuestasService: RespuestasService,
+    private authService: AuthService,
     private router: Router,
     @Inject(PLATFORM_ID) private platformId: object,
   ) { }
@@ -69,9 +71,10 @@ export class RespuestasComponent implements OnInit {
     this.cargando = true;
     this.respuestasService.getAll().subscribe({
       next: (data) => {
+        // ✅ Usa el campo revisado que viene de la BD — no localStorage
         this.respuestas = data.map(r => ({
           ...r,
-          revisado: this.estaRevisado(r.id_egresado),
+          revisado: Boolean(r.revisado),
         }));
         this.poblarFiltros();
         this.aplicarFiltros();
@@ -91,7 +94,7 @@ export class RespuestasComponent implements OnInit {
     const setAnios = new Set(
       this.respuestas
         .map(r => r.fecha_registro ? new Date(r.fecha_registro).getFullYear() : null)
-        .filter((a): a is number => a !== null)
+        .filter((a): a is number => a !== null),
     );
     this.anios = Array.from(setAnios).sort((a, b) => b - a);
   }
@@ -110,7 +113,9 @@ export class RespuestasComponent implements OnInit {
       }
       if (this.filtroCarrera && r.nombre_carrera !== this.filtroCarrera) return false;
       if (this.filtroAnio) {
-        const anioRegistro = r.fecha_registro ? new Date(r.fecha_registro).getFullYear() : null;
+        const anioRegistro = r.fecha_registro
+          ? new Date(r.fecha_registro).getFullYear()
+          : null;
         if (anioRegistro !== +this.filtroAnio) return false;
       }
       if (this.filtroRevisado === 'revisado' && !r.revisado) return false;
@@ -119,16 +124,30 @@ export class RespuestasComponent implements OnInit {
     });
   }
 
-  // Foto de perfil
+  // ── Foto de perfil ────────────────────────────────────────────────
   getFotoUrl(fotoUrl: string | null): string | null {
     if (!fotoUrl) return null;
     return `${this.BASE_URL}/${fotoUrl}`;
   }
 
-  // Drawer
+  // ── Drawer / perfil ───────────────────────────────────────────────
   abrirPerfil(id: number, fila: Respuesta): void {
-    this.marcarRevisado(id);
-    fila.revisado = true;
+
+    // ✅ Si no está revisado, persiste en BD
+    if (!fila.revisado) {
+      const usuario = this.authService.getUsuario();
+      const nombre = usuario?.nombre_completo ?? 'admin';
+
+      this.respuestasService.marcarRevisado(id, nombre).subscribe({
+        next: () => {
+          fila.revisado = true;
+          // Los getters sinRevisar / revisadas se recalculan automáticamente
+        },
+        error: () => {
+          // Silencioso: no bloquea la apertura del perfil
+        },
+      });
+    }
 
     this.drawerVisible = true;
     this.perfilCargando = true;
@@ -165,38 +184,16 @@ export class RespuestasComponent implements OnInit {
     this.mostrarToast('Función de exportar PDF próximamente.', false);
   }
 
+  // ── Toast ─────────────────────────────────────────────────────────
   mostrarToast(mensaje: string, esError: boolean): void {
     clearTimeout(this.toastTimer);
     this.toastMensaje = mensaje;
     this.toastError = esError;
     this.toastVisible = true;
-    this.toastTimer = setTimeout(() => this.toastVisible = false, 3200);
+    this.toastTimer = setTimeout(() => (this.toastVisible = false), 3200);
   }
 
-  // localStorage
-  private isBrowser(): boolean { return isPlatformBrowser(this.platformId); }
-
-  private marcarRevisado(id: number): void {
-    if (!this.isBrowser()) return;
-    const s = this.getRevisadosSet();
-    s.add(id);
-    localStorage.setItem('revisados_egresados', JSON.stringify(Array.from(s)));
-  }
-
-  private estaRevisado(id: number): boolean {
-    if (!this.isBrowser()) return false;
-    return this.getRevisadosSet().has(id);
-  }
-
-  private getRevisadosSet(): Set<number> {
-    if (!this.isBrowser()) return new Set();
-    const raw = localStorage.getItem('revisados_egresados');
-    if (!raw) return new Set();
-    try { return new Set(JSON.parse(raw) as number[]); }
-    catch { return new Set(); }
-  }
-
-  // Helpers visuales
+  // ── Helpers visuales ──────────────────────────────────────────────
   getInitials(nombre: string): string {
     if (!nombre) return '?';
     const parts = nombre.trim().split(' ');
@@ -209,7 +206,9 @@ export class RespuestasComponent implements OnInit {
     if (!fecha) return '—';
     const d = new Date(fecha);
     if (isNaN(d.getTime())) return '—';
-    return d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+    return d.toLocaleDateString('es-MX', {
+      day: '2-digit', month: 'short', year: 'numeric',
+    });
   }
 
   getEstrellas(valor: number): boolean[] {
@@ -218,12 +217,18 @@ export class RespuestasComponent implements OnInit {
 
   todasHabilidades(): string[] {
     if (!this.perfilSeleccionado) return [];
-    return [...this.perfilSeleccionado.habilidades, ...this.perfilSeleccionado.habilidades_otro];
+    return [
+      ...this.perfilSeleccionado.habilidades,
+      ...this.perfilSeleccionado.habilidades_otro,
+    ];
   }
 
   todasColaboraciones(): string[] {
     if (!this.perfilSeleccionado) return [];
-    return [...this.perfilSeleccionado.colaboraciones, ...this.perfilSeleccionado.colaboraciones_otro];
+    return [
+      ...this.perfilSeleccionado.colaboraciones,
+      ...this.perfilSeleccionado.colaboraciones_otro,
+    ];
   }
 
   getSituacionClass(situacion: string): string {
@@ -239,14 +244,22 @@ export class RespuestasComponent implements OnInit {
 
   getTitulacionClass(estatus: string): string {
     const map: Record<string, string> = {
-      'Titulado': 'chip-teal', 'En trámite': 'chip-amber', 'No titulado': 'chip-gray',
-      '1': 'chip-teal', '2': 'chip-amber', '3': 'chip-gray',
+      'Titulado': 'chip-teal',
+      'En trámite': 'chip-amber',
+      'No titulado': 'chip-gray',
+      '1': 'chip-teal',
+      '2': 'chip-amber',
+      '3': 'chip-gray',
     };
     return map[estatus] ?? 'chip-gray';
   }
 
   getTitulacionLabel(estatus: string): string {
-    const map: Record<string, string> = { '1': 'Titulado', '2': 'En trámite', '3': 'No titulado' };
+    const map: Record<string, string> = {
+      '1': 'Titulado',
+      '2': 'En trámite',
+      '3': 'No titulado',
+    };
     return map[estatus] ?? estatus;
   }
 }

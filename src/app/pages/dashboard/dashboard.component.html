@@ -1,1 +1,459 @@
-<app-sidebar></app-sidebar>
+<div class="dash-layout">
+
+    <app-sidebar></app-sidebar>
+
+    <main class="dash-main">
+
+        <!-- ══ BIENVENIDA ══ -->
+        <div class="dash-welcome">
+            <div class="welcome-left">
+                <h1 class="welcome-title">Bienvenido, {{ nombreUsuario }}
+                    <span class="welcome-wave"></span>
+                </h1>
+                <p class="welcome-sub">Panel de control Egresados · ITD &nbsp;·&nbsp; {{ fechaHoy }}</p>
+            </div>
+            <div class="welcome-actions">
+                <button class="btn-actividad" (click)="abrirDrawer('respuestas')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                        <line x1="6" y1="1" x2="6" y2="4" />
+                        <line x1="10" y1="1" x2="10" y2="4" />
+                        <line x1="14" y1="1" x2="14" y2="4" />
+                    </svg>
+                    Actividad reciente
+                    <span class="badge-notif" *ngIf="datos && datos.actividad.totalNotificacionesSinLeer > 0">
+                        {{ datos.actividad.totalNotificacionesSinLeer }}
+                    </span>
+                </button>
+                <button class="btn-reload" (click)="cargarDatos()" title="Actualizar">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <path d="M23 4v6h-6M1 20v-6h6" />
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- ══ LOADING ══ -->
+        <div class="loading-state" *ngIf="cargando">
+            <div class="spinner"></div>
+            <p>Cargando dashboard...</p>
+        </div>
+
+        <!-- ══ ERROR ══ -->
+        <div class="error-state" *ngIf="error && !cargando">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <p>No se pudo cargar el dashboard.</p>
+            <button class="btn-retry" (click)="cargarDatos()">Reintentar</button>
+        </div>
+
+        <ng-container *ngIf="datos && !cargando">
+
+            <!-- ══ KPI CARDS ══ -->
+            <div class="kpi-grid">
+
+                <div class="kpi-card kpi-blue">
+                    <div class="kpi-icon-wrap kpi-icon-blue">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                        </svg>
+                    </div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">Total egresados</span>
+                        <span class="kpi-value">{{ datos.kpis.total_egresados | number }}</span>
+                        <span class="kpi-sub">registrados en el sistema</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-green">
+                    <div class="kpi-icon-wrap kpi-icon-green">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14,2 14,8 20,8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                            <polyline points="10,9 9,9 8,9" />
+                        </svg>
+                    </div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">Encuestas respondidas</span>
+                        <span class="kpi-value">{{ datos.kpis.total_respondidas | number }}</span>
+                        <span class="kpi-sub">{{ datos.kpis.pct_cobertura }}% de cobertura</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-amber">
+                    <div class="kpi-icon-wrap kpi-icon-amber">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="2" y="7" width="4" height="14" rx="1" />
+                            <rect x="9" y="3" width="4" height="18" rx="1" />
+                            <rect x="16" y="10" width="4" height="11" rx="1" />
+                        </svg>
+                    </div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">Tasa de empleo</span>
+                        <span class="kpi-value">{{ datos.kpis.tasa_empleo }}%</span>
+                        <span class="kpi-sub kpi-sub-up">↑ empleo general</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-purple">
+                    <div class="kpi-icon-wrap kpi-icon-purple">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polygon
+                                points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26 12,2" />
+                        </svg>
+                    </div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">Satisfacción académica</span>
+                        <span class="kpi-value">{{ datos.kpis.satisfaccion_promedio }} ★</span>
+                        <span class="kpi-sub">promedio general</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-teal">
+                    <div class="kpi-icon-wrap kpi-icon-teal">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="8" r="6" />
+                            <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" />
+                        </svg>
+                    </div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">Egresados titulados</span>
+                        <span class="kpi-value">{{ datos.kpis.pct_titulados }}%</span>
+                        <span class="kpi-sub">{{ datos.kpis.total_titulados | number }} de {{ datos.kpis.total_egresados
+                            | number }}</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-coral" style="cursor:pointer" (click)="abrirDrawer('respuestas')">
+                    <div class="kpi-icon-wrap kpi-icon-coral">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg>
+                    </div>
+                    <div class="kpi-body">
+                        <span class="kpi-label">Pendientes de revisión</span>
+                        <span class="kpi-value">{{ datos.kpis.pendientes_revision }}</span>
+                        <span class="kpi-sub kpi-sub-warn">Ver respuestas →</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ══ FILA CENTRAL: 3 GRÁFICAS ══ -->
+            <div class="charts-row-3">
+
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Egresados por carrera</h3>
+                            <p class="chart-sub">Top 5 carreras</p>
+                        </div>
+                        <span class="chart-badge">Barras</span>
+                    </div>
+                    <apx-chart [series]="chartBarras.series" [chart]="chartBarras.chart" [xaxis]="chartBarras.xaxis"
+                        [colors]="chartBarras.colors" [plotOptions]="chartBarras.plotOptions"
+                        [dataLabels]="chartBarras.dataLabels" [grid]="chartBarras.grid" [yaxis]="chartBarras.yaxis"
+                        [tooltip]="chartBarras.tooltip">
+                    </apx-chart>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Situación laboral</h3>
+                            <p class="chart-sub">Distribución general</p>
+                        </div>
+                        <span class="chart-badge">Donut</span>
+                    </div>
+                    <apx-chart [series]="chartPastel.series" [chart]="chartPastel.chart" [labels]="chartPastel.labels"
+                        [colors]="chartPastel.colors" [plotOptions]="chartPastel.plotOptions"
+                        [dataLabels]="chartPastel.dataLabels" [legend]="chartPastel.legend"
+                        [tooltip]="chartPastel.tooltip">
+                    </apx-chart>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Respuestas por mes</h3>
+                            <p class="chart-sub">Últimos 8 meses</p>
+                        </div>
+                        <span class="chart-badge">Área</span>
+                    </div>
+                    <apx-chart [series]="chartLinea.series" [chart]="chartLinea.chart" [xaxis]="chartLinea.xaxis"
+                        [colors]="chartLinea.colors" [fill]="chartLinea.fill" [stroke]="chartLinea.stroke"
+                        [markers]="chartLinea.markers" [dataLabels]="chartLinea.dataLabels" [grid]="chartLinea.grid"
+                        [yaxis]="chartLinea.yaxis" [tooltip]="chartLinea.tooltip">
+                    </apx-chart>
+                </div>
+
+            </div>
+
+            <!-- ══ FILA INFERIOR ══ -->
+            <div class="bottom-row">
+
+                <!-- ── Tabla resumen por carrera ── -->
+                <div class="card tabla-card">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">Resumen por carrera</h3>
+                            <p class="card-sub">Principales indicadores</p>
+                        </div>
+                    </div>
+                    <div class="tabla-wrap">
+                        <table class="tabla">
+                            <thead>
+                                <tr>
+                                    <th>Carrera</th>
+                                    <th>Egresados</th>
+                                    <th>Empleados</th>
+                                    <th>Titulados</th>
+                                    <th>Satisfacción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let c of datos.resumenCarrera">
+                                    <td class="td-carrera">
+                                        {{ c.nombre_carrera.replace('Ingeniería ', 'Ing. ') }}
+                                    </td>
+                                    <td class="td-center">{{ c.total }}</td>
+                                    <td class="td-center">
+                                        <span class="td-badge" [class.badge-green]="+c.pct_empleados >= 85"
+                                            [class.badge-amber]="+c.pct_empleados >= 70 && +c.pct_empleados < 85"
+                                            [class.badge-red]="+c.pct_empleados < 70">
+                                            {{ c.pct_empleados }}%
+                                        </span>
+                                    </td>
+                                    <td class="td-center">{{ c.pct_titulados }}%</td>
+                                    <td class="td-center">{{ c.satisfaccion_promedio }} ★</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ── Columna derecha: periodo + accesos + top ── -->
+                <div class="right-col">
+
+                    <!-- Resumen del periodo -->
+                    <div class="card periodo-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Periodo actual</h3>
+                        </div>
+                        <div class="periodo-num">{{ datos.periodo.respuestas_este_mes }}</div>
+                        <p class="periodo-label">respuestas este mes</p>
+                        <div class="periodo-diff" [class.diff-up]="datos.periodo.tendencia === 'up'"
+                            [class.diff-down]="datos.periodo.tendencia === 'down'"
+                            [class.diff-equal]="datos.periodo.tendencia === 'equal'">
+                            <ng-container *ngIf="datos.periodo.tendencia === 'up'">
+                                ↑ {{ datos.periodo.diferencia }} más que el mes anterior
+                            </ng-container>
+                            <ng-container *ngIf="datos.periodo.tendencia === 'down'">
+                                ↓ {{ datos.periodo.diferencia * -1 }} menos que el mes anterior
+                            </ng-container>
+                            <ng-container *ngIf="datos.periodo.tendencia === 'equal'">
+                                = igual que el mes anterior
+                            </ng-container>
+                        </div>
+                        <div class="accesos-grid">
+                            <button class="acceso-btn" (click)="abrirDrawer('respuestas')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                                Pendientes ({{ datos.kpis.pendientes_revision }})
+                            </button>
+                            <button class="acceso-btn" (click)="irA('estadisticas')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <line x1="18" y1="20" x2="18" y2="10" />
+                                    <line x1="12" y1="20" x2="12" y2="4" />
+                                    <line x1="6" y1="20" x2="6" y2="14" />
+                                </svg>
+                                Estadísticas
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Top destacados -->
+                    <div class="card top-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Top destacados</h3>
+                        </div>
+                        <div class="top-list">
+                            <div class="top-item" *ngIf="datos.topDestacados.carrera_top_empleo">
+                                <div class="top-icon-wrap top-icon-green">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <rect x="2" y="7" width="4" height="14" rx="1" />
+                                        <rect x="9" y="3" width="4" height="18" rx="1" />
+                                        <rect x="16" y="10" width="4" height="11" rx="1" />
+                                    </svg>
+                                </div>
+                                <div class="top-body">
+                                    <span class="top-key">Carrera con más empleo</span>
+                                    <span class="top-val">
+                                        {{ datos.topDestacados.carrera_top_empleo!.nombre_carrera.replace('Ingeniería
+                                        ','Ing. ') }}
+                                        — {{ datos.topDestacados.carrera_top_empleo!.pct_empleados }}%
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="top-item" *ngIf="datos.topDestacados.ciudad_top_trabajo">
+                                <div class="top-icon-wrap top-icon-blue">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                        <circle cx="12" cy="10" r="3" />
+                                    </svg>
+                                </div>
+                                <div class="top-body">
+                                    <span class="top-key">Ciudad más frecuente</span>
+                                    <span class="top-val">{{ datos.topDestacados.ciudad_top_trabajo!.ciudad_trabajo
+                                        }}</span>
+                                </div>
+                            </div>
+                            <div class="top-item" *ngIf="datos.topDestacados.empresa_top">
+                                <div class="top-icon-wrap top-icon-amber">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                        <polyline points="9,22 9,12 15,12 15,22" />
+                                    </svg>
+                                </div>
+                                <div class="top-body">
+                                    <span class="top-key">Empresa que más emplea</span>
+                                    <span class="top-val">{{ datos.topDestacados.empresa_top!.empresa }} — {{
+                                        datos.topDestacados.empresa_top!.total }} egresados</span>
+                                </div>
+                            </div>
+                            <div class="top-item" *ngIf="datos.topDestacados.anio_top_titulacion">
+                                <div class="top-icon-wrap top-icon-purple">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <circle cx="12" cy="8" r="6" />
+                                        <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" />
+                                    </svg>
+                                </div>
+                                <div class="top-body">
+                                    <span class="top-key">Año con mayor titulación</span>
+                                    <span class="top-val">Generación {{
+                                        datos.topDestacados.anio_top_titulacion!.anio_egreso }} — {{
+                                        datos.topDestacados.anio_top_titulacion!.pct_titulados }}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </ng-container>
+    </main>
+
+    <!-- ══ DRAWER ACTIVIDAD RECIENTE ══ -->
+    <div class="drawer-overlay" *ngIf="drawerAbierto" (click)="cerrarDrawer()"></div>
+    <div class="drawer" [class.drawer-open]="drawerAbierto">
+
+        <div class="drawer-head">
+            <h2 class="drawer-title">Actividad reciente</h2>
+            <button class="drawer-close" (click)="cerrarDrawer()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="drawer-tabs">
+            <button class="dtab" [class.dtab-active]="drawerTab === 'respuestas'" (click)="drawerTab = 'respuestas'">
+                Últimas respuestas
+            </button>
+            <button class="dtab" [class.dtab-active]="drawerTab === 'notificaciones'"
+                (click)="drawerTab = 'notificaciones'">
+                Notificaciones
+                <span class="dtab-badge" *ngIf="datos && datos.actividad.totalNotificacionesSinLeer > 0">
+                    {{ datos.actividad.totalNotificacionesSinLeer }}
+                </span>
+            </button>
+            <button class="dtab" [class.dtab-active]="drawerTab === 'recientes'" (click)="drawerTab = 'recientes'">
+                Registros recientes
+            </button>
+        </div>
+
+        <div class="drawer-body" *ngIf="datos">
+
+            <!-- Tab: últimas respuestas -->
+            <ng-container *ngIf="drawerTab === 'respuestas'">
+                <div class="act-item" *ngFor="let r of datos.actividad.ultimasRespuestas; let i = index">
+                    <div class="act-avatar" [style.background]="colorAvatar(i)" [style.color]="colorAvatarText(i)">
+                        {{ iniciales(r.nombre_completo) }}
+                    </div>
+                    <div class="act-info">
+                        <div class="act-nombre">{{ r.nombre_completo }}</div>
+                        <div class="act-meta">{{ r.nombre_carrera }}</div>
+                        <div class="act-time">{{ tiempoRelativo(r.fecha_registro) }}</div>
+                    </div>
+                    <span class="act-badge" [class.badge-revisado]="r.revisado" [class.badge-pendiente]="!r.revisado">
+                        {{ r.revisado ? 'Revisado' : 'Pendiente' }}
+                    </span>
+                </div>
+            </ng-container>
+
+            <!-- Tab: notificaciones -->
+            <ng-container *ngIf="drawerTab === 'notificaciones'">
+                <div class="notif-item" *ngFor="let n of datos.actividad.notificaciones">
+                    <div class="notif-icon" [style.background]="colorNotificacion(n.tipo).bg"
+                        [style.color]="colorNotificacion(n.tipo).color">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path [attr.d]="iconoNotificacion(n.tipo)" />
+                        </svg>
+                    </div>
+                    <div class="notif-body">
+                        <div class="notif-titulo">{{ n.titulo }}</div>
+                        <div class="notif-desc">{{ n.descripcion }}</div>
+                        <div class="notif-time">{{ tiempoRelativo(n.fecha_creacion) }}</div>
+                    </div>
+                </div>
+                <button class="btn-ver-todas" (click)="irA('notificaciones'); cerrarDrawer()">
+                    Ver todas las notificaciones →
+                </button>
+            </ng-container>
+
+            <!-- Tab: registros recientes -->
+            <ng-container *ngIf="drawerTab === 'recientes'">
+                <div class="act-item" *ngFor="let r of datos.actividad.egresadosRecientes; let i = index">
+                    <div class="act-avatar" [style.background]="colorAvatar(i)" [style.color]="colorAvatarText(i)">
+                        {{ iniciales(r.nombre_completo) }}
+                    </div>
+                    <div class="act-info">
+                        <div class="act-nombre">{{ r.nombre_completo }}</div>
+                        <div class="act-meta">{{ r.nombre_carrera }}</div>
+                        <div class="act-time">{{ tiempoRelativo(r.fecha_registro) }}</div>
+                    </div>
+                </div>
+            </ng-container>
+
+        </div>
+    </div>
+
+</div>

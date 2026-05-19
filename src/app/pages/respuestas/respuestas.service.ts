@@ -29,6 +29,8 @@ export interface Respuesta {
   autorizo_eventos: boolean;
   revisado: boolean;
   foto_url: string | null;
+  fecha_revision: string | null;
+  revisado_por: string | null;
 }
 
 @Injectable({
@@ -46,5 +48,16 @@ export class RespuestasService {
 
   getPerfil(id: number): Observable<any> {
     return this.http.get<any>(`${this.base}/${id}/perfil`);
+  }
+
+  marcarRevisado(id: number, revisadoPor: string): Observable<any> {
+    return this.http.patch(`${this.base}/${id}/revisado`, {
+      revisado: true,
+      revisado_por: revisadoPor,
+    });
+  }
+
+  getPendientesRevision(): Observable<{ total: number; egresados: any[] }> {
+    return this.http.get<{ total: number; egresados: any[] }>(`${this.base}/pendientes-revision`);
   }
 }
