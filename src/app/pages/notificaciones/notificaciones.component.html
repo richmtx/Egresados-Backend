@@ -4,16 +4,49 @@
   <main class="main-content">
 
     <!-- HEADER -->
-    <div class="page-header">
+    <div class="page-header" (click)="cerrarDropdown()">
       <div class="header-left">
         <h1 class="page-title">Notificaciones</h1>
         <p class="page-subtitle">
           {{ conteos.recientes }} notificación{{ conteos.recientes !== 1 ? 'es' : '' }} sin leer
         </p>
       </div>
-      <button class="btn-outline" [disabled]="!tieneNoLeidas()" (click)="marcarTodasLeidas()">
-        Marcar todo como leído
-      </button>
+
+      <div class="header-actions">
+
+        <button class="btn-outline" [disabled]="!tieneNoLeidas()" (click)="marcarTodasLeidas()">
+          Marcar todo como leído
+        </button>
+
+        <!-- Dropdown eliminar -->
+        <div class="dropdown-wrap" *ngIf="tieneNotificaciones()">
+          <button class="btn-outline btn-danger-outline" (click)="toggleDropdown($event)">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+              <path d="M3 4h10M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" />
+            </svg>
+            Eliminar
+            <svg class="chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M4 6l4 4 4-4" />
+            </svg>
+          </button>
+
+          <div class="dropdown-menu" *ngIf="dropdownVisible">
+            <button class="dropdown-item" [disabled]="!tieneLeidas()" (click)="abrirModalMasivo('leidas')">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <path d="M2 8l4 4 8-8" />
+              </svg>
+              Eliminar leídas
+            </button>
+            <button class="dropdown-item item-danger" (click)="abrirModalMasivo('todas')">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <path d="M3 4h10M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" />
+              </svg>
+              Eliminar todas
+            </button>
+          </div>
+        </div>
+
+      </div>
     </div>
 
     <!-- TABS -->
@@ -46,8 +79,7 @@
             [class.unread-purple]="!n.leida && n.tipo === 'eventos'"
             [class.unread-amber]=" !n.leida && n.tipo === 'actualizacion'"
             [class.unread-red]="   !n.leida && !['nueva_encuesta','contacto','eventos','exportacion','actualizacion'].includes(n.tipo)"
-            [class.unread-red-ubicacion]="!n.leida && n.tipo === 'nueva_encuesta_ubicacion'"
-            (click)="marcarLeida(n)">
+            [class.unread-red-ubicacion]="!n.leida && n.tipo === 'nueva_encuesta_ubicacion'" (click)="marcarLeida(n)">
 
             <!-- Ícono -->
             <div class="notif-icon" [ngClass]="getIconClass(n.tipo)">
@@ -74,7 +106,8 @@
                 stroke-width="1.8" stroke-linecap="round">
                 <path d="M2 8a6 6 0 1110.93-3M14 2v4h-4" />
               </svg>
-              <svg *ngIf="!['nueva_encuesta','contacto','eventos','exportacion','actualizacion','nueva_encuesta_ubicacion'].includes(n.tipo)"
+              <svg
+                *ngIf="!['nueva_encuesta','contacto','eventos','exportacion','actualizacion','nueva_encuesta_ubicacion'].includes(n.tipo)"
                 viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
                 <path d="M8 2a5 5 0 015 5v2l1 2H2l1-2V7a5 5 0 015-5z" />
                 <path d="M6.5 13a1.5 1.5 0 003 0" />
@@ -127,6 +160,7 @@
     </div>
 
     <!-- MODAL CONFIRMACIÓN ELIMINAR -->
+    <!-- MODAL CONFIRMACIÓN ELIMINAR -->
     <div class="modal-overlay" *ngIf="modalEliminar.visible" (click)="cerrarModal()">
       <div class="modal-card" (click)="$event.stopPropagation()">
 
@@ -140,17 +174,12 @@
         </div>
 
         <div class="modal-body">
-          <h2 class="modal-title">¿Eliminar notificación?</h2>
-          <p class="modal-desc">
-            Esta acción no se puede deshacer. La notificación será
-            eliminada permanentemente.
-          </p>
+          <h2 class="modal-title">{{ getModalTitulo() }}</h2>
+          <p class="modal-desc">{{ getModalDesc() }}</p>
         </div>
 
         <div class="modal-actions">
-          <button class="btn-modal-cancel" (click)="cerrarModal()">
-            Cancelar
-          </button>
+          <button class="btn-modal-cancel" (click)="cerrarModal()">Cancelar</button>
           <button class="btn-modal-confirm" (click)="confirmarEliminar()">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
               <path d="M3 4h10M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" />
@@ -160,17 +189,6 @@
         </div>
 
       </div>
-    </div>
-
-    <!-- TOAST DESHACER -->
-    <div class="toast" [class.toast-visible]="toast.visible">
-      <div class="toast-left">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-          <path d="M3 4h10M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" />
-        </svg>
-        <span>{{ toast.mensaje }}</span>
-      </div>
-      <button class="toast-btn" (click)="deshacerEliminar()">Deshacer</button>
     </div>
 
   </main>

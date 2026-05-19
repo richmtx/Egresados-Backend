@@ -137,7 +137,7 @@
             <rect x="2" y="7" width="14" height="9" rx="1.5" />
             <path d="M6 7V5a3 3 0 016 0v2" />
           </svg>
-          <span>{{ eg.puesto_trabajo || '—' }}<ng-container *ngIf="eg.empresa"> · {{ eg.empresa }}</ng-container></span>
+          <span>{{ eg.puesto_trabajo || '—' }}</span>
         </div>
 
         <!-- Ciudad -->
@@ -236,10 +236,6 @@
       <div class="modal-section">
         <div class="modal-section-title">Situación laboral</div>
         <div class="info-grid">
-          <div class="info-item">
-            <span class="info-label">Empresa</span>
-            <span class="info-value">{{ egresadoSeleccionado.empresa || 'No especificada' }}</span>
-          </div>
           <div class="info-item">
             <span class="info-label">Puesto</span>
             <span class="info-value">{{ egresadoSeleccionado.puesto_trabajo || 'No especificado' }}</span>

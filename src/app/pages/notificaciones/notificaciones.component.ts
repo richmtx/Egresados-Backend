@@ -13,6 +13,8 @@ interface Notificacion {
   id_egresado: number | null;
 }
 
+type ModalModoEliminar = 'una' | 'leidas' | 'todas';
+
 @Component({
   selector: 'app-notificaciones',
   standalone: true,
@@ -27,8 +29,17 @@ export class NotificacionesComponent implements OnInit {
   todas: Notificacion[] = [];
   filtradas: Notificacion[] = [];
   tabActiva: 'recientes' | 'encuestas' | 'sistema' = 'recientes';
-
   conteos = { recientes: 0, encuestas: 0, sistema: 0 };
+
+  // Modal unificado para eliminar (una / leídas / todas)
+  modalEliminar: { visible: boolean; modo: ModalModoEliminar; id: number | null } = {
+    visible: false,
+    modo: 'una',
+    id: null
+  };
+
+  // Dropdown "Eliminar..."
+  dropdownVisible = false;
 
   constructor(private http: HttpClient) { }
 
@@ -64,7 +75,6 @@ export class NotificacionesComponent implements OnInit {
         ['nueva_encuesta', 'nueva_encuesta_ubicacion'].includes(n.tipo)
       );
     } else {
-      // sistema: contacto, eventos, exportacion, actualizacion
       this.filtradas = this.todas.filter(n =>
         ['contacto', 'eventos', 'exportacion', 'actualizacion'].includes(n.tipo)
       );
@@ -88,65 +98,87 @@ export class NotificacionesComponent implements OnInit {
       });
   }
 
-  modalEliminar: { visible: boolean; id: number | null } = { visible: false, id: null };
-
+  // ── Eliminar una ──────────────────────────────────────────
   eliminar(id: number, event: MouseEvent) {
     event.stopPropagation();
-    this.modalEliminar = { visible: true, id };
+    this.modalEliminar = { visible: true, modo: 'una', id };
   }
 
-  toast: { visible: boolean; mensaje: string; timer: any } = {
-    visible: false,
-    mensaje: '',
-    timer: null
-  };
-  notifEliminadaTemporal: Notificacion | null = null;
+  // ── Eliminar leídas / todas (desde dropdown) ──────────────
+  abrirModalMasivo(modo: 'leidas' | 'todas') {
+    this.dropdownVisible = false;
+    this.modalEliminar = { visible: true, modo, id: null };
+  }
 
+  // ── Confirmar según modo ──────────────────────────────────
   confirmarEliminar() {
-    const id = this.modalEliminar.id!;
-    const notif = this.todas.find(n => n.id_notificacion === id)!;
+    const { modo, id } = this.modalEliminar;
 
-    this.notifEliminadaTemporal = notif;
-    this.todas = this.todas.filter(n => n.id_notificacion !== id);
-    this.filtradas = this.filtradas.filter(n => n.id_notificacion !== id);
-    this.calcularConteos();
+    if (modo === 'una' && id !== null) {
+      this.http.delete(`${this.API}/notificaciones/${id}`).subscribe(() => {
+        this.todas = this.todas.filter(n => n.id_notificacion !== id);
+        this.cambiarTab(this.tabActiva);
+        this.calcularConteos();
+      });
+
+    } else if (modo === 'leidas') {
+      this.http.delete(`${this.API}/notificaciones/leidas`).subscribe(() => {
+        this.todas = this.todas.filter(n => !n.leida);
+        this.cambiarTab(this.tabActiva);
+        this.calcularConteos();
+      });
+
+    } else if (modo === 'todas') {
+      this.http.delete(`${this.API}/notificaciones/todas`).subscribe(() => {
+        this.todas = [];
+        this.filtradas = [];
+        this.calcularConteos();
+      });
+    }
+
     this.cerrarModal();
-    this.mostrarToast('Notificación eliminada');
-
-    this.toast.timer = setTimeout(() => {
-      this.http.delete(`${this.API}/notificaciones/${id}`).subscribe();
-      this.notifEliminadaTemporal = null;
-      this.ocultarToast();
-    }, 5000);
-  }
-
-  mostrarToast(mensaje: string) {
-    if (this.toast.timer) clearTimeout(this.toast.timer);
-    this.toast.visible = true;
-    this.toast.mensaje = mensaje;
-  }
-
-  ocultarToast() {
-    this.toast.visible = false;
-    this.toast.mensaje = '';
-  }
-
-  deshacerEliminar() {
-    clearTimeout(this.toast.timer);
-
-    const notif = this.notifEliminadaTemporal!;
-    this.todas = [...this.todas, notif].sort(
-      (a, b) => new Date(b.fecha_creacion).getTime() - new Date(a.fecha_creacion).getTime()
-    );
-    this.cambiarTab(this.tabActiva);
-    this.calcularConteos();
-
-    this.notifEliminadaTemporal = null;
-    this.ocultarToast();
   }
 
   cerrarModal() {
-    this.modalEliminar = { visible: false, id: null };
+    this.modalEliminar = { visible: false, modo: 'una', id: null };
+  }
+
+  // ── Dropdown ──────────────────────────────────────────────
+  toggleDropdown(event: MouseEvent) {
+    event.stopPropagation();
+    this.dropdownVisible = !this.dropdownVisible;
+  }
+
+  cerrarDropdown() {
+    this.dropdownVisible = false;
+  }
+
+  // ── Texto dinámico del modal según modo ───────────────────
+  getModalTitulo(): string {
+    if (this.modalEliminar.modo === 'una') return '¿Eliminar notificación?';
+    if (this.modalEliminar.modo === 'leidas') return '¿Eliminar notificaciones leídas?';
+    return '¿Eliminar todas las notificaciones?';
+  }
+
+  getModalDesc(): string {
+    if (this.modalEliminar.modo === 'una')
+      return 'Esta notificación será eliminada permanentemente.';
+    if (this.modalEliminar.modo === 'leidas')
+      return 'Se eliminarán todas las notificaciones que ya marcaste como leídas.';
+    return 'Se eliminarán todas las notificaciones sin excepción. Esta acción no se puede deshacer.';
+  }
+
+  // ── Helpers ───────────────────────────────────────────────
+  tieneLeidas(): boolean {
+    return this.todas.some(n => n.leida);
+  }
+
+  tieneNoLeidas(): boolean {
+    return this.todas.some(n => !n.leida);
+  }
+
+  tieneNotificaciones(): boolean {
+    return this.todas.length > 0;
   }
 
   getIconClass(tipo: string): string {
@@ -183,10 +215,6 @@ export class NotificacionesComponent implements OnInit {
       actualizacion: 'Actualización',
     };
     return map[tipo] ?? tipo;
-  }
-
-  tieneNoLeidas(): boolean {
-    return this.todas.some(n => !n.leida);
   }
 
   getFechaRelativa(fecha: string): string {

@@ -14,18 +14,18 @@ import { DirectorioService, EgresadoDirectorio } from './directorio.service';
 export class DirectorioComponent implements OnInit {
 
   // Estado general
-  egresados:          EgresadoDirectorio[] = [];
+  egresados: EgresadoDirectorio[] = [];
   egresadosFiltrados: EgresadoDirectorio[] = [];
-  cargando  = true;
-  error     = false;
+  cargando = true;
+  error = false;
 
   // Filtros
-  busqueda          = '';
-  filtroCarrera     = '';
-  filtroTitulacion  = '';
-  filtroAnio        = '';
+  busqueda = '';
+  filtroCarrera = '';
+  filtroTitulacion = '';
+  filtroAnio = '';
   carrerasDisponibles: string[] = [];
-  aniosDisponibles:    number[] = [];
+  aniosDisponibles: number[] = [];
 
   // Modal
   egresadoSeleccionado: EgresadoDirectorio | null = null;
@@ -37,11 +37,11 @@ export class DirectorioComponent implements OnInit {
 
   // Paginación
   paginaActual = 1;
-  porPagina    = 24;
+  porPagina = 24;
 
   private directorioService = inject(DirectorioService);
 
-  constructor() {}
+  constructor() { }
 
   ngOnInit(): void {
     this.cargarDirectorio();
@@ -50,7 +50,7 @@ export class DirectorioComponent implements OnInit {
   // Carga de datos
   cargarDirectorio(): void {
     this.cargando = true;
-    this.error    = false;
+    this.error = false;
 
     this.directorioService.getDirectorio().subscribe({
       next: (data) => {
@@ -60,7 +60,7 @@ export class DirectorioComponent implements OnInit {
         this.cargando = false;
       },
       error: () => {
-        this.error    = true;
+        this.error = true;
         this.cargando = false;
       },
     });
@@ -68,7 +68,7 @@ export class DirectorioComponent implements OnInit {
 
   private construirFiltros(data: EgresadoDirectorio[]): void {
     this.carrerasDisponibles = [...new Set(data.map(e => e.nombre_carrera))].sort();
-    this.aniosDisponibles    = [...new Set(data.map(e => e.anio_egreso))].sort((a, b) => b - a);
+    this.aniosDisponibles = [...new Set(data.map(e => e.anio_egreso))].sort((a, b) => b - a);
   }
 
   // Filtrado reactivo
@@ -76,12 +76,11 @@ export class DirectorioComponent implements OnInit {
     const busq = this.busqueda.toLowerCase().trim();
 
     this.egresadosFiltrados = this.egresados.filter(e => {
-      const matchBusq       = !busq || e.nombre_completo.toLowerCase().includes(busq)
-                                     || (e.empresa ?? '').toLowerCase().includes(busq)
-                                     || (e.puesto_trabajo ?? '').toLowerCase().includes(busq);
-      const matchCarrera    = !this.filtroCarrera    || e.nombre_carrera     === this.filtroCarrera;
+      const matchBusq = !busq || e.nombre_completo.toLowerCase().includes(busq)
+        || (e.puesto_trabajo ?? '').toLowerCase().includes(busq);
+      const matchCarrera = !this.filtroCarrera || e.nombre_carrera === this.filtroCarrera;
       const matchTitulacion = !this.filtroTitulacion || e.estatus_titulacion === this.filtroTitulacion;
-      const matchAnio       = !this.filtroAnio       || e.anio_egreso === +this.filtroAnio;
+      const matchAnio = !this.filtroAnio || e.anio_egreso === +this.filtroAnio;
       return matchBusq && matchCarrera && matchTitulacion && matchAnio;
     });
 
@@ -89,10 +88,10 @@ export class DirectorioComponent implements OnInit {
   }
 
   limpiarFiltros(): void {
-    this.busqueda         = '';
-    this.filtroCarrera    = '';
+    this.busqueda = '';
+    this.filtroCarrera = '';
     this.filtroTitulacion = '';
-    this.filtroAnio       = '';
+    this.filtroAnio = '';
     this.aplicarFiltros();
   }
 
@@ -111,10 +110,10 @@ export class DirectorioComponent implements OnInit {
   }
 
   get paginas(): number[] {
-    const total  = this.totalPaginas;
+    const total = this.totalPaginas;
     const actual = this.paginaActual;
     if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
-    if (actual <= 4)         return [1, 2, 3, 4, 5, -1, total];
+    if (actual <= 4) return [1, 2, 3, 4, 5, -1, total];
     if (actual >= total - 3) return [1, -1, total - 4, total - 3, total - 2, total - 1, total];
     return [1, -1, actual - 1, actual, actual + 1, -1, total];
   }
@@ -133,7 +132,7 @@ export class DirectorioComponent implements OnInit {
   }
 
   cerrarModal(): void {
-    this.modalAbierto         = false;
+    this.modalAbierto = false;
     this.egresadoSeleccionado = null;
     document.body.style.overflow = '';
   }
@@ -156,7 +155,7 @@ export class DirectorioComponent implements OnInit {
 
   getAvatarColor(eg: EgresadoDirectorio): string {
     const g = (eg.genero ?? '').toLowerCase();
-    if (g === 'femenino')  return '#611232';
+    if (g === 'femenino') return '#611232';
     if (g === 'masculino') return '#003366';
     return '#4b5563';
   }
@@ -167,34 +166,34 @@ export class DirectorioComponent implements OnInit {
 
   getTagClass(estatus: string): string {
     switch (estatus) {
-      case 'Titulado':    return 'tag-tit';
+      case 'Titulado': return 'tag-tit';
       case 'No titulado': return 'tag-notit';
-      case 'En trámite':  return 'tag-tramite';
-      default:            return 'tag-tramite';
+      case 'En trámite': return 'tag-tramite';
+      default: return 'tag-tramite';
     }
   }
 
   getCoincidenciaPct(nivel: string | null): number {
     switch (nivel) {
-      case 'Totalmente':                                 return 100;
-      case 'En gran medida':                             return 85;
-      case 'Parcialmente':                               return 60;
-      case 'Poco':                                       return 35;
-      case 'Nada':                                       return 10;
+      case 'Totalmente': return 100;
+      case 'En gran medida': return 85;
+      case 'Parcialmente': return 60;
+      case 'Poco': return 35;
+      case 'Nada': return 10;
       case 'No aplica / Actualmente no estoy laborando': return 0;
-      default:                                           return 0;
+      default: return 0;
     }
   }
 
   getCoincidenciaColor(nivel: string | null): string {
     switch (nivel) {
-      case 'Totalmente':                                 return '#16a34a';
-      case 'En gran medida':                             return '#65a30d';
-      case 'Parcialmente':                               return '#ca8a04';
-      case 'Poco':                                       return '#ea580c';
-      case 'Nada':                                       return '#dc2626';
+      case 'Totalmente': return '#16a34a';
+      case 'En gran medida': return '#65a30d';
+      case 'Parcialmente': return '#ca8a04';
+      case 'Poco': return '#ea580c';
+      case 'Nada': return '#dc2626';
       case 'No aplica / Actualmente no estoy laborando': return '#9ca3af';
-      default:                                           return '#9ca3af';
+      default: return '#9ca3af';
     }
   }
 

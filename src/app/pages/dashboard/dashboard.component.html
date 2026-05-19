@@ -159,7 +159,8 @@
             <!-- ══ FILA CENTRAL: 3 GRÁFICAS ══ -->
             <div class="charts-row-3">
 
-                <div class="chart-card">
+                <div class="chart-card chart-card-clickable"
+                    (click)="abrirModal('bar', 'Egresados por carrera', 'Top 5 carreras con más egresados registrados', chartBarras)">
                     <div class="chart-header">
                         <div>
                             <h3 class="chart-title">Egresados por carrera</h3>
@@ -172,9 +173,16 @@
                         [dataLabels]="chartBarras.dataLabels" [grid]="chartBarras.grid" [yaxis]="chartBarras.yaxis"
                         [tooltip]="chartBarras.tooltip">
                     </apx-chart>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
                 </div>
 
-                <div class="chart-card">
+                <div class="chart-card chart-card-clickable"
+                    (click)="abrirModal('donut', 'Situación laboral', 'Distribución general de egresados por situación laboral', chartPastel)">
                     <div class="chart-header">
                         <div>
                             <h3 class="chart-title">Situación laboral</h3>
@@ -187,9 +195,16 @@
                         [dataLabels]="chartPastel.dataLabels" [legend]="chartPastel.legend"
                         [tooltip]="chartPastel.tooltip">
                     </apx-chart>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
                 </div>
 
-                <div class="chart-card">
+                <div class="chart-card chart-card-clickable"
+                    (click)="abrirModal('area', 'Respuestas por mes', 'Actividad de respuestas recibidas en los últimos 8 meses', chartLinea)">
                     <div class="chart-header">
                         <div>
                             <h3 class="chart-title">Respuestas por mes</h3>
@@ -202,6 +217,12 @@
                         [markers]="chartLinea.markers" [dataLabels]="chartLinea.dataLabels" [grid]="chartLinea.grid"
                         [yaxis]="chartLinea.yaxis" [tooltip]="chartLinea.tooltip">
                     </apx-chart>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
                 </div>
 
             </div>
@@ -367,6 +388,51 @@
             </div>
 
         </ng-container>
+
+        <!-- ══ MODAL GRÁFICA EXPANDIDA ══ -->
+        <div class="chart-modal-overlay" *ngIf="modalAbierto" (click)="cerrarModal()">
+            <div class="chart-modal" (click)="$event.stopPropagation()">
+                <div class="chart-modal-head">
+                    <div>
+                        <h3 class="chart-modal-title">{{ modalTitulo }}</h3>
+                        <p class="chart-modal-sub">{{ modalSubtitulo }}</p>
+                    </div>
+                    <button class="chart-modal-close" (click)="cerrarModal()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="chart-modal-body">
+
+                    <ng-container *ngIf="modalTipo === 'bar'">
+                        <apx-chart [series]="modalChart.series" [chart]="modalChart.chart" [xaxis]="modalChart.xaxis"
+                            [colors]="modalChart.colors" [plotOptions]="modalChart.plotOptions"
+                            [dataLabels]="modalChart.dataLabels" [grid]="modalChart.grid" [yaxis]="modalChart.yaxis"
+                            [tooltip]="modalChart.tooltip">
+                        </apx-chart>
+                    </ng-container>
+
+                    <ng-container *ngIf="modalTipo === 'donut'">
+                        <apx-chart [series]="modalChart.series" [chart]="modalChart.chart" [labels]="modalChart.labels"
+                            [colors]="modalChart.colors" [plotOptions]="modalChart.plotOptions"
+                            [dataLabels]="modalChart.dataLabels" [legend]="modalChart.legend"
+                            [tooltip]="modalChart.tooltip">
+                        </apx-chart>
+                    </ng-container>
+
+                    <ng-container *ngIf="modalTipo === 'area'">
+                        <apx-chart [series]="modalChart.series" [chart]="modalChart.chart" [xaxis]="modalChart.xaxis"
+                            [colors]="modalChart.colors" [fill]="modalChart.fill" [stroke]="modalChart.stroke"
+                            [markers]="modalChart.markers" [dataLabels]="modalChart.dataLabels" [grid]="modalChart.grid"
+                            [yaxis]="modalChart.yaxis" [tooltip]="modalChart.tooltip">
+                        </apx-chart>
+                    </ng-container>
+
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- ══ DRAWER ACTIVIDAD RECIENTE ══ -->

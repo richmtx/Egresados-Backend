@@ -31,6 +31,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
   chartPastel: any = {};
   chartLinea: any = {};
 
+  // ── Modal ────────────────────────────────────────────────────────
+  modalAbierto = false;
+  modalTitulo = '';
+  modalSubtitulo = '';
+  modalTipo = '';
+  modalChart: any = {};
+
   constructor(
     private dashboardService: DashboardService,
     private authService: AuthService,
@@ -235,5 +242,29 @@ export class DashboardComponent implements OnInit, OnDestroy {
       yaxis: { labels: { style: { fontFamily: this.chartFontFamily, fontSize: '10px', colors: '#64748b' } } },
       tooltip: { y: { formatter: (v: number) => `${v} respuestas` } },
     };
+  }
+
+  abrirModal(tipo: string, titulo: string, subtitulo: string, chart: any): void {
+    this.modalChart = {
+      ...chart,
+      chart: {
+        ...chart.chart,
+        height: tipo === 'donut' ? 460 : 420,
+      },
+    };
+    this.modalTipo = tipo;
+    this.modalTitulo = titulo;
+    this.modalSubtitulo = subtitulo;
+    this.modalAbierto = true;
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  cerrarModal(): void {
+    this.modalAbierto = false;
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.style.overflow = '';
+    }
   }
 }
