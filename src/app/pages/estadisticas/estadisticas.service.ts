@@ -2,15 +2,16 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { EstadisticasResponse, FiltrosEstadisticas } from './models/estadisticas.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EstadisticasService {
 
-  private readonly apiUrl = 'http://localhost:3000/egresados/estadisticas';
+  private readonly apiUrl = `${environment.apiUrl}/egresados/estadisticas`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getEstadisticas(filtros?: FiltrosEstadisticas): Observable<EstadisticasResponse> {
     let params = new HttpParams();

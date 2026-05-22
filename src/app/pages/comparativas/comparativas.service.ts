@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface ComparativaResumen {
     nombre_carrera: string;
@@ -86,7 +87,7 @@ export interface CarrerasDisponiblesResponse {
 })
 export class ComparativasService {
 
-    private readonly base = 'http://localhost:3000';
+    private readonly base = environment.apiUrl;
 
     constructor(private http: HttpClient) { }
 

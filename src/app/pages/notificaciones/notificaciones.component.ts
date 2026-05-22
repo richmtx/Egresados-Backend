@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { SidebarComponent } from "../../components/sidebar/sidebar.component";
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 interface Notificacion {
   id_notificacion: number;
@@ -24,7 +25,7 @@ type ModalModoEliminar = 'una' | 'leidas' | 'todas';
 })
 export class NotificacionesComponent implements OnInit {
 
-  readonly API = 'http://localhost:3000';
+  readonly API = environment.apiUrl;
 
   todas: Notificacion[] = [];
   filtradas: Notificacion[] = [];

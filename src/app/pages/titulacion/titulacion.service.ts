@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface TitulacionKpis {
   total_egresados: number;
@@ -61,7 +62,7 @@ export interface EstadisticasResponse {
 })
 export class TitulacionService {
 
-  private apiUrl = 'http://localhost:3000/egresados/estadisticas';
+  private apiUrl = `${environment.apiUrl}/egresados/estadisticas`;
 
   constructor(private http: HttpClient) {}
 

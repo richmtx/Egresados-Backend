@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface Respuesta {
   id_egresado: number;
@@ -38,7 +39,7 @@ export interface Respuesta {
 })
 export class RespuestasService {
 
-  private readonly base = 'http://localhost:3000/egresados';
+  private readonly base = `${environment.apiUrl}/egresados`;
 
   constructor(private http: HttpClient) { }
 

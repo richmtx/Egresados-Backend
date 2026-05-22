@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface EgresadoDirectorio {
   id_egresado: number;
@@ -27,7 +28,7 @@ export interface EgresadoDirectorio {
 @Injectable({ providedIn: 'root' })
 export class DirectorioService {
 
-  private api = 'http://localhost:3000/egresados/directorio';
+  private api = `${environment.apiUrl}/egresados/directorio`;
 
   constructor(private http: HttpClient) { }
 

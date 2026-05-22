@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface Usuario {
     id_usuario: number;
@@ -29,7 +30,7 @@ export interface CrearUsuarioResponse {
 @Injectable({ providedIn: 'root' })
 export class UsuariosService {
 
-    private base = 'http://localhost:3000/usuarios';
+    private base = `${environment.apiUrl}/usuarios`;
 
     constructor(private http: HttpClient) { }
 

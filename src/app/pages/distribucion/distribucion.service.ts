@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface KpisGeo {
     total_mapeados: number;
@@ -54,7 +55,7 @@ export interface DistribucionGeoResponse {
 @Injectable({ providedIn: 'root' })
 export class DistribucionService {
 
-    private readonly base = 'http://localhost:3000/egresados';
+    private readonly base = `${environment.apiUrl}/egresados`;
 
     constructor(private http: HttpClient) { }
 
