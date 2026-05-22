@@ -18,7 +18,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   private chartFontFamily = "'Plus Jakarta Sans', 'Segoe UI', sans-serif";
 
-  // ── Estado ───────────────────────────────────────────────────────
+  // Estado
   datos: DashboardResumen | null = null;
   cargando = true;
   error = false;
@@ -26,12 +26,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   drawerAbierto = false;
   drawerTab: 'respuestas' | 'notificaciones' | 'recientes' = 'respuestas';
 
-  // ── Charts ───────────────────────────────────────────────────────
+  // Charts
   chartBarras: any = {};
   chartPastel: any = {};
   chartLinea: any = {};
 
-  // ── Modal ────────────────────────────────────────────────────────
+  // Modal
   modalAbierto = false;
   modalTitulo = '';
   modalSubtitulo = '';
@@ -71,7 +71,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ── Drawer ───────────────────────────────────────────────────────
+  // Drawer
   abrirDrawer(tab: typeof this.drawerTab): void {
     this.drawerTab = tab;
     this.drawerAbierto = true;
@@ -87,12 +87,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ── Navegación ───────────────────────────────────────────────────
+  // Navegación
   irA(ruta: string): void {
     this.router.navigate([`/${ruta}`]);
   }
 
-  // ── Helpers ──────────────────────────────────────────────────────
+  // Helpers
   get fechaHoy(): string {
     return new Date().toLocaleDateString('es-MX', {
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
@@ -113,26 +113,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return nombre.split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase();
   }
 
-  colorAvatar(idx: number): string {
-    const colores = [
-      { bg: '#ede9fe', text: '#6d28d9' },
-      { bg: '#dcfce7', text: '#15803d' },
-      { bg: '#fef3c7', text: '#b45309' },
-      { bg: '#fee2e2', text: '#b91c1c' },
-      { bg: '#e0f2fe', text: '#0369a1' },
-    ];
-    return colores[idx % colores.length].bg;
+  colorAvatar(genero: string | null): string {
+    const g = genero?.toLowerCase() ?? '';
+    if (g === 'femenino' || g === 'f' || g === 'mujer') return '#611232';
+    if (g === 'masculino' || g === 'm' || g === 'hombre') return '#003366';
+    return '#64748b';
   }
 
-  colorAvatarText(idx: number): string {
-    const colores = [
-      { bg: '#ede9fe', text: '#6d28d9' },
-      { bg: '#dcfce7', text: '#15803d' },
-      { bg: '#fef3c7', text: '#b45309' },
-      { bg: '#fee2e2', text: '#b91c1c' },
-      { bg: '#e0f2fe', text: '#0369a1' },
-    ];
-    return colores[idx % colores.length].text;
+  colorAvatarText(genero: string | null): string {
+    return '#ffffff';
   }
 
   iconoNotificacion(tipo: string): string {
@@ -155,7 +144,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return map[tipo] ?? map['nueva_encuesta'];
   }
 
-  // ── Charts ───────────────────────────────────────────────────────
+  // Charts
   private construirCharts(d: DashboardResumen): void {
 
     // 1. Barras — top 5 carreras

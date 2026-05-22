@@ -11,7 +11,6 @@ import { NotificacionesComponent } from './pages/notificaciones/notificaciones.c
 import { VinculacionComponent } from './pages/vinculacion/vinculacion.component';
 import { GenerosComponent } from './pages/generos/generos.component';
 import { ComparativasComponent } from './pages/comparativas/comparativas.component';
-import { ReportesComponent } from './pages/reportes/reportes.component';
 import { UsuariosComponent } from './pages/usuarios/usuarios.component';
 import { DirectorioComponent } from './pages/directorio/directorio.component';
 import { authGuard, adminGuard } from './guards/auth.guard';
@@ -31,7 +30,6 @@ export const routes: Routes = [
   { path: 'vinculacion', component: VinculacionComponent, canActivate: [adminGuard] },
   { path: 'generos', component: GenerosComponent, canActivate: [adminGuard] },
   { path: 'comparativas', component: ComparativasComponent, canActivate: [adminGuard] },
-  { path: 'reportes', component: ReportesComponent, canActivate: [adminGuard] },
   { path: 'usuarios', component: UsuariosComponent, canActivate: [adminGuard] },
 
   // Accesible para admin e invitado (solo requiere login)

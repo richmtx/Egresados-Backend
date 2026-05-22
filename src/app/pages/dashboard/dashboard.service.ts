@@ -27,6 +27,7 @@ export interface DashboardResumen {
             foto_url: string | null;
             revisado: number;
             nombre_carrera: string;
+            genero: string | null;
         }[];
         egresadosRecientes: {
             id_egresado: number;
@@ -34,6 +35,7 @@ export interface DashboardResumen {
             fecha_registro: string;
             foto_url: string | null;
             nombre_carrera: string;
+            genero: string | null;
         }[];
         notificaciones: {
             id_notificacion: number;

@@ -470,7 +470,8 @@
             <!-- Tab: últimas respuestas -->
             <ng-container *ngIf="drawerTab === 'respuestas'">
                 <div class="act-item" *ngFor="let r of datos.actividad.ultimasRespuestas; let i = index">
-                    <div class="act-avatar" [style.background]="colorAvatar(i)" [style.color]="colorAvatarText(i)">
+                    <div class="act-avatar" [style.background]="colorAvatar(r.genero)"
+                        [style.color]="colorAvatarText(r.genero)">
                         {{ iniciales(r.nombre_completo) }}
                     </div>
                     <div class="act-info">
@@ -508,7 +509,8 @@
             <!-- Tab: registros recientes -->
             <ng-container *ngIf="drawerTab === 'recientes'">
                 <div class="act-item" *ngFor="let r of datos.actividad.egresadosRecientes; let i = index">
-                    <div class="act-avatar" [style.background]="colorAvatar(i)" [style.color]="colorAvatarText(i)">
+                    <div class="act-avatar" [style.background]="colorAvatar(r.genero)"
+                        [style.color]="colorAvatarText(r.genero)">
                         {{ iniciales(r.nombre_completo) }}
                     </div>
                     <div class="act-info">
