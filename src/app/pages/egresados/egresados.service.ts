@@ -121,4 +121,12 @@ export class EgresadosService {
       responseType: 'blob',
     });
   }
+
+  enviarCorreo(destinatarios: string[], asunto: string, mensaje: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/correo/enviar`, {
+      destinatarios,
+      asunto,
+      mensaje
+    });
+  }
 }

@@ -380,10 +380,24 @@ export class EgresadosComponent implements OnInit {
   }
 
   enviarCorreo(): void {
-    // Aquí se conectará con el backend en el futuro
-    // Por ahora solo muestra toast de confirmación
-    this.cerrarModalCorreo();
-    this.mostrarToast(`Correo enviado a ${this.correosDestinatarios.length} egresado(s).`, false);
+    if (this.correoCargando) return;
+    this.correoCargando = true;
+
+    this.egresadosService.enviarCorreo(
+      this.correosDestinatarios,
+      this.correoAsunto,
+      this.correoMensaje
+    ).subscribe({
+      next: (res) => {
+        this.correoCargando = false;
+        this.cerrarModalCorreo();
+        this.mostrarToast(`Correo enviado a ${res.enviados} egresado(s).`, false);
+      },
+      error: () => {
+        this.correoCargando = false;
+        this.mostrarToast('Error al enviar el correo. Intenta de nuevo.', true);
+      }
+    });
   }
 
   hayFiltrosActivos(): boolean {

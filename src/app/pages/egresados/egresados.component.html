@@ -726,13 +726,20 @@
                             Cancelar
                         </button>
                         <button class="correo-btn-send" (click)="enviarCorreo()"
-                            [disabled]="correosDestinatarios.length === 0 || !correoAsunto.trim()">
-                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
-                                stroke-linecap="round">
+                            [disabled]="correosDestinatarios.length === 0 || !correoAsunto.trim() || correoCargando">
+
+                            <svg *ngIf="correoCargando" class="export-spinner" viewBox="0 0 16 16" fill="none"
+                                stroke="currentColor" stroke-width="1.5">
+                                <circle cx="8" cy="8" r="6" stroke-dasharray="28" stroke-dashoffset="10" />
+                            </svg>
+
+                            <svg *ngIf="!correoCargando" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round">
                                 <path d="M14 2L9 14l-2-5-5-2 12-5z" />
                                 <path d="M14 2L7 9" />
                             </svg>
-                            Enviar correo
+
+                            {{ correoCargando ? 'Enviando...' : 'Enviar correo' }}
                         </button>
                     </div>
 
