@@ -404,13 +404,43 @@
 
         <div class="modal-foot">
             <button class="btn-cancelar" (click)="cerrarModalCorreo()">Cancelar</button>
-            <button class="btn-enviar" (click)="enviarCorreo()" [disabled]="panel.egresados.length === 0">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <button class="btn-enviar" (click)="enviarCorreo()"
+                [disabled]="panel.egresados.length === 0 || correoCargando">
+
+                <svg *ngIf="correoCargando" style="width:13px;height:13px;animation:spin 0.8s linear infinite"
+                    viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="8" cy="8" r="6" stroke-dasharray="28" stroke-dashoffset="10" />
+                </svg>
+
+                <svg *ngIf="!correoCargando" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round">
                     <path d="M22 2L11 13" />
                     <path d="M22 2L15 22l-4-9-9-4 20-7z" />
                 </svg>
-                Enviar correo
+
+                {{ correoCargando ? 'Enviando...' : 'Enviar correo' }}
             </button>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" [class.toast-visible]="toastVisible" [class.toast-error]="toastError">
+        <div class="toast-left">
+
+            <span *ngIf="!toastError" class="toast-icon toast-icon-success">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M3 8l3.5 3.5L13 4" />
+                </svg>
+            </span>
+
+            <span *ngIf="toastError" class="toast-icon toast-icon-error">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="M4 4l8 8M12 4l-8 8" />
+                </svg>
+            </span>
+
+            <span class="toast-msg">{{ toastMensaje }}</span>
         </div>
     </div>
 

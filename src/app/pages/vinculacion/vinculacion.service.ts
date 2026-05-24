@@ -1,26 +1,27 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface EgresadoContacto {
-  id_egresado:       number;
-  nombre_completo:   string;
-  correo:            string;
-  telefono:          string;
-  nombre_carrera:    string;
-  genero:            string;
+  id_egresado: number;
+  nombre_completo: string;
+  correo: string;
+  telefono: string;
+  nombre_carrera: string;
+  genero: string;
   descripcion_otro?: string;
-  foto_url?:         string | null;
+  foto_url?: string | null;
 }
 
 export interface TotalColaboracion {
   descripcion: string;
-  total:       number;
+  total: number;
 }
 
 export interface TotalHabilidad {
   habilidad: string;
-  total:     number;
+  total: number;
 }
 
 @Injectable({
@@ -28,21 +29,21 @@ export interface TotalHabilidad {
 })
 export class VinculacionService {
 
-  private apiUrl = 'http://localhost:3000';
+  private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) { }
 
   getEstadisticas(carrera?: string, anio?: number): Observable<any> {
     let params = new HttpParams();
     if (carrera) params = params.set('carrera', carrera);
-    if (anio)    params = params.set('anio', anio.toString());
+    if (anio) params = params.set('anio', anio.toString());
     return this.http.get<any>(`${this.apiUrl}/egresados/estadisticas`, { params });
   }
 
   getTotalesColaboraciones(carrera?: string, anio?: number): Observable<TotalColaboracion[]> {
     let params = new HttpParams();
     if (carrera) params = params.set('carrera', carrera);
-    if (anio)    params = params.set('anio', anio.toString());
+    if (anio) params = params.set('anio', anio.toString());
     return this.http.get<TotalColaboracion[]>(
       `${this.apiUrl}/egresados/vinculacion/totales-colaboraciones`, { params }
     );
@@ -51,7 +52,7 @@ export class VinculacionService {
   getTotalesHabilidades(carrera?: string, anio?: number): Observable<TotalHabilidad[]> {
     let params = new HttpParams();
     if (carrera) params = params.set('carrera', carrera);
-    if (anio)    params = params.set('anio', anio.toString());
+    if (anio) params = params.set('anio', anio.toString());
     return this.http.get<TotalHabilidad[]>(
       `${this.apiUrl}/egresados/vinculacion/totales-habilidades`, { params }
     );
@@ -60,7 +61,7 @@ export class VinculacionService {
   getEgresadosPorColaboracion(tipo: string, carrera?: string, anio?: number): Observable<EgresadoContacto[]> {
     let params = new HttpParams().set('tipo', tipo);
     if (carrera) params = params.set('carrera', carrera);
-    if (anio)    params = params.set('anio', anio.toString());
+    if (anio) params = params.set('anio', anio.toString());
     return this.http.get<EgresadoContacto[]>(
       `${this.apiUrl}/egresados/vinculacion/colaboracion`, { params }
     );
@@ -69,7 +70,7 @@ export class VinculacionService {
   getEgresadosPorHabilidad(tipo: string, carrera?: string, anio?: number): Observable<EgresadoContacto[]> {
     let params = new HttpParams().set('tipo', tipo);
     if (carrera) params = params.set('carrera', carrera);
-    if (anio)    params = params.set('anio', anio.toString());
+    if (anio) params = params.set('anio', anio.toString());
     return this.http.get<EgresadoContacto[]>(
       `${this.apiUrl}/egresados/vinculacion/habilidad`, { params }
     );
@@ -82,7 +83,7 @@ export class VinculacionService {
   ): Observable<EgresadoContacto[]> {
     let params = new HttpParams().set('tipo', tipo);
     if (carrera) params = params.set('carrera', carrera);
-    if (anio)    params = params.set('anio', anio.toString());
+    if (anio) params = params.set('anio', anio.toString());
     return this.http.get<EgresadoContacto[]>(
       `${this.apiUrl}/egresados/vinculacion/autorizacion`, { params }
     );
@@ -91,7 +92,7 @@ export class VinculacionService {
   getEgresadosColaboracionOtro(carrera?: string, anio?: number): Observable<EgresadoContacto[]> {
     let params = new HttpParams();
     if (carrera) params = params.set('carrera', carrera);
-    if (anio)    params = params.set('anio', anio.toString());
+    if (anio) params = params.set('anio', anio.toString());
     return this.http.get<EgresadoContacto[]>(
       `${this.apiUrl}/egresados/vinculacion/colaboracion-otro`, { params }
     );
@@ -100,7 +101,7 @@ export class VinculacionService {
   getEgresadosHabilidadOtro(carrera?: string, anio?: number): Observable<EgresadoContacto[]> {
     let params = new HttpParams();
     if (carrera) params = params.set('carrera', carrera);
-    if (anio)    params = params.set('anio', anio.toString());
+    if (anio) params = params.set('anio', anio.toString());
     return this.http.get<EgresadoContacto[]>(
       `${this.apiUrl}/egresados/vinculacion/habilidad-otro`, { params }
     );
@@ -109,7 +110,7 @@ export class VinculacionService {
   getDistribucionSatisfaccion(carrera?: string, anio?: number): Observable<{ nivel: number; total: number }[]> {
     let params = new HttpParams();
     if (carrera) params = params.set('carrera', carrera);
-    if (anio)    params = params.set('anio', anio.toString());
+    if (anio) params = params.set('anio', anio.toString());
     return this.http.get<{ nivel: number; total: number }[]>(
       `${this.apiUrl}/egresados/vinculacion/distribucion-satisfaccion`, { params }
     );
@@ -121,5 +122,13 @@ export class VinculacionService {
 
   getAniosDisponibles(): Observable<number[]> {
     return this.http.get<number[]>(`${this.apiUrl}/egresados/vinculacion/anios`);
+  }
+
+  enviarCorreo(destinatarios: string[], asunto: string, mensaje: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/correo/enviar`, {
+      destinatarios,
+      asunto,
+      mensaje
+    });
   }
 }
