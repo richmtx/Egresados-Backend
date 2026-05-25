@@ -1,4 +1,5 @@
-import { Component, OnDestroy, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnDestroy, OnInit, Inject, PLATFORM_ID, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -71,13 +72,15 @@ export class ComparativasComponent implements OnInit, OnDestroy {
   chartRadar: any = {};
   chartHeatmap: any = {};
 
+  private destroyRef = inject(DestroyRef);
+
   constructor(
     private svc: ComparativasService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit(): void {
-    this.svc.getCarrerasDisponibles().subscribe({
+    this.svc.getCarrerasDisponibles().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.carrerasDisponibles = res.map((r) => r.nombre_carrera);
       },

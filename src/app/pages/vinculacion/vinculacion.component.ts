@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
@@ -97,6 +98,7 @@ export class VinculacionComponent implements OnInit {
 
   // URL base para imágenes
   private readonly BASE_URL = 'http://localhost:3000';
+  private destroyRef = inject(DestroyRef);
 
   get roundedSatisfaccion(): number {
     return Math.round(this.satisfaccionProm);
@@ -144,7 +146,7 @@ export class VinculacionComponent implements OnInit {
       habTots: this.vinculacionSvc.getTotalesHabilidades(carrera, anio),
       distSat: this.vinculacionSvc.getDistribucionSatisfaccion(carrera, anio),
       totalEg: this.estadisticasSvc.getEstadisticas(),
-    }).subscribe({
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: ({ stats, colaborTots, habTots, distSat, totalEg }) => {
 
         this.totalEgresados = +totalEg.kpis.total_egresados || 0;

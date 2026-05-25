@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgxApexchartsModule } from 'ngx-apexcharts';
@@ -45,6 +46,8 @@ export class EmpleabilidadComponent implements OnInit {
   modalSubtitulo = '';
   modalChart: any = {};
 
+  private destroyRef = inject(DestroyRef);
+
   constructor(private egresadosService: EgresadosService) { }
 
   ngOnInit(): void {
@@ -60,7 +63,7 @@ export class EmpleabilidadComponent implements OnInit {
     this.egresadosService.getEstadisticas(
       this.filtroCarrera || undefined,
       this.filtroAnio || undefined,
-    ).subscribe({
+    ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.datos = res;
         this.procesarDatos(res);

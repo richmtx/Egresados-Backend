@@ -1,4 +1,5 @@
-import { Component, OnDestroy, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnDestroy, OnInit, Inject, PLATFORM_ID, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgxApexchartsModule } from 'ngx-apexcharts';
@@ -96,6 +97,8 @@ export class GenerosComponent implements OnInit, OnDestroy {
     markers: { width: 8, height: 8, radius: 2 }
   };
 
+  private destroyRef = inject(DestroyRef);
+
   constructor(
     private generosService: GenerosService,
     @Inject(PLATFORM_ID) private platformId: Object
@@ -139,7 +142,7 @@ export class GenerosComponent implements OnInit, OnDestroy {
     const carrera = this.filtroCarrera || undefined;
     const anio = this.filtroAnio ? +this.filtroAnio : undefined;
 
-    this.generosService.getEstadisticasGenero(carrera, anio).subscribe({
+    this.generosService.getEstadisticasGenero(carrera, anio).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.datos = res;
         this.cargando = false;

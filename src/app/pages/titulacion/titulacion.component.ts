@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgxApexchartsModule } from 'ngx-apexcharts';
@@ -128,6 +129,8 @@ export class TitulacionComponent implements OnInit {
   modalSubtitulo = '';
   modalChart: any = {};
 
+  private destroyRef = inject(DestroyRef);
+
   constructor(private titulacionService: TitulacionService) { }
 
   ngOnInit(): void {
@@ -144,7 +147,7 @@ export class TitulacionComponent implements OnInit {
     this.titulacionService.getEstadisticas(
       this.filtroCarrera || undefined,
       this.filtroAnio ? Number(this.filtroAnio) : undefined
-    ).subscribe({
+    ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
         this.mapearKpis(data.kpis);
         this.mapearPosgrado(data.posgradoPorTipo, data.totalPosgrado);

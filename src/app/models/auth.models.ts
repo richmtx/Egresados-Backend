@@ -5,5 +5,6 @@ export interface LoginResponse {
 export interface UsuarioToken {
   id_usuario: number;
   usuario: string;
+  nombre_completo?: string;
   rol: string;
 }

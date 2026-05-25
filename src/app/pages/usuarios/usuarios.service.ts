@@ -57,4 +57,8 @@ export class UsuariosService {
     getHistorial(limite = 50): Observable<HistorialItem[]> {
         return this.http.get<HistorialItem[]>(`${this.base}/historial?limite=${limite}`);
     }
+
+    registrarAccion(accion: string, descripcion: string, seccion: string): Observable<any> {
+        return this.http.post(`${this.base}/historial`, { accion, descripcion, seccion });
+    }
 }

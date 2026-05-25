@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
@@ -41,6 +42,7 @@ export class UsuariosComponent implements OnInit {
   modalHistorial = false;
 
   adminActual: UsuarioToken | null = null;
+  private destroyRef = inject(DestroyRef);
 
   constructor(
     private usuariosService: UsuariosService,
@@ -87,7 +89,7 @@ export class UsuariosComponent implements OnInit {
   cargarUsuarios(): void {
     this.cargando = true;
     this.error = '';
-    this.usuariosService.getUsuarios().subscribe({
+    this.usuariosService.getUsuarios().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => { this.usuarios = data; this.cargando = false; },
       error: () => { this.error = 'No se pudieron cargar los usuarios.'; this.cargando = false; }
     });
@@ -95,7 +97,7 @@ export class UsuariosComponent implements OnInit {
 
   cargarHistorial(): void {
     this.cargandoHistorial = true;
-    this.usuariosService.getHistorial(20).subscribe({
+    this.usuariosService.getHistorial(20).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => { this.historial = data; this.cargandoHistorial = false; },
       error: () => { this.cargandoHistorial = false; }
     });

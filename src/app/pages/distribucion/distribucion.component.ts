@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, AfterViewInit, ChangeDetectorRef, } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, AfterViewInit, ChangeDetectorRef, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DistribucionService, DistribucionGeoResponse, KpisGeo, CiudadTrabajo, PaisTrabajo, MovilidadAnio,
@@ -93,6 +94,8 @@ export class DistribucionComponent implements OnInit, OnDestroy, AfterViewInit {
     // ── Extiende aquí si detectas ciudades faltantes en los logs ──
   };
 
+  private destroyRef = inject(DestroyRef);
+
   constructor(
     private svc: DistribucionService,
     private cdr: ChangeDetectorRef,
@@ -118,7 +121,7 @@ export class DistribucionComponent implements OnInit, OnDestroy, AfterViewInit {
     const carrera = this.filtroCarrera || undefined;
     const anio = this.filtroAnio ? Number(this.filtroAnio) : undefined;
 
-    this.svc.getDistribucion(carrera, anio).subscribe({
+    this.svc.getDistribucion(carrera, anio).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (resp) => {
         this.datos = resp;
         this.cargando = false;

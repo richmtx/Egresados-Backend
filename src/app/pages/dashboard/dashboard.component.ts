@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -17,6 +18,7 @@ import { DashboardService, DashboardResumen } from './dashboard.service';
 export class DashboardComponent implements OnInit, OnDestroy {
 
   private chartFontFamily = "'Plus Jakarta Sans', 'Segoe UI', sans-serif";
+  private destroyRef = inject(DestroyRef);
 
   // Estado
   datos: DashboardResumen | null = null;
@@ -47,7 +49,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const usuario = this.authService.getUsuario();
-    this.nombreUsuario = usuario?.usuario ?? 'Administrador';
+    this.nombreUsuario = usuario?.nombre_completo ?? usuario?.usuario ?? 'Administrador';
     this.cargarDatos();
   }
 
@@ -58,7 +60,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   cargarDatos(): void {
     this.cargando = true;
     this.error = false;
-    this.dashboardService.getResumen().subscribe({
+    this.dashboardService.getResumen().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.datos = res;
         this.cargando = false;

@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SidebarComponent } from "../../components/sidebar/sidebar.component";
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
@@ -26,6 +27,7 @@ type ModalModoEliminar = 'una' | 'leidas' | 'todas';
 export class NotificacionesComponent implements OnInit {
 
   readonly API = environment.apiUrl;
+  private destroyRef = inject(DestroyRef);
 
   todas: Notificacion[] = [];
   filtradas: Notificacion[] = [];
@@ -49,7 +51,7 @@ export class NotificacionesComponent implements OnInit {
   }
 
   cargarNotificaciones() {
-    this.http.get<Notificacion[]>(`${this.API}/notificaciones`).subscribe(data => {
+    this.http.get<Notificacion[]>(`${this.API}/notificaciones`).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(data => {
       this.todas = data;
       this.calcularConteos();
       this.cambiarTab(this.tabActiva);

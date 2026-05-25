@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SidebarComponent } from "../../components/sidebar/sidebar.component";
 import { EgresadosService, EgresadoDetalle, EgresadoPerfil } from './egresados.service';
+import { UsuariosService } from '../usuarios/usuarios.service';
 
 @Component({
   selector: 'app-egresados',
@@ -43,6 +45,7 @@ export class EgresadosComponent implements OnInit {
 
   // URL base para las imágenes
   private readonly BASE_URL = 'http://localhost:3000';
+  private destroyRef = inject(DestroyRef);
 
   // ── Modal correo ──
   modalCorreoVisible = false;
@@ -55,10 +58,17 @@ export class EgresadosComponent implements OnInit {
   exportMenuVisible = false;
   exportando = false;
 
-  constructor(private egresadosService: EgresadosService) { }
+  constructor(
+    private egresadosService: EgresadosService,
+    private usuariosService: UsuariosService,
+  ) { }
+
+  private logAccion(accion: string, descripcion: string, seccion: string): void {
+    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => {} });
+  }
 
   ngOnInit(): void {
-    this.egresadosService.getEgresadosDetalle().subscribe({
+    this.egresadosService.getEgresadosDetalle().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
         this.egresados = data;
         this.egresadosFiltrados = data;
@@ -208,6 +218,7 @@ export class EgresadosComponent implements OnInit {
     this.toastTimer = setTimeout(() => {
       this.egresadosService.deleteEgresado(id).subscribe({
         next: () => {
+          this.logAccion('eliminar_egresado', `Eliminó egresado: ${egresado.nombre_completo}`, 'egresados');
           this.egresadoEliminadoTemporal = null;
           this.toastVisible = false;
         },
@@ -389,6 +400,7 @@ export class EgresadosComponent implements OnInit {
       this.correoMensaje
     ).subscribe({
       next: (res) => {
+        this.logAccion('correo', `Envió correo masivo a ${res.enviados} egresado(s): "${this.correoAsunto}"`, 'egresados');
         this.correoCargando = false;
         this.cerrarModalCorreo();
         this.mostrarToast(`Correo enviado a ${res.enviados} egresado(s).`, false);
@@ -460,6 +472,7 @@ export class EgresadosComponent implements OnInit {
     this.egresadosService.exportarPdf(this.getFiltrosExport()).subscribe({
       next: (blob) => {
         this.descargarArchivo(blob, `egresados_${fecha}.pdf`);
+        this.logAccion('exportar', `Exportó lista de egresados en PDF (${this.egresadosFiltrados.length} registros)`, 'egresados');
         this.exportando = false;
         this.mostrarToast('PDF exportado correctamente.', false);
       },
@@ -482,6 +495,7 @@ export class EgresadosComponent implements OnInit {
     this.egresadosService.exportarPerfilPdf(id).subscribe({
       next: (blob) => {
         this.descargarArchivo(blob, `perfil_${nombre}_${fecha}.pdf`);
+        this.logAccion('exportar', `Exportó perfil PDF de ${this.perfilSeleccionado!.nombre_completo}`, 'egresados');
         this.mostrarToast('PDF del perfil exportado correctamente.', false);
       },
       error: () => {
@@ -499,6 +513,7 @@ export class EgresadosComponent implements OnInit {
     this.egresadosService.exportarExcel(this.getFiltrosExport()).subscribe({
       next: (blob) => {
         this.descargarArchivo(blob, `egresados_${fecha}.xlsx`);
+        this.logAccion('exportar', `Exportó lista de egresados en Excel (${this.egresadosFiltrados.length} registros)`, 'egresados');
         this.exportando = false;
         this.mostrarToast('Excel exportado correctamente.', false);
       },

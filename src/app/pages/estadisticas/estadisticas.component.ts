@@ -1,4 +1,5 @@
-import { Component, OnDestroy, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnDestroy, OnInit, Inject, PLATFORM_ID, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -171,6 +172,8 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
   // Insights dinámicos
   insights: { emoji: string; bg: string; titulo: string; descripcion: string }[] = [];
 
+  private destroyRef = inject(DestroyRef);
+
   constructor(
     private estadisticasService: EstadisticasService,
     @Inject(PLATFORM_ID) private platformId: Object
@@ -189,7 +192,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
     if (this.filtroCarrera) filtros.carrera = this.filtroCarrera;
     if (this.filtroAnio) filtros.anio = parseInt(this.filtroAnio);
 
-    this.estadisticasService.getEstadisticas(filtros).subscribe({
+    this.estadisticasService.getEstadisticas(filtros).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
         this.datos = data;
         this.poblarFiltros(data);

@@ -1,4 +1,5 @@
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -50,6 +51,7 @@ export class RespuestasComponent implements OnInit {
 
   // URL base para imágenes
   private readonly BASE_URL = 'http://localhost:3000';
+  private destroyRef = inject(DestroyRef);
 
   get totalRespuestas() { return this.respuestas.length; }
   get autorizaronContacto() { return this.respuestas.filter(r => r.autorizo_contacto).length; }
@@ -69,7 +71,7 @@ export class RespuestasComponent implements OnInit {
 
   cargarRespuestas(): void {
     this.cargando = true;
-    this.respuestasService.getAll().subscribe({
+    this.respuestasService.getAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
         // ✅ Usa el campo revisado que viene de la BD — no localStorage
         this.respuestas = data.map(r => ({
