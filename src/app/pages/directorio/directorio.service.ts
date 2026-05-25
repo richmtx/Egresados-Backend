@@ -25,6 +25,25 @@ export interface EgresadoDirectorio {
   interes_colaborar: string[];
 }
 
+export interface DirectorioResponse {
+  data: EgresadoDirectorio[];
+  total: number;
+}
+
+export interface DirectorioFiltros {
+  carreras: string[];
+  anios: number[];
+}
+
+export interface DirectorioParams {
+  page: number;
+  limit: number;
+  busqueda?: string;
+  carrera?: string;
+  anio?: number;
+  titulacion?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class DirectorioService {
 
@@ -32,10 +51,18 @@ export class DirectorioService {
 
   constructor(private http: HttpClient) { }
 
-  getDirectorio(carrera?: string, anio?: number): Observable<EgresadoDirectorio[]> {
-    let params = new HttpParams();
-    if (carrera) params = params.set('carrera', carrera);
-    if (anio) params = params.set('anio', anio.toString());
-    return this.http.get<EgresadoDirectorio[]>(this.api, { params });
+  getDirectorio(params: DirectorioParams): Observable<DirectorioResponse> {
+    let p = new HttpParams()
+      .set('page', params.page.toString())
+      .set('limit', params.limit.toString());
+    if (params.busqueda)   p = p.set('busqueda', params.busqueda);
+    if (params.carrera)    p = p.set('carrera', params.carrera);
+    if (params.anio)       p = p.set('anio', params.anio.toString());
+    if (params.titulacion) p = p.set('titulacion', params.titulacion);
+    return this.http.get<DirectorioResponse>(this.api, { params: p });
+  }
+
+  getFiltros(): Observable<DirectorioFiltros> {
+    return this.http.get<DirectorioFiltros>(`${this.api}/filtros`);
   }
 }

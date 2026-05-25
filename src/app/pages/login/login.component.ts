@@ -41,8 +41,9 @@ export class LoginComponent {
 
     this.authService.login(this.usuario, this.contrasena).subscribe({
       next: (res) => {
-        this.authService.guardarSesion(res.usuario);
-        this.router.navigate(['/dashboard']);
+        this.authService.guardarSesion(res.access_token);
+        const usuario = this.authService.getUsuario();
+        this.router.navigate([usuario?.rol === 'admin' ? '/dashboard' : '/directorio']);
       },
       error: (err) => {
         this.cargando = false;

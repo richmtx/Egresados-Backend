@@ -19,14 +19,14 @@ export const routes: Routes = [
   { path: '', component: LoginComponent },
 
   // Solo admins
-  { path: 'dashboard', component: DashboardComponent, canActivate: [adminGuard] },
+  { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'egresados', component: EgresadosComponent, canActivate: [adminGuard] },
   { path: 'respuestas', component: RespuestasComponent, canActivate: [adminGuard] },
-  { path: 'estadisticas', component: EstadisticasComponent, canActivate: [adminGuard] },
+  { path: 'estadisticas', component: EstadisticasComponent, canActivate: [authGuard] },
   { path: 'empleabilidad', component: EmpleabilidadComponent, canActivate: [adminGuard] },
   { path: 'distribucion', component: DistribucionComponent, canActivate: [adminGuard] },
   { path: 'titulacion', component: TitulacionComponent, canActivate: [adminGuard] },
-  { path: 'notificaciones', component: NotificacionesComponent, canActivate: [adminGuard] },
+  { path: 'notificaciones', component: NotificacionesComponent, canActivate: [authGuard] },
   { path: 'vinculacion', component: VinculacionComponent, canActivate: [adminGuard] },
   { path: 'generos', component: GenerosComponent, canActivate: [adminGuard] },
   { path: 'comparativas', component: ComparativasComponent, canActivate: [adminGuard] },

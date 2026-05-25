@@ -47,7 +47,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const usuario = this.authService.getUsuario();
-    this.nombreUsuario = usuario?.nombre_completo?.split(' ')[0] ?? 'Administrador';
+    this.nombreUsuario = usuario?.usuario ?? 'Administrador';
     this.cargarDatos();
   }
 

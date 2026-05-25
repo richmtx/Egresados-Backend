@@ -21,7 +21,7 @@
             <circle cx="9" cy="6" r="3" />
             <path d="M2 16c0-3.3 3.1-6 7-6s7 2.7 7 6" />
           </svg>
-          {{ egresadosFiltrados.length }} egresados
+          {{ totalRegistros }} egresados
         </span>
       </div>
     </div>
@@ -36,8 +36,8 @@
           <path d="m21 21-4.35-4.35" />
         </svg>
         <input type="text" class="search-input" placeholder="Buscar por nombre, empresa o puesto..."
-          [(ngModel)]="busqueda" (ngModelChange)="aplicarFiltros()" />
-        <button class="search-clear" *ngIf="busqueda" (click)="busqueda = ''; aplicarFiltros()">
+          [(ngModel)]="busqueda" (ngModelChange)="onBusquedaChange()" />
+        <button class="search-clear" *ngIf="busqueda" (click)="busqueda = ''; onBusquedaChange()">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
@@ -46,13 +46,13 @@
       </div>
 
       <!-- Carrera -->
-      <select class="filtro-select" [(ngModel)]="filtroCarrera" (ngModelChange)="aplicarFiltros()">
+      <select class="filtro-select" [(ngModel)]="filtroCarrera" (ngModelChange)="onFiltroChange()">
         <option value="">Todas las carreras</option>
         <option *ngFor="let c of carrerasDisponibles" [value]="c">{{ c }}</option>
       </select>
 
       <!-- Titulación -->
-      <select class="filtro-select" [(ngModel)]="filtroTitulacion" (ngModelChange)="aplicarFiltros()">
+      <select class="filtro-select" [(ngModel)]="filtroTitulacion" (ngModelChange)="onFiltroChange()">
         <option value="">Estatus de titulación</option>
         <option value="Titulado">Titulado</option>
         <option value="No titulado">No titulado</option>
@@ -60,7 +60,7 @@
       </select>
 
       <!-- Año de egreso -->
-      <select class="filtro-select" [(ngModel)]="filtroAnio" (ngModelChange)="aplicarFiltros()">
+      <select class="filtro-select" [(ngModel)]="filtroAnio" (ngModelChange)="onFiltroChange()">
         <option value="">Año de egreso</option>
         <option *ngFor="let a of aniosDisponibles" [value]="a">{{ a }}</option>
       </select>
@@ -93,7 +93,7 @@
     </div>
 
     <!-- ── Sin resultados ── -->
-    <div class="empty-state" *ngIf="!cargando && !error && egresadosFiltrados.length === 0">
+    <div class="empty-state" *ngIf="!cargando && !error && egresadosPagina.length === 0">
       <svg width="44" height="44" viewBox="0 0 18 18" fill="none" stroke="#d1d5db" stroke-width="1.2"
         stroke-linecap="round" stroke-linejoin="round">
         <circle cx="9" cy="6" r="3" />
@@ -105,9 +105,9 @@
     </div>
 
     <!-- ── Grid de cards ── -->
-    <div class="directorio-grid" *ngIf="!cargando && !error && egresadosFiltrados.length > 0">
+    <div class="directorio-grid" *ngIf="!cargando && !error && egresadosPagina.length > 0">
 
-      <div class="egresado-card" *ngFor="let eg of egresadosPagina" (click)="abrirModal(eg)">
+      <div class="egresado-card" *ngFor="let eg of egresadosPagina; trackBy: trackByEgresado" (click)="abrirModal(eg)">
 
         <!-- Avatar / Foto -->
         <div class="card-avatar-wrap">
@@ -163,9 +163,8 @@
     <div class="paginacion" *ngIf="!cargando && !error && totalPaginas > 1">
 
       <span class="pag-info">
-        Mostrando {{ (paginaActual - 1) * porPagina + 1 }}–{{ Math.min(paginaActual * porPagina,
-        egresadosFiltrados.length) }}
-        de {{ egresadosFiltrados.length }}
+        Mostrando {{ (paginaActual - 1) * porPagina + 1 }}–{{ Math.min(paginaActual * porPagina, totalRegistros) }}
+        de {{ totalRegistros }}
       </span>
 
       <div class="pag-controles">

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { AuthService } from '../../services/auth.service';
 import { UsuariosService, Usuario, HistorialItem } from './usuarios.service';
+import { UsuarioToken } from '../../models/auth.models';
 
 @Component({
   selector: 'app-usuarios',
@@ -39,7 +40,7 @@ export class UsuariosComponent implements OnInit {
   // Modal historial
   modalHistorial = false;
 
-  adminActual: Usuario | null = null;
+  adminActual: UsuarioToken | null = null;
 
   constructor(
     private usuariosService: UsuariosService,

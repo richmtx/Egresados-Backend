@@ -1,6 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { DirectorioService, EgresadoDirectorio } from './directorio.service';
 
@@ -11,11 +13,11 @@ import { DirectorioService, EgresadoDirectorio } from './directorio.service';
   templateUrl: './directorio.component.html',
   styleUrl: './directorio.component.css',
 })
-export class DirectorioComponent implements OnInit {
+export class DirectorioComponent implements OnInit, OnDestroy {
 
-  // Estado general
-  egresados: EgresadoDirectorio[] = [];
-  egresadosFiltrados: EgresadoDirectorio[] = [];
+  // Estado
+  egresadosPagina: EgresadoDirectorio[] = [];
+  totalRegistros = 0;
   cargando = true;
   error = false;
 
@@ -37,26 +39,55 @@ export class DirectorioComponent implements OnInit {
 
   // Paginación
   paginaActual = 1;
-  porPagina = 24;
+  readonly porPagina = 24;
+
+  private busquedaSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
   private directorioService = inject(DirectorioService);
 
-  constructor() { }
-
   ngOnInit(): void {
+    this.busquedaSubject.pipe(
+      debounceTime(350),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.paginaActual = 1;
+      this.cargarDirectorio();
+    });
+
+    this.cargarFiltros();
     this.cargarDirectorio();
   }
 
-  // Carga de datos
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  cargarFiltros(): void {
+    this.directorioService.getFiltros().subscribe({
+      next: (f) => {
+        this.carrerasDisponibles = f.carreras;
+        this.aniosDisponibles = f.anios;
+      },
+    });
+  }
+
   cargarDirectorio(): void {
     this.cargando = true;
     this.error = false;
-
-    this.directorioService.getDirectorio().subscribe({
-      next: (data) => {
-        this.egresados = data;
-        this.construirFiltros(data);
-        this.aplicarFiltros();
+    this.directorioService.getDirectorio({
+      page: this.paginaActual,
+      limit: this.porPagina,
+      busqueda:   this.busqueda       || undefined,
+      carrera:    this.filtroCarrera  || undefined,
+      anio:       this.filtroAnio     ? +this.filtroAnio : undefined,
+      titulacion: this.filtroTitulacion || undefined,
+    }).subscribe({
+      next: (res) => {
+        this.egresadosPagina = res.data;
+        this.totalRegistros = res.total;
         this.cargando = false;
       },
       error: () => {
@@ -66,25 +97,13 @@ export class DirectorioComponent implements OnInit {
     });
   }
 
-  private construirFiltros(data: EgresadoDirectorio[]): void {
-    this.carrerasDisponibles = [...new Set(data.map(e => e.nombre_carrera))].sort();
-    this.aniosDisponibles = [...new Set(data.map(e => e.anio_egreso))].sort((a, b) => b - a);
+  onBusquedaChange(): void {
+    this.busquedaSubject.next(this.busqueda);
   }
 
-  // Filtrado reactivo
-  aplicarFiltros(): void {
-    const busq = this.busqueda.toLowerCase().trim();
-
-    this.egresadosFiltrados = this.egresados.filter(e => {
-      const matchBusq = !busq || e.nombre_completo.toLowerCase().includes(busq)
-        || (e.puesto_trabajo ?? '').toLowerCase().includes(busq);
-      const matchCarrera = !this.filtroCarrera || e.nombre_carrera === this.filtroCarrera;
-      const matchTitulacion = !this.filtroTitulacion || e.estatus_titulacion === this.filtroTitulacion;
-      const matchAnio = !this.filtroAnio || e.anio_egreso === +this.filtroAnio;
-      return matchBusq && matchCarrera && matchTitulacion && matchAnio;
-    });
-
+  onFiltroChange(): void {
     this.paginaActual = 1;
+    this.cargarDirectorio();
   }
 
   limpiarFiltros(): void {
@@ -92,7 +111,8 @@ export class DirectorioComponent implements OnInit {
     this.filtroCarrera = '';
     this.filtroTitulacion = '';
     this.filtroAnio = '';
-    this.aplicarFiltros();
+    this.paginaActual = 1;
+    this.cargarDirectorio();
   }
 
   get hayFiltrosActivos(): boolean {
@@ -101,12 +121,7 @@ export class DirectorioComponent implements OnInit {
 
   // Paginación
   get totalPaginas(): number {
-    return Math.ceil(this.egresadosFiltrados.length / this.porPagina);
-  }
-
-  get egresadosPagina(): EgresadoDirectorio[] {
-    const inicio = (this.paginaActual - 1) * this.porPagina;
-    return this.egresadosFiltrados.slice(inicio, inicio + this.porPagina);
+    return Math.ceil(this.totalRegistros / this.porPagina);
   }
 
   get paginas(): number[] {
@@ -121,6 +136,7 @@ export class DirectorioComponent implements OnInit {
   irPagina(p: number): void {
     if (p < 1 || p > this.totalPaginas) return;
     this.paginaActual = p;
+    this.cargarDirectorio();
     document.querySelector('.comp-main')?.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -166,39 +182,43 @@ export class DirectorioComponent implements OnInit {
 
   getTagClass(estatus: string): string {
     switch (estatus) {
-      case 'Titulado': return 'tag-tit';
+      case 'Titulado':    return 'tag-tit';
       case 'No titulado': return 'tag-notit';
-      case 'En trámite': return 'tag-tramite';
-      default: return 'tag-tramite';
+      case 'En trámite':  return 'tag-tramite';
+      default:            return 'tag-tramite';
     }
   }
 
   getCoincidenciaPct(nivel: string | null): number {
     switch (nivel) {
-      case 'Totalmente': return 100;
-      case 'En gran medida': return 85;
-      case 'Parcialmente': return 60;
-      case 'Poco': return 35;
-      case 'Nada': return 10;
-      case 'No aplica / Actualmente no estoy laborando': return 0;
-      default: return 0;
+      case 'Totalmente':                                    return 100;
+      case 'En gran medida':                                return 85;
+      case 'Parcialmente':                                  return 60;
+      case 'Poco':                                          return 35;
+      case 'Nada':                                          return 10;
+      case 'No aplica / Actualmente no estoy laborando':    return 0;
+      default:                                              return 0;
     }
   }
 
   getCoincidenciaColor(nivel: string | null): string {
     switch (nivel) {
-      case 'Totalmente': return '#16a34a';
-      case 'En gran medida': return '#65a30d';
-      case 'Parcialmente': return '#ca8a04';
-      case 'Poco': return '#ea580c';
-      case 'Nada': return '#dc2626';
-      case 'No aplica / Actualmente no estoy laborando': return '#9ca3af';
-      default: return '#9ca3af';
+      case 'Totalmente':                                    return '#16a34a';
+      case 'En gran medida':                                return '#65a30d';
+      case 'Parcialmente':                                  return '#ca8a04';
+      case 'Poco':                                          return '#ea580c';
+      case 'Nada':                                          return '#dc2626';
+      case 'No aplica / Actualmente no estoy laborando':    return '#9ca3af';
+      default:                                              return '#9ca3af';
     }
   }
 
   abrirLinkedin(url: string): void {
     const fullUrl = url.startsWith('http') ? url : `https://${url}`;
     window.open(fullUrl, '_blank', 'noopener');
+  }
+
+  trackByEgresado(_: number, eg: EgresadoDirectorio): number {
+    return eg.id_egresado;
   }
 }

@@ -136,7 +136,7 @@ export class RespuestasComponent implements OnInit {
     // ✅ Si no está revisado, persiste en BD
     if (!fila.revisado) {
       const usuario = this.authService.getUsuario();
-      const nombre = usuario?.nombre_completo ?? 'admin';
+      const nombre = usuario?.usuario ?? 'admin';
 
       this.respuestasService.marcarRevisado(id, nombre).subscribe({
         next: () => {
