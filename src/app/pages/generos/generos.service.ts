@@ -171,4 +171,18 @@ export class GenerosService {
       { params }
     );
   }
+
+  exportarPdf(carrera?: string, anio?: number): Observable<Blob> {
+    let params = new HttpParams();
+    if (carrera) params = params.set('carrera', carrera);
+    if (anio) params = params.set('anio', anio.toString());
+    return this.http.get(`${this.baseUrl}/estadisticas/genero/export/pdf`, { params, responseType: 'blob' });
+  }
+
+  exportarExcel(carrera?: string, anio?: number): Observable<Blob> {
+    let params = new HttpParams();
+    if (carrera) params = params.set('carrera', carrera);
+    if (anio) params = params.set('anio', anio.toString());
+    return this.http.get(`${this.baseUrl}/estadisticas/genero/export/excel`, { params, responseType: 'blob' });
+  }
 }

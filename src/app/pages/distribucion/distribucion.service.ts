@@ -71,4 +71,18 @@ export class DistribucionService {
             { params },
         );
     }
+
+    exportarPdf(carrera?: string, anio?: number): Observable<Blob> {
+        let params = new HttpParams();
+        if (carrera) params = params.set('carrera', carrera);
+        if (anio) params = params.set('anio', String(anio));
+        return this.http.get(`${this.base}/distribucion-geografica/export/pdf`, { params, responseType: 'blob' });
+    }
+
+    exportarExcel(carrera?: string, anio?: number): Observable<Blob> {
+        let params = new HttpParams();
+        if (carrera) params = params.set('carrera', carrera);
+        if (anio) params = params.set('anio', String(anio));
+        return this.http.get(`${this.base}/distribucion-geografica/export/excel`, { params, responseType: 'blob' });
+    }
 }

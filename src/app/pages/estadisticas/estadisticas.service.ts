@@ -25,4 +25,18 @@ export class EstadisticasService {
 
     return this.http.get<EstadisticasResponse>(this.apiUrl, { params });
   }
+
+  exportarPdf(filtros?: FiltrosEstadisticas): Observable<Blob> {
+    let params = new HttpParams();
+    if (filtros?.carrera) params = params.set('carrera', filtros.carrera);
+    if (filtros?.anio) params = params.set('anio', filtros.anio.toString());
+    return this.http.get(`${this.apiUrl}/export/pdf`, { params, responseType: 'blob' });
+  }
+
+  exportarExcel(filtros?: FiltrosEstadisticas): Observable<Blob> {
+    let params = new HttpParams();
+    if (filtros?.carrera) params = params.set('carrera', filtros.carrera);
+    if (filtros?.anio) params = params.set('anio', filtros.anio.toString());
+    return this.http.get(`${this.apiUrl}/export/excel`, { params, responseType: 'blob' });
+  }
 }

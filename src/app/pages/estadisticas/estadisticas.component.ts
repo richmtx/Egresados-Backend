@@ -7,6 +7,7 @@ import { NgxApexchartsModule } from 'ngx-apexcharts';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { EstadisticasService } from './estadisticas.service';
 import { EstadisticasResponse, FiltrosEstadisticas } from './models/estadisticas.model';
+import { UsuariosService } from '../usuarios/usuarios.service';
 
 @Component({
   selector: 'app-estadisticas',
@@ -36,6 +37,10 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
   modalTipo = '';
   modalChart: any = {};
   chartInglesCarreraModal: any;
+
+  // Export
+  exportMenuVisible = false;
+  exportando = false;
 
   abrirModal(tipo: string, titulo: string, subtitulo: string, chartConfig: any): void {
 
@@ -173,6 +178,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
   insights: { emoji: string; bg: string; titulo: string; descripcion: string }[] = [];
 
   private destroyRef = inject(DestroyRef);
+  private usuariosService = inject(UsuariosService);
 
   constructor(
     private estadisticasService: EstadisticasService,
@@ -227,7 +233,48 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
   }
 
   exportarPDF(): void {
-    window.print();
+    if (!this.datos || this.exportando) return;
+    this.exportMenuVisible = false;
+    this.exportando = true;
+    const filtros: FiltrosEstadisticas = {};
+    if (this.filtroCarrera) filtros.carrera = this.filtroCarrera;
+    if (this.filtroAnio) filtros.anio = parseInt(this.filtroAnio);
+    this.estadisticasService.exportarPdf(filtros).subscribe({
+      next: (blob) => {
+        this.descargarArchivo(blob, `estadisticas_generales_${new Date().toISOString().split('T')[0]}.pdf`);
+        this.logAccion('exportar', 'Exportó Estadísticas Generales en PDF', 'estadisticas');
+        this.exportando = false;
+      },
+      error: () => { this.exportando = false; }
+    });
+  }
+
+  exportarExcel(): void {
+    if (!this.datos || this.exportando) return;
+    this.exportMenuVisible = false;
+    this.exportando = true;
+    const filtros: FiltrosEstadisticas = {};
+    if (this.filtroCarrera) filtros.carrera = this.filtroCarrera;
+    if (this.filtroAnio) filtros.anio = parseInt(this.filtroAnio);
+    this.estadisticasService.exportarExcel(filtros).subscribe({
+      next: (blob) => {
+        this.descargarArchivo(blob, `estadisticas_generales_${new Date().toISOString().split('T')[0]}.xlsx`);
+        this.logAccion('exportar', 'Exportó Estadísticas Generales en Excel', 'estadisticas');
+        this.exportando = false;
+      },
+      error: () => { this.exportando = false; }
+    });
+  }
+
+  private descargarArchivo(blob: Blob, nombre: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = nombre; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  private logAccion(accion: string, descripcion: string, seccion: string): void {
+    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => {} });
   }
 
   // HELPERS

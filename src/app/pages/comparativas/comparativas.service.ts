@@ -99,4 +99,14 @@ export class ComparativasService {
         const params = new HttpParams().set('carreras', carreras.join(','));
         return this.http.get<ComparativasResponse>(`${this.base}/egresados/comparativas`, { params });
     }
+
+    exportarPdf(carreras: string[]): Observable<Blob> {
+        const params = new HttpParams().set('carreras', carreras.join(','));
+        return this.http.get(`${this.base}/egresados/comparativas/export/pdf`, { params, responseType: 'blob' });
+    }
+
+    exportarExcel(carreras: string[]): Observable<Blob> {
+        const params = new HttpParams().set('carreras', carreras.join(','));
+        return this.http.get(`${this.base}/egresados/comparativas/export/excel`, { params, responseType: 'blob' });
+    }
 }

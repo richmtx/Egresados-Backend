@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { NgxApexchartsModule } from 'ngx-apexcharts';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { GenerosService, EstadisticasGeneroResponse } from './generos.service';
+import { UsuariosService } from '../usuarios/usuarios.service';
 
 @Component({
   selector: 'app-generos',
@@ -97,7 +98,12 @@ export class GenerosComponent implements OnInit, OnDestroy {
     markers: { width: 8, height: 8, radius: 2 }
   };
 
+  // Export
+  exportMenuVisible = false;
+  exportando = false;
+
   private destroyRef = inject(DestroyRef);
+  private usuariosService = inject(UsuariosService);
 
   constructor(
     private generosService: GenerosService,
@@ -132,7 +138,50 @@ export class GenerosComponent implements OnInit, OnDestroy {
     if (isPlatformBrowser(this.platformId)) document.body.style.overflow = '';
   }
 
-  exportarPDF(): void { window.print(); }
+  exportarPDF(): void {
+    if (!this.datos || this.exportando) return;
+    this.exportMenuVisible = false;
+    this.exportando = true;
+    this.generosService.exportarPdf(
+      this.filtroCarrera || undefined,
+      this.filtroAnio ? +this.filtroAnio : undefined,
+    ).subscribe({
+      next: (blob) => {
+        this.descargarArchivo(blob, `estadisticas_genero_${new Date().toISOString().split('T')[0]}.pdf`);
+        this.logAccion('exportar', 'Exportó Estadísticas por Género en PDF', 'generos');
+        this.exportando = false;
+      },
+      error: () => { this.exportando = false; }
+    });
+  }
+
+  exportarExcel(): void {
+    if (!this.datos || this.exportando) return;
+    this.exportMenuVisible = false;
+    this.exportando = true;
+    this.generosService.exportarExcel(
+      this.filtroCarrera || undefined,
+      this.filtroAnio ? +this.filtroAnio : undefined,
+    ).subscribe({
+      next: (blob) => {
+        this.descargarArchivo(blob, `estadisticas_genero_${new Date().toISOString().split('T')[0]}.xlsx`);
+        this.logAccion('exportar', 'Exportó Estadísticas por Género en Excel', 'generos');
+        this.exportando = false;
+      },
+      error: () => { this.exportando = false; }
+    });
+  }
+
+  private descargarArchivo(blob: Blob, nombre: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = nombre; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  private logAccion(accion: string, descripcion: string, seccion: string): void {
+    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => {} });
+  }
 
   // CARGA DE DATOS
   cargarDatos(): void {

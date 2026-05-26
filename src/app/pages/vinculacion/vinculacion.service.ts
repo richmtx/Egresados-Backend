@@ -131,4 +131,18 @@ export class VinculacionService {
       mensaje
     });
   }
+
+  exportarPdf(carrera?: string, anio?: number): Observable<Blob> {
+    let params = new HttpParams();
+    if (carrera) params = params.set('carrera', carrera);
+    if (anio) params = params.set('anio', anio.toString());
+    return this.http.get(`${this.apiUrl}/egresados/vinculacion/export/pdf`, { params, responseType: 'blob' });
+  }
+
+  exportarExcel(carrera?: string, anio?: number): Observable<Blob> {
+    let params = new HttpParams();
+    if (carrera) params = params.set('carrera', carrera);
+    if (anio) params = params.set('anio', anio.toString());
+    return this.http.get(`${this.apiUrl}/egresados/vinculacion/export/excel`, { params, responseType: 'blob' });
+  }
 }

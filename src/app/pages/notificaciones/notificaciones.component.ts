@@ -2,18 +2,7 @@ import { Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SidebarComponent } from "../../components/sidebar/sidebar.component";
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
-
-interface Notificacion {
-  id_notificacion: number;
-  tipo: string;
-  titulo: string;
-  descripcion: string;
-  leida: boolean;
-  fecha_creacion: string;
-  id_egresado: number | null;
-}
+import { NotificacionesService, Notificacion } from './notificaciones.service';
 
 type ModalModoEliminar = 'una' | 'leidas' | 'todas';
 
@@ -26,7 +15,7 @@ type ModalModoEliminar = 'una' | 'leidas' | 'todas';
 })
 export class NotificacionesComponent implements OnInit {
 
-  readonly API = environment.apiUrl;
+  private notificacionesService = inject(NotificacionesService);
   private destroyRef = inject(DestroyRef);
 
   todas: Notificacion[] = [];
@@ -44,14 +33,12 @@ export class NotificacionesComponent implements OnInit {
   // Dropdown "Eliminar..."
   dropdownVisible = false;
 
-  constructor(private http: HttpClient) { }
-
   ngOnInit() {
     this.cargarNotificaciones();
   }
 
   cargarNotificaciones() {
-    this.http.get<Notificacion[]>(`${this.API}/notificaciones`).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(data => {
+    this.notificacionesService.getAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(data => {
       this.todas = data;
       this.calcularConteos();
       this.cambiarTab(this.tabActiva);
@@ -86,7 +73,7 @@ export class NotificacionesComponent implements OnInit {
 
   marcarLeida(notif: Notificacion) {
     if (notif.leida) return;
-    this.http.patch(`${this.API}/notificaciones/${notif.id_notificacion}/leer`, {})
+    this.notificacionesService.marcarLeida(notif.id_notificacion)
       .subscribe(() => {
         notif.leida = true;
         this.calcularConteos();
@@ -94,7 +81,7 @@ export class NotificacionesComponent implements OnInit {
   }
 
   marcarTodasLeidas() {
-    this.http.patch(`${this.API}/notificaciones/marcar-todas`, {})
+    this.notificacionesService.marcarTodasLeidas()
       .subscribe(() => {
         this.todas.forEach(n => n.leida = true);
         this.calcularConteos();
@@ -118,21 +105,21 @@ export class NotificacionesComponent implements OnInit {
     const { modo, id } = this.modalEliminar;
 
     if (modo === 'una' && id !== null) {
-      this.http.delete(`${this.API}/notificaciones/${id}`).subscribe(() => {
+      this.notificacionesService.eliminar(id).subscribe(() => {
         this.todas = this.todas.filter(n => n.id_notificacion !== id);
         this.cambiarTab(this.tabActiva);
         this.calcularConteos();
       });
 
     } else if (modo === 'leidas') {
-      this.http.delete(`${this.API}/notificaciones/leidas`).subscribe(() => {
+      this.notificacionesService.eliminarLeidas().subscribe(() => {
         this.todas = this.todas.filter(n => !n.leida);
         this.cambiarTab(this.tabActiva);
         this.calcularConteos();
       });
 
     } else if (modo === 'todas') {
-      this.http.delete(`${this.API}/notificaciones/todas`).subscribe(() => {
+      this.notificacionesService.eliminarTodas().subscribe(() => {
         this.todas = [];
         this.filtradas = [];
         this.calcularConteos();

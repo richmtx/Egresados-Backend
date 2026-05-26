@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { NgxApexchartsModule } from 'ngx-apexcharts';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { EgresadosService, EstadisticasEmpleabilidad } from '../../services/egresados.service';
+import { UsuariosService } from '../usuarios/usuarios.service';
 
 @Component({
   selector: 'app-empleabilidad',
@@ -27,6 +28,10 @@ export class EmpleabilidadComponent implements OnInit {
   aniosDisponibles: number[] = [];
   private filtrosInicializados = false;
 
+  // Export
+  exportMenuVisible = false;
+  exportando = false;
+
   // KPIs calculados
   tasaEmpleo = 0;
   tiempoPromedioGeneral = 0;
@@ -47,6 +52,7 @@ export class EmpleabilidadComponent implements OnInit {
   modalChart: any = {};
 
   private destroyRef = inject(DestroyRef);
+  private usuariosService = inject(UsuariosService);
 
   constructor(private egresadosService: EgresadosService) { }
 
@@ -54,7 +60,50 @@ export class EmpleabilidadComponent implements OnInit {
     this.cargarEstadisticas();
   }
 
-  exportarPDF(): void { window.print(); }
+  exportarPDF(): void {
+    if (!this.datos || this.exportando) return;
+    this.exportMenuVisible = false;
+    this.exportando = true;
+    this.egresadosService.exportarPdfEmpleabilidad(
+      this.filtroCarrera || undefined,
+      this.filtroAnio || undefined,
+    ).subscribe({
+      next: (blob) => {
+        this.descargarArchivo(blob, `empleabilidad_${new Date().toISOString().split('T')[0]}.pdf`);
+        this.logAccion('exportar', 'Exportó Empleabilidad en PDF', 'empleabilidad');
+        this.exportando = false;
+      },
+      error: () => { this.exportando = false; }
+    });
+  }
+
+  exportarExcel(): void {
+    if (!this.datos || this.exportando) return;
+    this.exportMenuVisible = false;
+    this.exportando = true;
+    this.egresadosService.exportarExcelEmpleabilidad(
+      this.filtroCarrera || undefined,
+      this.filtroAnio || undefined,
+    ).subscribe({
+      next: (blob) => {
+        this.descargarArchivo(blob, `empleabilidad_${new Date().toISOString().split('T')[0]}.xlsx`);
+        this.logAccion('exportar', 'Exportó Empleabilidad en Excel', 'empleabilidad');
+        this.exportando = false;
+      },
+      error: () => { this.exportando = false; }
+    });
+  }
+
+  private descargarArchivo(blob: Blob, nombre: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = nombre; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  private logAccion(accion: string, descripcion: string, seccion: string): void {
+    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => {} });
+  }
 
   cargarEstadisticas(): void {
     this.cargando = true;

@@ -12,6 +12,7 @@ import {
   TitulacionService, TitulacionCarrera, TitulacionAnio,
   TitulacionCarreraAnio, PosgradoPorTipo,
 } from './titulacion.service';
+import { UsuariosService } from '../usuarios/usuarios.service';
 
 @Component({
   selector: 'app-titulacion',
@@ -129,7 +130,12 @@ export class TitulacionComponent implements OnInit {
   modalSubtitulo = '';
   modalChart: any = {};
 
+  // Export
+  exportMenuVisible = false;
+  exportando = false;
+
   private destroyRef = inject(DestroyRef);
+  private usuariosService = inject(UsuariosService);
 
   constructor(private titulacionService: TitulacionService) { }
 
@@ -137,7 +143,50 @@ export class TitulacionComponent implements OnInit {
     this.cargarDatos();
   }
 
-  exportarPDF(): void { window.print(); }
+  exportarPDF(): void {
+    if (this.exportando || this.cargando) return;
+    this.exportMenuVisible = false;
+    this.exportando = true;
+    this.titulacionService.exportarPdf(
+      this.filtroCarrera || undefined,
+      this.filtroAnio ? Number(this.filtroAnio) : undefined,
+    ).subscribe({
+      next: (blob) => {
+        this.descargarArchivo(blob, `titulacion_${new Date().toISOString().split('T')[0]}.pdf`);
+        this.logAccion('exportar', 'Exportó Titulación en PDF', 'titulacion');
+        this.exportando = false;
+      },
+      error: () => { this.exportando = false; }
+    });
+  }
+
+  exportarExcel(): void {
+    if (this.exportando || this.cargando) return;
+    this.exportMenuVisible = false;
+    this.exportando = true;
+    this.titulacionService.exportarExcel(
+      this.filtroCarrera || undefined,
+      this.filtroAnio ? Number(this.filtroAnio) : undefined,
+    ).subscribe({
+      next: (blob) => {
+        this.descargarArchivo(blob, `titulacion_${new Date().toISOString().split('T')[0]}.xlsx`);
+        this.logAccion('exportar', 'Exportó Titulación en Excel', 'titulacion');
+        this.exportando = false;
+      },
+      error: () => { this.exportando = false; }
+    });
+  }
+
+  private descargarArchivo(blob: Blob, nombre: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = nombre; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  private logAccion(accion: string, descripcion: string, seccion: string): void {
+    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => {} });
+  }
 
   // Carga y mapeo
   cargarDatos(): void {

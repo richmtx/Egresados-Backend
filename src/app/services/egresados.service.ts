@@ -58,4 +58,18 @@ export class EgresadosService {
     if (anio) params = params.set('anio', anio.toString());
     return this.http.get<EstadisticasEmpleabilidad>(`${this.API_URL}/egresados/estadisticas`, { params });
   }
+
+  exportarPdfEmpleabilidad(carrera?: string, anio?: number): Observable<Blob> {
+    let params = new HttpParams();
+    if (carrera) params = params.set('carrera', carrera);
+    if (anio) params = params.set('anio', anio.toString());
+    return this.http.get(`${this.API_URL}/egresados/empleabilidad/export/pdf`, { params, responseType: 'blob' });
+  }
+
+  exportarExcelEmpleabilidad(carrera?: string, anio?: number): Observable<Blob> {
+    let params = new HttpParams();
+    if (carrera) params = params.set('carrera', carrera);
+    if (anio) params = params.set('anio', anio.toString());
+    return this.http.get(`${this.API_URL}/egresados/empleabilidad/export/excel`, { params, responseType: 'blob' });
+  }
 }

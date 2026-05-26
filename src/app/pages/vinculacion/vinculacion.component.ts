@@ -6,6 +6,7 @@ import { forkJoin } from 'rxjs';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { VinculacionService, EgresadoContacto, } from './vinculacion.service';
 import { EstadisticasService } from '../estadisticas/estadisticas.service';
+import { UsuariosService } from '../usuarios/usuarios.service';
 
 interface ColaboracionRow {
   descripcion: string;
@@ -99,6 +100,11 @@ export class VinculacionComponent implements OnInit {
   // URL base para imágenes
   private readonly BASE_URL = 'http://localhost:3000';
   private destroyRef = inject(DestroyRef);
+  private usuariosService = inject(UsuariosService);
+
+  // Export
+  exportMenuVisible = false;
+  exportando = false;
 
   get roundedSatisfaccion(): number {
     return Math.round(this.satisfaccionProm);
@@ -404,7 +410,50 @@ export class VinculacionComponent implements OnInit {
     return this.filaActiva === key;
   }
 
-  exportarPDF(): void { window.print(); }
+  exportarPDF(): void {
+    if (this.exportando || this.cargando) return;
+    this.exportMenuVisible = false;
+    this.exportando = true;
+    this.vinculacionSvc.exportarPdf(
+      this.filtroCarrera || undefined,
+      this.filtroAnio ? +this.filtroAnio : undefined,
+    ).subscribe({
+      next: (blob) => {
+        this.descargarArchivo(blob, `vinculacion_${new Date().toISOString().split('T')[0]}.pdf`);
+        this.logAccion('exportar', 'Exportó Vinculación en PDF', 'vinculacion');
+        this.exportando = false;
+      },
+      error: () => { this.exportando = false; }
+    });
+  }
+
+  exportarExcel(): void {
+    if (this.exportando || this.cargando) return;
+    this.exportMenuVisible = false;
+    this.exportando = true;
+    this.vinculacionSvc.exportarExcel(
+      this.filtroCarrera || undefined,
+      this.filtroAnio ? +this.filtroAnio : undefined,
+    ).subscribe({
+      next: (blob) => {
+        this.descargarArchivo(blob, `vinculacion_${new Date().toISOString().split('T')[0]}.xlsx`);
+        this.logAccion('exportar', 'Exportó Vinculación en Excel', 'vinculacion');
+        this.exportando = false;
+      },
+      error: () => { this.exportando = false; }
+    });
+  }
+
+  private descargarArchivo(blob: Blob, nombre: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = nombre; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  private logAccion(accion: string, descripcion: string, seccion: string): void {
+    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => {} });
+  }
 
   abrirModalCorreo(): void {
     if (this.panel.egresados.length === 0) return;

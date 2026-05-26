@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { DistribucionService, DistribucionGeoResponse, KpisGeo, CiudadTrabajo, PaisTrabajo, MovilidadAnio,
   MovilidadCarrera, } from './distribucion.service';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
+import { UsuariosService } from '../usuarios/usuarios.service';
 
 @Component({
   selector: 'app-distribucion',
@@ -94,7 +95,12 @@ export class DistribucionComponent implements OnInit, OnDestroy, AfterViewInit {
     // ── Extiende aquí si detectas ciudades faltantes en los logs ──
   };
 
+  // Export
+  exportMenuVisible = false;
+  exportando = false;
+
   private destroyRef = inject(DestroyRef);
+  private usuariosService = inject(UsuariosService);
 
   constructor(
     private svc: DistribucionService,
@@ -425,6 +431,47 @@ export class DistribucionComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   exportarPDF(): void {
-    window.print();
+    if (!this.datos || this.exportando) return;
+    this.exportMenuVisible = false;
+    this.exportando = true;
+    this.svc.exportarPdf(
+      this.filtroCarrera || undefined,
+      this.filtroAnio ? Number(this.filtroAnio) : undefined,
+    ).subscribe({
+      next: (blob) => {
+        this.descargarArchivo(blob, `distribucion_geografica_${new Date().toISOString().split('T')[0]}.pdf`);
+        this.logAccion('exportar', 'Exportó Distribución Geográfica en PDF', 'distribucion');
+        this.exportando = false;
+      },
+      error: () => { this.exportando = false; }
+    });
+  }
+
+  exportarExcel(): void {
+    if (!this.datos || this.exportando) return;
+    this.exportMenuVisible = false;
+    this.exportando = true;
+    this.svc.exportarExcel(
+      this.filtroCarrera || undefined,
+      this.filtroAnio ? Number(this.filtroAnio) : undefined,
+    ).subscribe({
+      next: (blob) => {
+        this.descargarArchivo(blob, `distribucion_geografica_${new Date().toISOString().split('T')[0]}.xlsx`);
+        this.logAccion('exportar', 'Exportó Distribución Geográfica en Excel', 'distribucion');
+        this.exportando = false;
+      },
+      error: () => { this.exportando = false; }
+    });
+  }
+
+  private descargarArchivo(blob: Blob, nombre: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = nombre; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  private logAccion(accion: string, descripcion: string, seccion: string): void {
+    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => {} });
   }
 }

@@ -10,6 +10,7 @@ import {
   ComparativasResponse,
   ComparativaResumen,
 } from './comparativas.service';
+import { UsuariosService } from '../usuarios/usuarios.service';
 
 const COLORES = ['#6366f1', '#10b981', '#f59e0b'];
 const COLORES_LIGHT = ['#ede9fe', '#dcfce7', '#fef3c7'];
@@ -72,7 +73,12 @@ export class ComparativasComponent implements OnInit, OnDestroy {
   chartRadar: any = {};
   chartHeatmap: any = {};
 
+  // Export
+  exportMenuVisible = false;
+  exportando = false;
+
   private destroyRef = inject(DestroyRef);
+  private usuariosService = inject(UsuariosService);
 
   constructor(
     private svc: ComparativasService,
@@ -367,6 +373,42 @@ export class ComparativasComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Exportar PDF
-  exportar(): void {}
+  exportarPDF(): void {
+    if (!this.datos || this.exportando) return;
+    this.exportMenuVisible = false;
+    this.exportando = true;
+    this.svc.exportarPdf(this.seleccionActiva).subscribe({
+      next: (blob) => {
+        this.descargarArchivo(blob, `comparativas_${new Date().toISOString().split('T')[0]}.pdf`);
+        this.logAccion('exportar', `Exportó Comparativa (${this.seleccionActiva.join(', ')}) en PDF`, 'comparativas');
+        this.exportando = false;
+      },
+      error: () => { this.exportando = false; }
+    });
+  }
+
+  exportarExcel(): void {
+    if (!this.datos || this.exportando) return;
+    this.exportMenuVisible = false;
+    this.exportando = true;
+    this.svc.exportarExcel(this.seleccionActiva).subscribe({
+      next: (blob) => {
+        this.descargarArchivo(blob, `comparativas_${new Date().toISOString().split('T')[0]}.xlsx`);
+        this.logAccion('exportar', `Exportó Comparativa (${this.seleccionActiva.join(', ')}) en Excel`, 'comparativas');
+        this.exportando = false;
+      },
+      error: () => { this.exportando = false; }
+    });
+  }
+
+  private descargarArchivo(blob: Blob, nombre: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = nombre; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  private logAccion(accion: string, descripcion: string, seccion: string): void {
+    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => {} });
+  }
 }

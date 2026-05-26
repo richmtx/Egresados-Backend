@@ -72,4 +72,18 @@ export class TitulacionService {
     if (anio)    params['anio']    = anio;
     return this.http.get<EstadisticasResponse>(this.apiUrl, { params });
   }
+
+  exportarPdf(carrera?: string, anio?: number): Observable<Blob> {
+    let params: any = {};
+    if (carrera) params['carrera'] = carrera;
+    if (anio)    params['anio']    = anio;
+    return this.http.get(`${environment.apiUrl}/egresados/titulacion/export/pdf`, { params, responseType: 'blob' });
+  }
+
+  exportarExcel(carrera?: string, anio?: number): Observable<Blob> {
+    let params: any = {};
+    if (carrera) params['carrera'] = carrera;
+    if (anio)    params['anio']    = anio;
+    return this.http.get(`${environment.apiUrl}/egresados/titulacion/export/excel`, { params, responseType: 'blob' });
+  }
 }
