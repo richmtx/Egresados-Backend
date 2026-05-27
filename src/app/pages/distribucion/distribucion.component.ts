@@ -2,8 +2,10 @@ import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, AfterViewInit, Chang
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DistribucionService, DistribucionGeoResponse, KpisGeo, CiudadTrabajo, PaisTrabajo, MovilidadAnio,
-  MovilidadCarrera, } from './distribucion.service';
+import {
+  DistribucionService, DistribucionGeoResponse, KpisGeo, CiudadTrabajo, PaisTrabajo, MovilidadAnio,
+  MovilidadCarrera,
+} from './distribucion.service';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { UsuariosService } from '../usuarios/usuarios.service';
 
@@ -253,8 +255,15 @@ export class DistribucionComponent implements OnInit, OnDestroy, AfterViewInit {
   private async inicializarMapas(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    this.L = await import('leaflet');
-    const L = this.L;
+    const leafletModule: any = await import('leaflet');
+    // Maneja tanto export default como namespace import
+    const L = leafletModule.default ?? leafletModule;
+    this.L = L;
+
+    if (!L || !L.Icon || !L.Icon.Default) {
+      console.error('[Leaflet] No se pudo cargar el módulo correctamente', leafletModule);
+      return;
+    }
 
     delete (L.Icon.Default.prototype as any)._getIconUrl;
     L.Icon.Default.mergeOptions({
@@ -472,6 +481,6 @@ export class DistribucionComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private logAccion(accion: string, descripcion: string, seccion: string): void {
-    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => {} });
+    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => { } });
   }
 }
