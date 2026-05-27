@@ -16,31 +16,34 @@
                 </p>
                 <p class="page-subtitle" *ngIf="!datos && !cargando">Sin datos disponibles</p>
             </div>
-            <div class="export-wrapper" (click)="$event.stopPropagation()">
-              <button class="btn-export" (click)="exportMenuVisible = !exportMenuVisible" [disabled]="exportando || !datos">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7,10 12,15 17,10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-                {{ exportando ? 'Generando...' : 'Exportar' }}
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
+            <div class="export-wrap" (click)="$event.stopPropagation()">
+              <button class="btn-export" [class.btn-export-loading]="exportando" (click)="exportMenuVisible = !exportMenuVisible" [disabled]="exportando || !datos">
+                <svg *ngIf="exportando" class="export-spinner" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6" stroke-dasharray="28" stroke-dashoffset="10"/></svg>
+                <svg *ngIf="!exportando" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 12v2a1 1 0 001 1h8a1 1 0 001-1v-2M8 2v9M5 8l3 3 3-3"/></svg>
+                {{ exportando ? 'Exportando...' : 'Exportar' }}
+                <svg *ngIf="!exportando" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:10px;height:10px;margin-left:2px"><path d="M2 3.5l3 3 3-3"/></svg>
               </button>
-              <div class="export-menu" *ngIf="exportMenuVisible">
-                <button class="export-menu-item" (click)="exportarPDF()">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
-                  </svg>
-                  Exportar PDF
+              <div class="export-dropdown" *ngIf="exportMenuVisible">
+                <button class="export-option" (click)="exportarPDF()">
+                  <span class="export-option-icon pdf">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="1" width="12" height="14" rx="1.5"/><path d="M5 6h4M5 9h6M5 12h3"/></svg>
+                  </span>
+                  <span class="export-option-label">
+                    <span class="export-option-name">Exportar como PDF</span>
+                    <span class="export-option-sub">Documento imprimible</span>
+                  </span>
+                  <span class="export-option-count">{{ datos?.kpisGeo?.total_mapeados }} reg.</span>
                 </button>
-                <button class="export-menu-item" (click)="exportarExcel()">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
-                    <line x1="8" y1="13" x2="16" y2="13" /><line x1="8" y1="17" x2="16" y2="17" />
-                  </svg>
-                  Exportar Excel
+                <div class="export-option-divider"></div>
+                <button class="export-option" (click)="exportarExcel()">
+                  <span class="export-option-icon excel">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="1" width="12" height="14" rx="1.5"/><path d="M5 6l2 3 2-3M5 12h6M5 9h6"/></svg>
+                  </span>
+                  <span class="export-option-label">
+                    <span class="export-option-name">Exportar como Excel</span>
+                    <span class="export-option-sub">Hoja de cálculo .xlsx</span>
+                  </span>
+                  <span class="export-option-count">{{ datos?.kpisGeo?.total_mapeados }} reg.</span>
                 </button>
               </div>
             </div>
