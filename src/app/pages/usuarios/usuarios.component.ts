@@ -81,9 +81,30 @@ export class UsuariosComponent implements OnInit {
   // Determina si el admin actual puede eliminar a un usuario
   puedeEliminar(u: Usuario): boolean {
     if (!this.adminActual) return false;
-    // No puede eliminarse a sí mismo
+
+    // Regla 1: nadie puede eliminarse a sí mismo
     if (u.id_usuario === this.adminActual.id_usuario) return false;
+
+    // Regla 2: no se puede eliminar al último admin activo
+    if (u.rol === 'admin' && this.totalAdminsActivos <= 1) return false;
+
     return true;
+  }
+
+  puedeCambiarEstado(u: Usuario): boolean {
+    if (!this.adminActual) return false;
+
+    // No puede cambiarse a sí mismo el estado
+    if (u.id_usuario === this.adminActual.id_usuario) return false;
+
+    // No se puede desactivar al último admin activo
+    if (u.rol === 'admin' && u.estado === 'activo' && this.totalAdminsActivos <= 1) return false;
+
+    return true;
+  }
+
+  get totalAdminsActivos(): number {
+    return this.usuarios.filter(u => u.rol === 'admin' && u.estado === 'activo').length;
   }
 
   cargarUsuarios(): void {

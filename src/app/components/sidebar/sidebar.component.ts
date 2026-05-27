@@ -34,7 +34,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     // Leer datos del usuario en sesión
     const usuario = this.authService.getUsuario();
     this.esAdmin = usuario?.rol === 'admin';
-    this.nombreUsuario = usuario?.usuario ?? 'Usuario';
+    this.nombreUsuario = usuario?.nombre_completo ?? 'Usuario';
     this.rolLabel = this.esAdmin ? 'Admin Principal' : 'Invitado';
   }
 

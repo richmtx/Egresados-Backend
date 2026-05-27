@@ -137,8 +137,8 @@
                             <td>
                                 <button class="estado-btn"
                                     [ngClass]="u.estado === 'activo' ? 'estado-activo' : 'estado-inactivo'"
-                                    [disabled]="u.id_usuario === adminActual?.id_usuario" (click)="toggleEstado(u)"
-                                    [title]="u.id_usuario === adminActual?.id_usuario ? '' : 'Clic para cambiar estado'">
+                                    [disabled]="!puedeCambiarEstado(u)" (click)="toggleEstado(u)"
+                                    [title]="!puedeCambiarEstado(u) ? 'No se puede modificar' : 'Clic para cambiar estado'">
                                     <span class="estado-dot"></span>
                                     {{ u.estado === 'activo' ? 'Activo' : 'Inactivo' }}
                                 </button>

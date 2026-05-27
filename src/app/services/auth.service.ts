@@ -14,7 +14,7 @@ export class AuthService {
   constructor(
     private http: HttpClient,
     @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
+  ) { }
 
   login(usuario: string, contrasena: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(this.apiUrl, { usuario, contrasena });
@@ -44,7 +44,13 @@ export class AuthService {
     if (!token) return null;
     try {
       const payload = token.split('.')[1];
-      return JSON.parse(atob(payload)) as UsuarioToken;
+      const decoded = JSON.parse(atob(payload));
+      return {
+        id_usuario: decoded.sub,
+        usuario: decoded.usuario,
+        nombre_completo: decoded.nombre_completo,
+        rol: decoded.rol,
+      };
     } catch {
       return null;
     }
