@@ -16,16 +16,29 @@
         <p class="page-subtitle" *ngIf="!datos && !cargando">Sin datos disponibles</p>
       </div>
       <div class="export-wrap" (click)="$event.stopPropagation()">
-        <button class="btn-export" [class.btn-export-loading]="exportando" (click)="exportMenuVisible = !exportMenuVisible" [disabled]="exportando || !datos">
-          <svg *ngIf="exportando" class="export-spinner" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6" stroke-dasharray="28" stroke-dashoffset="10"/></svg>
-          <svg *ngIf="!exportando" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 12v2a1 1 0 001 1h8a1 1 0 001-1v-2M8 2v9M5 8l3 3 3-3"/></svg>
+        <button class="btn-export" [class.btn-export-loading]="exportando"
+          (click)="exportMenuVisible = !exportMenuVisible" [disabled]="exportando || !datos">
+          <svg *ngIf="exportando" class="export-spinner" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+            stroke-width="1.5">
+            <circle cx="8" cy="8" r="6" stroke-dasharray="28" stroke-dashoffset="10" />
+          </svg>
+          <svg *ngIf="!exportando" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round">
+            <path d="M3 12v2a1 1 0 001 1h8a1 1 0 001-1v-2M8 2v9M5 8l3 3 3-3" />
+          </svg>
           {{ exportando ? 'Exportando...' : 'Exportar' }}
-          <svg *ngIf="!exportando" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:10px;height:10px;margin-left:2px"><path d="M2 3.5l3 3 3-3"/></svg>
+          <svg *ngIf="!exportando" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" style="width:10px;height:10px;margin-left:2px">
+            <path d="M2 3.5l3 3 3-3" />
+          </svg>
         </button>
         <div class="export-dropdown" *ngIf="exportMenuVisible">
           <button class="export-option" (click)="exportarPDF()">
             <span class="export-option-icon pdf">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="1" width="12" height="14" rx="1.5"/><path d="M5 6h4M5 9h6M5 12h3"/></svg>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <rect x="2" y="1" width="12" height="14" rx="1.5" />
+                <path d="M5 6h4M5 9h6M5 12h3" />
+              </svg>
             </span>
             <span class="export-option-label">
               <span class="export-option-name">Exportar como PDF</span>
@@ -36,7 +49,10 @@
           <div class="export-option-divider"></div>
           <button class="export-option" (click)="exportarExcel()">
             <span class="export-option-icon excel">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="1" width="12" height="14" rx="1.5"/><path d="M5 6l2 3 2-3M5 12h6M5 9h6"/></svg>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <rect x="2" y="1" width="12" height="14" rx="1.5" />
+                <path d="M5 6l2 3 2-3M5 12h6M5 9h6" />
+              </svg>
             </span>
             <span class="export-option-label">
               <span class="export-option-name">Exportar como Excel</span>
@@ -206,13 +222,11 @@
             </div>
             <span class="chart-badge">Barras</span>
           </div>
-
-          <apx-chart [series]="chartSituacion.series" [chart]="chartSituacion.chart" [xaxis]="chartSituacion.xaxis"
-            [yaxis]="chartSituacion.yaxis" [colors]="chartSituacion.colors" [plotOptions]="chartSituacion.plotOptions"
-            [dataLabels]="chartSituacion.dataLabels" [legend]="chartSituacion.legend" [grid]="chartSituacion.grid"
-            [tooltip]="chartSituacion.tooltip">
+          <apx-chart id="chart-situacion" [series]="chartSituacion.series" [chart]="chartSituacion.chart"
+            [xaxis]="chartSituacion.xaxis" [yaxis]="chartSituacion.yaxis" [colors]="chartSituacion.colors"
+            [plotOptions]="chartSituacion.plotOptions" [dataLabels]="chartSituacion.dataLabels"
+            [legend]="chartSituacion.legend" [grid]="chartSituacion.grid" [tooltip]="chartSituacion.tooltip">
           </apx-chart>
-
           <div class="chart-card-hint">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
@@ -231,9 +245,10 @@
             </div>
             <span class="chart-badge">Barras</span>
           </div>
-          <apx-chart [series]="chartEmpCarrera.series" [chart]="chartEmpCarrera.chart" [xaxis]="chartEmpCarrera.xaxis"
-            [colors]="chartEmpCarrera.colors" [plotOptions]="chartEmpCarrera.plotOptions"
-            [dataLabels]="chartEmpCarrera.dataLabels" [legend]="chartEmpCarrera.legend" [grid]="chartEmpCarrera.grid">
+          <apx-chart id="chart-emp-carrera" [series]="chartEmpCarrera.series" [chart]="chartEmpCarrera.chart"
+            [xaxis]="chartEmpCarrera.xaxis" [colors]="chartEmpCarrera.colors"
+            [plotOptions]="chartEmpCarrera.plotOptions" [dataLabels]="chartEmpCarrera.dataLabels"
+            [legend]="chartEmpCarrera.legend" [grid]="chartEmpCarrera.grid">
           </apx-chart>
           <div class="chart-card-hint">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -261,8 +276,8 @@
             </div>
             <span class="chart-badge">Dona</span>
           </div>
-          <apx-chart [series]="chartTitulacion.series" [chart]="chartTitulacion.chart" [labels]="chartTitulacion.labels"
-            [colors]="chartTitulacion.colors" [legend]="chartTitulacion.legend"
+          <apx-chart id="chart-titulacion" [series]="chartTitulacion.series" [chart]="chartTitulacion.chart"
+            [labels]="chartTitulacion.labels" [colors]="chartTitulacion.colors" [legend]="chartTitulacion.legend"
             [plotOptions]="chartTitulacion.plotOptions" [dataLabels]="chartTitulacion.dataLabels"
             [tooltip]="chartTitulacion.tooltip">
           </apx-chart>
@@ -284,8 +299,8 @@
             </div>
             <span class="chart-badge">Línea</span>
           </div>
-          <apx-chart [series]="chartTendTitulacion.series" [chart]="chartTendTitulacion.chart"
-            [xaxis]="chartTendTitulacion.xaxis" [yaxis]="chartTendTitulacion.yaxis"
+          <apx-chart id="chart-tend-titulacion" [series]="chartTendTitulacion.series"
+            [chart]="chartTendTitulacion.chart" [xaxis]="chartTendTitulacion.xaxis" [yaxis]="chartTendTitulacion.yaxis"
             [colors]="chartTendTitulacion.colors" [stroke]="chartTendTitulacion.stroke"
             [fill]="chartTendTitulacion.fill" [markers]="chartTendTitulacion.markers" [grid]="chartTendTitulacion.grid"
             [tooltip]="chartTendTitulacion.tooltip">
@@ -315,9 +330,9 @@
             </div>
             <span class="chart-badge">Pastel</span>
           </div>
-          <apx-chart [series]="chartIngles.series" [chart]="chartIngles.chart" [labels]="chartIngles.labels"
-            [colors]="chartIngles.colors" [legend]="chartIngles.legend" [dataLabels]="chartIngles.dataLabels"
-            [tooltip]="chartIngles.tooltip">
+          <apx-chart id="chart-ingles" [series]="chartIngles.series" [chart]="chartIngles.chart"
+            [labels]="chartIngles.labels" [colors]="chartIngles.colors" [legend]="chartIngles.legend"
+            [dataLabels]="chartIngles.dataLabels" [tooltip]="chartIngles.tooltip">
           </apx-chart>
           <div class="chart-card-hint">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -337,7 +352,7 @@
             </div>
             <span class="chart-badge">Barras agrupadas</span>
           </div>
-          <apx-chart [series]="chartInglesCarrera.series" [chart]="chartInglesCarrera.chart"
+          <apx-chart id="chart-ingles-carrera" [series]="chartInglesCarrera.series" [chart]="chartInglesCarrera.chart"
             [xaxis]="chartInglesCarrera.xaxis" [colors]="chartInglesCarrera.colors"
             [plotOptions]="chartInglesCarrera.plotOptions" [dataLabels]="chartInglesCarrera.dataLabels"
             [legend]="chartInglesCarrera.legend" [grid]="chartInglesCarrera.grid">
@@ -360,7 +375,7 @@
             </div>
             <span class="chart-badge">Radar</span>
           </div>
-          <apx-chart [series]="chartRadar.series" [chart]="chartRadar.chart" [xaxis]="chartRadar.xaxis"
+          <apx-chart id="chart-radar" [series]="chartRadar.series" [chart]="chartRadar.chart" [xaxis]="chartRadar.xaxis"
             [colors]="chartRadar.colors" [fill]="chartRadar.fill" [markers]="chartRadar.markers"
             [yaxis]="chartRadar.yaxis">
           </apx-chart>
@@ -390,10 +405,10 @@
             </div>
             <span class="chart-badge">Barras H</span>
           </div>
-          <apx-chart [series]="chartEmpresas.series" [chart]="chartEmpresas.chart" [xaxis]="chartEmpresas.xaxis"
-            [yaxis]="chartEmpresas.yaxis" [colors]="chartEmpresas.colors" [plotOptions]="chartEmpresas.plotOptions"
-            [dataLabels]="chartEmpresas.dataLabels" [grid]="chartEmpresas.grid" [tooltip]="chartEmpresas.tooltip"
-            [legend]="chartEmpresas.legend">
+          <apx-chart id="chart-empresas" [series]="chartEmpresas.series" [chart]="chartEmpresas.chart"
+            [xaxis]="chartEmpresas.xaxis" [yaxis]="chartEmpresas.yaxis" [colors]="chartEmpresas.colors"
+            [plotOptions]="chartEmpresas.plotOptions" [dataLabels]="chartEmpresas.dataLabels"
+            [grid]="chartEmpresas.grid" [tooltip]="chartEmpresas.tooltip" [legend]="chartEmpresas.legend">
           </apx-chart>
           <div class="chart-card-hint">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -444,7 +459,7 @@
             </div>
             <span class="chart-badge">Apiladas</span>
           </div>
-          <apx-chart [series]="chartParticipacion.series" [chart]="chartParticipacion.chart"
+          <apx-chart id="chart-participacion" [series]="chartParticipacion.series" [chart]="chartParticipacion.chart"
             [xaxis]="chartParticipacion.xaxis" [colors]="chartParticipacion.colors"
             [plotOptions]="chartParticipacion.plotOptions" [dataLabels]="chartParticipacion.dataLabels"
             [legend]="chartParticipacion.legend" [grid]="chartParticipacion.grid">
@@ -487,7 +502,6 @@
           </div>
 
           <ng-container *ngIf="datos.fueraDurango.length > 0">
-            <!-- Etiquetas de ejes -->
             <div class="geo-axis-labels">
               <span class="geo-axis-y">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -504,7 +518,7 @@
               </span>
             </div>
 
-            <apx-chart [series]="chartFueraDurango.series" [chart]="chartFueraDurango.chart"
+            <apx-chart id="chart-fuera-durango" [series]="chartFueraDurango.series" [chart]="chartFueraDurango.chart"
               [xaxis]="chartFueraDurango.xaxis" [yaxis]="chartFueraDurango.yaxis" [colors]="chartFueraDurango.colors"
               [plotOptions]="chartFueraDurango.plotOptions" [dataLabels]="chartFueraDurango.dataLabels"
               [grid]="chartFueraDurango.grid" [tooltip]="chartFueraDurango.tooltip">
@@ -539,7 +553,6 @@
           </div>
 
           <ng-container *ngIf="datos.fueraMexico.length > 0">
-            <!-- Etiquetas de ejes -->
             <div class="geo-axis-labels">
               <span class="geo-axis-y">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -559,7 +572,7 @@
               </span>
             </div>
 
-            <apx-chart [series]="chartFueraMexico.series" [chart]="chartFueraMexico.chart"
+            <apx-chart id="chart-fuera-mexico" [series]="chartFueraMexico.series" [chart]="chartFueraMexico.chart"
               [xaxis]="chartFueraMexico.xaxis" [yaxis]="chartFueraMexico.yaxis" [colors]="chartFueraMexico.colors"
               [plotOptions]="chartFueraMexico.plotOptions" [dataLabels]="chartFueraMexico.dataLabels"
               [grid]="chartFueraMexico.grid" [tooltip]="chartFueraMexico.tooltip">

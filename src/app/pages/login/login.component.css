@@ -1,4 +1,3 @@
-
 /* LOGIN — Seguimiento Egresados */
 * {
     margin: 0;
@@ -268,27 +267,6 @@
 
 .toggle-pass:hover {
     color: #6B1232;
-}
-
-/* Checkbox recordar */
-.remember-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 24px;
-}
-
-.remember-row input[type="checkbox"] {
-    width: 14px;
-    height: 14px;
-    accent-color: #6B1232;
-    cursor: pointer;
-}
-
-.remember-row label {
-    font-size: 13px;
-    color: #888;
-    cursor: pointer;
 }
 
 /* Botón de ingreso */
