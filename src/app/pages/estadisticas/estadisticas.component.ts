@@ -133,7 +133,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
     this.cargarEstadisticas();
   }
 
-  // CARGA DE DATOS
+  // ── CARGA DE DATOS ─────────────────────────────────────────────────────────
 
   cargarEstadisticas(): void {
     this.cargando = true;
@@ -171,98 +171,44 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
     this.cargarEstadisticas();
   }
 
-  // EXPORTACIÓN
+  // ── EXPORTACIÓN ────────────────────────────────────────────────────────────
 
-  async exportarPDF(): Promise<void> {
+  exportarPDF(): void {
     if (!this.datos || this.exportando) return;
     this.exportMenuVisible = false;
     this.exportando = true;
-    try {
-      const chartImages = await this.captureAllCharts();
-      const filtros: FiltrosEstadisticas = {};
-      if (this.filtroCarrera) filtros.carrera = this.filtroCarrera;
-      if (this.filtroAnio) filtros.anio = parseInt(this.filtroAnio);
 
-      this.estadisticasService.exportarPdf(filtros, chartImages).subscribe({
-        next: (blob) => {
-          this.descargarArchivo(blob, `estadisticas_generales_${new Date().toISOString().split('T')[0]}.pdf`);
-          this.logAccion('exportar', 'Exportó Estadísticas Generales en PDF', 'estadisticas');
-          this.exportando = false;
-        },
-        error: () => { this.exportando = false; }
-      });
-    } catch { this.exportando = false; }
+    const filtros: FiltrosEstadisticas = {};
+    if (this.filtroCarrera) filtros.carrera = this.filtroCarrera;
+    if (this.filtroAnio) filtros.anio = parseInt(this.filtroAnio);
+
+    this.estadisticasService.exportarPdf(filtros).subscribe({
+      next: (blob) => {
+        this.descargarArchivo(blob, `estadisticas_generales_${new Date().toISOString().split('T')[0]}.pdf`);
+        this.logAccion('exportar', 'Exportó Estadísticas Generales en PDF', 'estadisticas');
+        this.exportando = false;
+      },
+      error: () => { this.exportando = false; }
+    });
   }
 
-  async exportarExcel(): Promise<void> {
+  exportarExcel(): void {
     if (!this.datos || this.exportando) return;
     this.exportMenuVisible = false;
     this.exportando = true;
-    try {
-      const chartImages = await this.captureAllCharts();
-      const filtros: FiltrosEstadisticas = {};
-      if (this.filtroCarrera) filtros.carrera = this.filtroCarrera;
-      if (this.filtroAnio) filtros.anio = parseInt(this.filtroAnio);
 
-      this.estadisticasService.exportarExcel(filtros, chartImages).subscribe({
-        next: (blob) => {
-          this.descargarArchivo(blob, `estadisticas_generales_${new Date().toISOString().split('T')[0]}.xlsx`);
-          this.logAccion('exportar', 'Exportó Estadísticas Generales en Excel', 'estadisticas');
-          this.exportando = false;
-        },
-        error: () => { this.exportando = false; }
-      });
-    } catch { this.exportando = false; }
-  }
+    const filtros: FiltrosEstadisticas = {};
+    if (this.filtroCarrera) filtros.carrera = this.filtroCarrera;
+    if (this.filtroAnio) filtros.anio = parseInt(this.filtroAnio);
 
-  /**
-   * Captura las gráficas usando el ID interno de ApexCharts (definido en chart.id).
-   */
-  private async captureAllCharts(): Promise<any> {
-    const capture = async (chartId: string): Promise<string | undefined> => {
-      try {
-        const result = await (window as any).ApexCharts.exec(chartId, 'dataURI');
-        // dataURI puede devolver { imgURI: '...' } o directamente el string
-        const dataUrl: string = typeof result === 'object' ? result?.imgURI : result;
-        if (!dataUrl || typeof dataUrl !== 'string') return undefined;
-        const parts = dataUrl.split(',');
-        return parts.length > 1 ? parts[1] : undefined;
-      } catch {
-        return undefined;
-      }
-    };
-
-    const [
-      situacionLaboral,
-      empleabilidadCarrera,
-      estadoTitulacion,
-      tendenciaTitulacion,
-      nivelesIngles,
-      inglesCarrera,
-      satisfaccionCarrera,
-      topEmpresas,
-      autorizacionesCarrera,
-      fueraDurango,
-      fueraMexico,
-    ] = await Promise.all([
-      capture('chart-situacion'),
-      capture('chart-emp-carrera'),
-      capture('chart-titulacion'),
-      capture('chart-tend-titulacion'),
-      capture('chart-ingles'),
-      capture('chart-ingles-carrera'),
-      capture('chart-radar'),
-      capture('chart-empresas'),
-      capture('chart-participacion'),
-      capture('chart-fuera-durango'),
-      capture('chart-fuera-mexico'),
-    ]);
-
-    return {
-      situacionLaboral, empleabilidadCarrera, estadoTitulacion, tendenciaTitulacion,
-      nivelesIngles, inglesCarrera, satisfaccionCarrera, topEmpresas,
-      autorizacionesCarrera, fueraDurango, fueraMexico,
-    };
+    this.estadisticasService.exportarExcel(filtros).subscribe({
+      next: (blob) => {
+        this.descargarArchivo(blob, `estadisticas_generales_${new Date().toISOString().split('T')[0]}.xlsx`);
+        this.logAccion('exportar', 'Exportó Estadísticas Generales en Excel', 'estadisticas');
+        this.exportando = false;
+      },
+      error: () => { this.exportando = false; }
+    });
   }
 
   private descargarArchivo(blob: Blob, nombre: string): void {
@@ -276,7 +222,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
     this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => { } });
   }
 
-  // HELPERS
+  // ── HELPERS ────────────────────────────────────────────────────────────────
 
   getPct(parte: number, total: number): string {
     if (!total) return '0';
@@ -297,7 +243,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
       .replace('Sistemas Computacionales', 'Sistemas Comp.');
   }
 
-  // CONSTRUCCIÓN DE GRÁFICAS
+  // ── CONSTRUCCIÓN DE GRÁFICAS ───────────────────────────────────────────────
 
   private construirTodasLasGraficas(data: EstadisticasResponse): void {
     this.buildSituacionLaboral(data);
@@ -328,7 +274,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
 
     this.chartSituacion = {
       series: [{ name: 'Egresados', data: sorted.map(s => +s.total) }],
-      chart: { ...this.baseChart('bar', 300), id: 'chart-situacion' },
+      chart: { ...this.baseChart('bar', 300) },
       xaxis: {
         categories: sorted.map(s => abrevSituacion(s.situacion)),
         labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#374151' }, rotate: -30, rotateAlways: true, trim: false, maxHeight: 80 },
@@ -362,7 +308,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
         { name: 'Empleados', data: sorted.map(e => +e.empleados) },
         { name: 'Total', data: sorted.map(e => +e.total) }
       ],
-      chart: { ...this.baseChart('bar', Math.max(320, labels.length * 52)), id: 'chart-emp-carrera' },
+      chart: { ...this.baseChart('bar', Math.max(320, labels.length * 52)) },
       xaxis: {
         categories: labels,
         labels: { style: { fontFamily: this.chartFontFamily, fontSize: '12px', colors: '#374151' }, maxWidth: 260 },
@@ -383,7 +329,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
     const k = data.kpis;
     this.chartTitulacion = {
       series: [+k.titulados, +k.en_tramite, +k.no_titulados],
-      chart: { ...this.baseChart('donut', 280), id: 'chart-titulacion' },
+      chart: { ...this.baseChart('donut', 280) },
       labels: ['Titulado', 'En trámite', 'No titulado'],
       colors: ['#10b981', '#f59e0b', '#ef4444'],
       legend: { ...this.baseLegend, position: 'bottom' },
@@ -411,7 +357,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
         { name: '% Titulados', data: sorted.map(t => +t.pct_titulados) },
         { name: 'En trámite', data: sorted.map(t => +(+t.en_tramite * 100 / (+t.total || 1)).toFixed(1)) }
       ],
-      chart: { ...this.baseChart('area', 260), id: 'chart-tend-titulacion' },
+      chart: { ...this.baseChart('area', 260) },
       xaxis: { categories: sorted.map(t => t.anio_egreso.toString()), labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
       yaxis: { max: 100, labels: { formatter: (v: number) => `${v}%`, style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
       colors: ['#10b981', '#f59e0b'],
@@ -426,7 +372,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
   private buildIngles(data: EstadisticasResponse): void {
     this.chartIngles = {
       series: data.nivelesIngles.map(n => +n.total),
-      chart: { ...this.baseChart('pie', 260), id: 'chart-ingles' },
+      chart: { ...this.baseChart('pie', 260) },
       labels: data.nivelesIngles.map(n => n.nivel),
       colors: ['#ef4444', '#3b82f6', '#10b981', '#94a3b8'],
       legend: { ...this.baseLegend, position: 'bottom' },
@@ -452,7 +398,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
 
     this.chartInglesCarrera = {
       series,
-      chart: { ...this.baseChart('bar', 260), id: 'chart-ingles-carrera' },
+      chart: { ...this.baseChart('bar', 260) },
       xaxis: { categories: carreras.map(c => this.abrevCarrera(c)), labels: { show: false } },
       colors: niveles.map(n => coloresNivel[n] || this.PALETTE[0]),
       plotOptions: { bar: { borderRadius: 4, columnWidth: '65%' } },
@@ -476,7 +422,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
   private buildRadar(data: EstadisticasResponse): void {
     this.chartRadar = {
       series: [{ name: 'Satisfacción promedio', data: data.satisfaccionCarrera.map(s => +s.promedio) }],
-      chart: { ...this.baseChart('radar', 270), id: 'chart-radar' },
+      chart: { ...this.baseChart('radar', 270) },
       xaxis: { categories: data.satisfaccionCarrera.map(s => this.abrevCarrera(s.nombre_carrera)) },
       colors: ['#6366f1'], fill: { opacity: 0.18 }, markers: { size: 4 },
       yaxis: { min: 0, max: 5, tickAmount: 5, labels: { formatter: (v: number) => v.toFixed(0) } }
@@ -488,7 +434,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
     const top = data.topEmpresas.slice(0, 10);
     this.chartEmpresas = {
       series: [{ name: 'Egresados', data: top.map(e => +e.total) }],
-      chart: { ...this.baseChart('bar', Math.max(280, top.length * 42)), id: 'chart-empresas' },
+      chart: { ...this.baseChart('bar', Math.max(280, top.length * 42)) },
       xaxis: {
         categories: top.map(e => e.empresa),
         labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11.5px', colors: '#374151' }, maxWidth: 200 },
@@ -545,7 +491,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
     ];
     this.chartParticipacion = {
       series,
-      chart: { ...this.baseChart('bar', 280), stacked: false, id: 'chart-participacion' },
+      chart: { ...this.baseChart('bar', 280), stacked: false },
       xaxis: {
         categories: labels, tickAmount: labels.length,
         labels: { style: { fontFamily: this.chartFontFamily, fontSize: '10px', colors: '#64748b' }, rotate: -45, rotateAlways: true, hideOverlappingLabels: false, trim: false }
@@ -567,7 +513,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
 
     this.chartFueraDurango = {
       series: [{ name: 'Egresados', data: totales }],
-      chart: { ...this.baseChart('bar', Math.max(220, ciudades.length * 44)), id: 'chart-fuera-durango' },
+      chart: { ...this.baseChart('bar', Math.max(220, ciudades.length * 44)) },
       xaxis: { categories: ciudades, labels: { style: { fontFamily: this.chartFontFamily, fontSize: '12px', colors: '#374151' }, maxWidth: 150 }, axisBorder: { show: false }, axisTicks: { show: false } },
       yaxis: { labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#6b7280' } } },
       plotOptions: { bar: { horizontal: true, borderRadius: 5, barHeight: '52%', distributed: false, dataLabels: { position: 'center' } } },
@@ -589,7 +535,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
 
     this.chartFueraMexico = {
       series: [{ name: 'Egresados', data: totales }],
-      chart: { ...this.baseChart('bar', Math.max(220, ciudades.length * 44)), id: 'chart-fuera-mexico' },
+      chart: { ...this.baseChart('bar', Math.max(220, ciudades.length * 44)) },
       xaxis: { categories: ciudades, labels: { style: { fontFamily: this.chartFontFamily, fontSize: '12px', colors: '#374151' }, maxWidth: 160 }, axisBorder: { show: false }, axisTicks: { show: false } },
       yaxis: { labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#6b7280' } } },
       plotOptions: { bar: { horizontal: true, borderRadius: 5, barHeight: '52%', distributed: false, dataLabels: { position: 'center' } } },
