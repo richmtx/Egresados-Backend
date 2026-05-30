@@ -596,7 +596,8 @@
 
       <div class="insights-grid">
         <div class="insight-card" *ngFor="let insight of insights">
-          <div class="insight-icon" [style.background]="insight.bg">{{ insight.emoji }}</div>
+          <div class="insight-icon" [style.background]="insight.bg" [style.color]="insight.iconColor"
+            [innerHTML]="insight.icon"></div>
           <div class="insight-body">
             <h4 class="insight-title">{{ insight.titulo }}</h4>
             <p class="insight-desc">{{ insight.descripcion }}</p>

@@ -83,7 +83,10 @@
     flex-shrink: 0;
 }
 
-.export-wrap { position: relative; flex-shrink: 0; }
+.export-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
 
 .export-dropdown {
     position: absolute;
@@ -104,8 +107,15 @@
 }
 
 @keyframes fadeDown {
-    from { opacity: 0; transform: translateY(-6px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .export-option {
@@ -125,7 +135,9 @@
     transition: background .13s;
 }
 
-.export-option:hover { background: #F9FAFB; }
+.export-option:hover {
+    background: #F9FAFB;
+}
 
 .export-option-icon {
     width: 34px;
@@ -137,13 +149,38 @@
     flex-shrink: 0;
 }
 
-.export-option-icon.pdf { background: #FEE2E2; color: #DC2626; }
-.export-option-icon.excel { background: #D1FAE5; color: #059669; }
-.export-option-icon svg { width: 18px; height: 18px; }
+.export-option-icon.pdf {
+    background: #FEE2E2;
+    color: #DC2626;
+}
 
-.export-option-label { display: flex; flex-direction: column; gap: 1px; flex: 1; }
-.export-option-name { font-size: 13.5px; font-weight: 500; color: #111827; }
-.export-option-sub { font-size: 11.5px; color: #6B7280; }
+.export-option-icon.excel {
+    background: #D1FAE5;
+    color: #059669;
+}
+
+.export-option-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.export-option-label {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex: 1;
+}
+
+.export-option-name {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #111827;
+}
+
+.export-option-sub {
+    font-size: 11.5px;
+    color: #6B7280;
+}
 
 .export-option-count {
     font-size: 11px;
@@ -155,9 +192,22 @@
     white-space: nowrap;
 }
 
-.export-option-divider { height: 0.5px; background: #F3F4F6; margin: 2px 0; }
-.btn-export-loading { opacity: 0.7; cursor: not-allowed; }
-.export-spinner { width: 14px; height: 14px; animation: spin .8s linear infinite; }
+.export-option-divider {
+    height: 0.5px;
+    background: #F3F4F6;
+    margin: 2px 0;
+}
+
+.btn-export-loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.export-spinner {
+    width: 14px;
+    height: 14px;
+    animation: spin .8s linear infinite;
+}
 
 /* ── Filtros ── */
 .filtros-bar {
@@ -704,6 +754,20 @@
     width: 11px;
     height: 11px;
     flex-shrink: 0;
+}
+
+.insight-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.insight-icon svg {
+    display: block;
 }
 
 /* ── Responsive ── */

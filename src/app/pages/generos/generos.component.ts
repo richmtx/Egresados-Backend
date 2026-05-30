@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgxApexchartsModule } from 'ngx-apexcharts';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { GenerosService, EstadisticasGeneroResponse } from './generos.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
@@ -48,7 +49,7 @@ export class GenerosComponent implements OnInit, OnDestroy {
   satisfaccionResumen: { genero: string; promedio: number; niveles: { label: string; total: number; pct: number }[] }[] = [];
 
   // Insights
-  insights: { emoji: string; bg: string; titulo: string; descripcion: string }[] = [];
+  insights: { icon: SafeHtml; iconColor: string; bg: string; titulo: string; descripcion: string }[] = [];
 
   // Modal
   modalAbierto = false;
@@ -107,6 +108,7 @@ export class GenerosComponent implements OnInit, OnDestroy {
 
   constructor(
     private generosService: GenerosService,
+    private sanitizer: DomSanitizer,
     @Inject(PLATFORM_ID) private platformId: Object
   ) { }
 
@@ -180,7 +182,7 @@ export class GenerosComponent implements OnInit, OnDestroy {
   }
 
   private logAccion(accion: string, descripcion: string, seccion: string): void {
-    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => {} });
+    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => { } });
   }
 
   // CARGA DE DATOS
@@ -786,46 +788,84 @@ export class GenerosComponent implements OnInit, OnDestroy {
     };
   }
 
-  // INSIGHTS AUTOMÁTICOS
   private generarInsights(res: EstadisticasGeneroResponse): void {
     this.insights = [];
+
+    const iconos = {
+      maletin: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="12.01"/></svg>`,
+      gorro: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>`,
+      libro: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
+      mapa: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>`,
+      estrella: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+      escuela: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+    };
 
     const empH = res.empleabilidadGenero.find(e => e.genero === 'Hombre');
     const empM = res.empleabilidadGenero.find(e => e.genero === 'Mujer');
     if (empH && empM) {
       const dif = Math.abs(+(empH.pct_empleados ?? 0) - +(empM.pct_empleados ?? 0)).toFixed(1);
       const masAlto = +(empH.pct_empleados ?? 0) >= +(empM.pct_empleados ?? 0) ? 'los hombres' : 'las mujeres';
-      this.insights.push({ emoji: '💼', bg: '#eff6ff', titulo: 'Brecha de empleo', descripcion: `La tasa de empleo de ${masAlto} es ${dif}% mayor. H: ${(+(empH.pct_empleados ?? 0)).toFixed(1)}% · M: ${(+(empM.pct_empleados ?? 0)).toFixed(1)}%` });
+      this.insights.push({
+        icon: this.sanitizer.bypassSecurityTrustHtml(iconos.maletin),
+        iconColor: '#2563eb', bg: '#eff6ff',
+        titulo: 'Brecha de empleo',
+        descripcion: `La tasa de empleo de ${masAlto} es ${dif}% mayor. H: ${(+(empH.pct_empleados ?? 0)).toFixed(1)}% · M: ${(+(empM.pct_empleados ?? 0)).toFixed(1)}%`
+      });
     }
 
     const titH = res.titulacionGenero.find(t => t.genero === 'Hombre');
     const titM = res.titulacionGenero.find(t => t.genero === 'Mujer');
     if (titH && titM) {
       const masAlto = +(titH.pct_titulados ?? 0) >= +(titM.pct_titulados ?? 0) ? 'Los hombres' : 'Las mujeres';
-      this.insights.push({ emoji: '🎓', bg: '#dcfce7', titulo: 'Titulación', descripcion: `${masAlto} tienen mayor porcentaje de titulación. H: ${(+(titH.pct_titulados ?? 0)).toFixed(1)}% · M: ${(+(titM.pct_titulados ?? 0)).toFixed(1)}%` });
+      this.insights.push({
+        icon: this.sanitizer.bypassSecurityTrustHtml(iconos.gorro),
+        iconColor: '#059669', bg: '#dcfce7',
+        titulo: 'Titulación',
+        descripcion: `${masAlto} tienen mayor porcentaje de titulación. H: ${(+(titH.pct_titulados ?? 0)).toFixed(1)}% · M: ${(+(titM.pct_titulados ?? 0)).toFixed(1)}%`
+      });
     }
 
     if (this.posgradoResumen.length >= 2) {
       const mayor = this.posgradoResumen[0].pct >= this.posgradoResumen[1].pct ? this.posgradoResumen[0] : this.posgradoResumen[1];
-      this.insights.push({ emoji: '📚', bg: '#fef3c7', titulo: 'Posgrado', descripcion: `${mayor.genero === 'Hombre' ? 'Los hombres tienen' : 'Las mujeres tienen'} mayor continuidad en posgrado: ${mayor.pct}%.` });
+      this.insights.push({
+        icon: this.sanitizer.bypassSecurityTrustHtml(iconos.libro),
+        iconColor: '#d97706', bg: '#fef3c7',
+        titulo: 'Posgrado',
+        descripcion: `${mayor.genero === 'Hombre' ? 'Los hombres tienen' : 'Las mujeres tienen'} mayor continuidad en posgrado: ${mayor.pct}%.`
+      });
     }
 
     const geoH = this.geografiaResumen.find(g => g.genero === 'Hombre');
     const geoM = this.geografiaResumen.find(g => g.genero === 'Mujer');
     if (geoH && geoM) {
       const masMovil = geoH.pctFueraMx >= geoM.pctFueraMx ? 'Los hombres' : 'Las mujeres';
-      this.insights.push({ emoji: '🗺️', bg: '#fdf2f8', titulo: 'Movilidad geográfica', descripcion: `${masMovil} tienen mayor movilidad fuera de Durango. H: ${geoH.pctFueraMx}% · M: ${geoM.pctFueraMx}%` });
+      this.insights.push({
+        icon: this.sanitizer.bypassSecurityTrustHtml(iconos.mapa),
+        iconColor: '#9333ea', bg: '#fdf2f8',
+        titulo: 'Movilidad geográfica',
+        descripcion: `${masMovil} tienen mayor movilidad fuera de Durango. H: ${geoH.pctFueraMx}% · M: ${geoM.pctFueraMx}%`
+      });
     }
 
     const satH = this.satisfaccionResumen.find(s => s.genero === 'Hombre');
     const satM = this.satisfaccionResumen.find(s => s.genero === 'Mujer');
     if (satH && satM) {
       const masAlto = satH.promedio >= satM.promedio ? 'Hombres' : 'Mujeres';
-      this.insights.push({ emoji: '⭐', bg: '#ecfeff', titulo: 'Satisfacción académica', descripcion: `${masAlto} reportan mayor satisfacción. H: ${satH.promedio}/5 · M: ${satM.promedio}/5` });
+      this.insights.push({
+        icon: this.sanitizer.bypassSecurityTrustHtml(iconos.estrella),
+        iconColor: '#ca8a04', bg: '#fef9c3',
+        titulo: 'Satisfacción académica',
+        descripcion: `${masAlto} reportan mayor satisfacción. H: ${satH.promedio}/5 · M: ${satM.promedio}/5`
+      });
     }
 
     if (this.carreraMasFemenina) {
-      this.insights.push({ emoji: '🏫', bg: '#fff1f2', titulo: 'Carrera más femenina', descripcion: `${this.carreraMasFemenina.nombre} tiene el mayor % de mujeres: ${this.carreraMasFemenina.pct}%.` });
+      this.insights.push({
+        icon: this.sanitizer.bypassSecurityTrustHtml(iconos.escuela),
+        iconColor: '#e11d48', bg: '#fff1f2',
+        titulo: 'Carrera más femenina',
+        descripcion: `${this.carreraMasFemenina.nombre} tiene el mayor % de mujeres: ${this.carreraMasFemenina.pct}%.`
+      });
     }
   }
 

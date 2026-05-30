@@ -18,6 +18,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   nombreUsuario = '';
   rolLabel = '';
 
+  showLogoutModal = false;
+
   private routerSub!: Subscription;
 
   constructor(private router: Router, private authService: AuthService) { }
@@ -31,7 +33,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
       this.syncActiveRoute(event.urlAfterRedirects);
     });
 
-    // Leer datos del usuario en sesión
     const usuario = this.authService.getUsuario();
     this.esAdmin = usuario?.rol === 'admin';
     this.nombreUsuario = usuario?.nombre_completo ?? 'Usuario';
@@ -55,9 +56,23 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.router.navigate([`/${route}`]);
   }
 
+  // Logout con confirmación
+
+  /** Abre el modal de confirmación */
   cerrarSesion(): void {
+    this.showLogoutModal = true;
+  }
+
+  /** Usuario confirmó: cierra sesión y redirige */
+  confirmarCerrarSesion(): void {
+    this.showLogoutModal = false;
     this.authService.cerrarSesion();
     this.router.navigate(['/']);
+  }
+
+  /** Usuario canceló: solo cierra el modal */
+  cancelarCerrarSesion(): void {
+    this.showLogoutModal = false;
   }
 
   get iniciales(): string {

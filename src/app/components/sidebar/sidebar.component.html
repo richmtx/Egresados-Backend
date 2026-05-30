@@ -228,3 +228,39 @@
     </div>
 
 </aside>
+
+<!-- MODAL — Confirmación de cierre de sesión -->
+<div class="logout-overlay" *ngIf="showLogoutModal" (click)="cancelarCerrarSesion()">
+    <div class="logout-modal" (click)="$event.stopPropagation()">
+
+        <div class="logout-modal__icon">
+            <div class="logout-modal__icon-inner">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="logout-modal__body">
+            <h3 class="logout-modal__title">¿Cerrar sesión?</h3>
+            <p class="logout-modal__message">
+                Tu sesión actual se cerrará y serás redirigido a la pantalla de inicio de sesión.
+            </p>
+        </div>
+
+        <div class="logout-modal__actions">
+            <button class="btn-cancelar" (click)="cancelarCerrarSesion()">Cancelar</button>
+            <button class="btn-confirmar" (click)="confirmarCerrarSesion()">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M6 14H3a1 1 0 01-1-1V3a1 1 0 011-1h3M10 11l3-3-3-3M13 8H6" />
+                </svg>
+                Cerrar sesión
+            </button>
+        </div>
+
+    </div>
+</div>
