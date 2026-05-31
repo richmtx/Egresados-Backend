@@ -145,4 +145,42 @@ export class VinculacionService {
     if (anio) params = params.set('anio', anio.toString());
     return this.http.get(`${this.apiUrl}/egresados/vinculacion/export/excel`, { params, responseType: 'blob' });
   }
+
+  exportarPanelPdf(
+    seccion: 'colab' | 'hab' | 'auth',
+    valor: string,
+    titulo: string,
+    carrera?: string,
+    anio?: number,
+  ): Observable<Blob> {
+    let params = new HttpParams()
+      .set('seccion', seccion)
+      .set('valor', valor)
+      .set('titulo', titulo);
+    if (carrera) params = params.set('carrera', carrera);
+    if (anio) params = params.set('anio', anio.toString());
+    return this.http.get(
+      `${this.apiUrl}/egresados/vinculacion/panel/export/pdf`,
+      { params, responseType: 'blob' },
+    );
+  }
+
+  exportarPanelExcel(
+    seccion: 'colab' | 'hab' | 'auth',
+    valor: string,
+    titulo: string,
+    carrera?: string,
+    anio?: number,
+  ): Observable<Blob> {
+    let params = new HttpParams()
+      .set('seccion', seccion)
+      .set('valor', valor)
+      .set('titulo', titulo);
+    if (carrera) params = params.set('carrera', carrera);
+    if (anio) params = params.set('anio', anio.toString());
+    return this.http.get(
+      `${this.apiUrl}/egresados/vinculacion/panel/export/excel`,
+      { params, responseType: 'blob' },
+    );
+  }
 }

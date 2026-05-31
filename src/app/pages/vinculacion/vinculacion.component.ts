@@ -39,8 +39,6 @@ export const SAT_COLORES: Record<number, string> = {
   5: '#22c55e',
 };
 
-const OTRO_KEY = '__otro__';
-
 @Component({
   selector: 'app-vinculacion',
   standalone: true,
@@ -87,6 +85,11 @@ export class VinculacionComponent implements OnInit {
     error: null,
     mostrarDescripcionOtro: false,
   };
+
+  // Agrega estas propiedades junto a las otras del panel
+  panelSeccion: 'colab' | 'hab' | 'auth' | null = null;
+  panelValor: string = '';
+
   filaActiva: string | null = null;
 
   satColores = SAT_COLORES;
@@ -205,14 +208,14 @@ export class VinculacionComponent implements OnInit {
           };
         });
 
-        // Colaboraciones
-        const otroColab = colaborTots.find(c => c.descripcion === OTRO_KEY);
+        // Colaboraciones — el backend devuelve 'Otro' como string literal
+        const otroColab = colaborTots.find(c => c.descripcion === 'Otro');
         const noParticipa = colaborTots.find(
-          c => c.descripcion !== OTRO_KEY &&
+          c => c.descripcion !== 'Otro' &&
             c.descripcion.toLowerCase().includes('no me es posible')
         );
         const resto = colaborTots.filter(
-          c => c.descripcion !== OTRO_KEY &&
+          c => c.descripcion !== 'Otro' &&
             !c.descripcion.toLowerCase().includes('no me es posible')
         );
 
@@ -223,26 +226,26 @@ export class VinculacionComponent implements OnInit {
         ];
 
         this.colaboraciones = ordenadas.map(c => ({
-          descripcion: c.descripcion === OTRO_KEY ? 'Otro' : c.descripcion,
+          descripcion: c.descripcion,
           total: +c.total || 0,
           porcentaje: this.pct(+c.total || 0, this.totalEgresados),
           esFinal: c.descripcion.toLowerCase().includes('no me es posible'),
-          esOtro: c.descripcion === OTRO_KEY,
+          esOtro: c.descripcion === 'Otro',
         }));
 
-        // Habilidades
-        const otroHab = habTots.find(h => h.habilidad === OTRO_KEY);
-        const restoHab = habTots.filter(h => h.habilidad !== OTRO_KEY);
+        // Habilidades — el backend devuelve 'Otro' como string literal
+        const otroHab = habTots.find(h => h.habilidad === 'Otro');
+        const restoHab = habTots.filter(h => h.habilidad !== 'Otro');
         const ordenadasHab = [
           ...restoHab.sort((a, b) => (+b.total || 0) - (+a.total || 0)),
           ...(otroHab ? [otroHab] : []),
         ];
 
         this.habilidades = ordenadasHab.map(h => ({
-          habilidad: h.habilidad === OTRO_KEY ? 'Otro' : h.habilidad,
+          habilidad: h.habilidad,
           total: +h.total || 0,
           porcentaje: this.pct(+h.total || 0, this.totalEgresados),
-          esOtro: h.habilidad === OTRO_KEY,
+          esOtro: h.habilidad === 'Otro',
         }));
 
         this.cargando = false;
@@ -292,6 +295,10 @@ export class VinculacionComponent implements OnInit {
     if (this.filaActiva === key) { this.cerrarPanel(); return; }
     this.filaActiva = key;
 
+    // ── NUEVO ──
+    this.panelSeccion = 'colab';
+    this.panelValor = row.esOtro ? 'Otro' : row.descripcion;
+
     const carrera = this.filtroCarrera || undefined;
     const anio = this.filtroAnio ? +this.filtroAnio : undefined;
 
@@ -330,6 +337,10 @@ export class VinculacionComponent implements OnInit {
     const key = 'hab:' + row.habilidad;
     if (this.filaActiva === key) { this.cerrarPanel(); return; }
     this.filaActiva = key;
+
+    this.panelSeccion = 'hab';
+    this.panelValor = row.esOtro ? 'Otro' : row.habilidad;
+
 
     const carrera = this.filtroCarrera || undefined;
     const anio = this.filtroAnio ? +this.filtroAnio : undefined;
@@ -372,6 +383,9 @@ export class VinculacionComponent implements OnInit {
     this.filaActiva = key;
     this.abrirPanel(auth.label, false);
 
+    this.panelSeccion = 'auth';
+    this.panelValor = auth.tipo;
+
     const carrera = this.filtroCarrera || undefined;
     const anio = this.filtroAnio ? +this.filtroAnio : undefined;
 
@@ -404,6 +418,8 @@ export class VinculacionComponent implements OnInit {
   cerrarPanel(): void {
     this.panelVisible = false;
     this.filaActiva = null;
+    this.panelSeccion = null;
+    this.panelValor = '';
   }
 
   esFilaActiva(key: string): boolean {
@@ -414,6 +430,28 @@ export class VinculacionComponent implements OnInit {
     if (this.exportando || this.cargando) return;
     this.exportMenuVisible = false;
     this.exportando = true;
+
+    // Si hay un panel abierto, exportar solo esa sección
+    if (this.panelSeccion && this.panelValor) {
+      this.vinculacionSvc.exportarPanelPdf(
+        this.panelSeccion,
+        this.panelValor,
+        this.panel.titulo,
+        this.filtroCarrera || undefined,
+        this.filtroAnio ? +this.filtroAnio : undefined,
+      ).subscribe({
+        next: (blob: Blob) => {
+          const slug = this.panelValor.toLowerCase().replace(/\s+/g, '_').slice(0, 30);
+          this.descargarArchivo(blob, `vinculacion_${slug}_${new Date().toISOString().split('T')[0]}.pdf`);
+          this.logAccion('exportar', `Exportó panel "${this.panel.titulo}" en PDF`, 'vinculacion');
+          this.exportando = false;
+        },
+        error: () => { this.exportando = false; },
+      });
+      return;
+    }
+
+    // Sin panel abierto → exportar reporte general
     this.vinculacionSvc.exportarPdf(
       this.filtroCarrera || undefined,
       this.filtroAnio ? +this.filtroAnio : undefined,
@@ -423,7 +461,7 @@ export class VinculacionComponent implements OnInit {
         this.logAccion('exportar', 'Exportó Vinculación en PDF', 'vinculacion');
         this.exportando = false;
       },
-      error: () => { this.exportando = false; }
+      error: () => { this.exportando = false; },
     });
   }
 
@@ -452,7 +490,7 @@ export class VinculacionComponent implements OnInit {
   }
 
   private logAccion(accion: string, descripcion: string, seccion: string): void {
-    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => {} });
+    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => { } });
   }
 
   abrirModalCorreo(): void {
@@ -500,5 +538,25 @@ export class VinculacionComponent implements OnInit {
     this.toastError = esError;
     this.toastVisible = true;
     this.toastTimer = setTimeout(() => this.toastVisible = false, 4500);
+  }
+
+  exportarPanelExcel(): void {
+    if (this.exportando || !this.panelSeccion || !this.panelValor) return;
+    this.exportando = true;
+    this.vinculacionSvc.exportarPanelExcel(
+      this.panelSeccion,
+      this.panelValor,
+      this.panel.titulo,
+      this.filtroCarrera || undefined,
+      this.filtroAnio ? +this.filtroAnio : undefined,
+    ).subscribe({
+      next: (blob: Blob) => {
+        const slug = this.panelValor.toLowerCase().replace(/\s+/g, '_').slice(0, 30);
+        this.descargarArchivo(blob, `vinculacion_${slug}_${new Date().toISOString().split('T')[0]}.xlsx`);
+        this.logAccion('exportar', `Exportó panel "${this.panel.titulo}" en Excel`, 'vinculacion');
+        this.exportando = false;
+      },
+      error: () => { this.exportando = false; },
+    });
   }
 }
