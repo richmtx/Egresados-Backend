@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { SidebarComponent } from "../../components/sidebar/sidebar.component";
 import { EgresadosService, EgresadoDetalle, EgresadoPerfil } from './egresados.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-egresados',
@@ -44,7 +45,7 @@ export class EgresadosComponent implements OnInit {
   situaciones: string[] = [];
 
   // URL base para las imágenes
-  private readonly BASE_URL = 'http://localhost:3000';
+  private readonly BASE_URL = environment.apiUrl;
   private destroyRef = inject(DestroyRef);
 
   // ── Modal correo ──
@@ -64,7 +65,7 @@ export class EgresadosComponent implements OnInit {
   ) { }
 
   private logAccion(accion: string, descripcion: string, seccion: string): void {
-    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => {} });
+    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => { } });
   }
 
   ngOnInit(): void {
@@ -176,6 +177,11 @@ export class EgresadosComponent implements OnInit {
 
   getFotoUrl(fotoUrl: string | null): string | null {
     if (!fotoUrl) return null;
+    // Si ya es Base64 o URL absoluta, devolverlo directo
+    if (fotoUrl.startsWith('data:') || fotoUrl.startsWith('http')) {
+      return fotoUrl;
+    }
+    // Si es ruta relativa (servidor ITD), agregar base URL
     return `${this.BASE_URL}/${fotoUrl}`;
   }
 
