@@ -147,10 +147,40 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   // Charts
+  private abreviarNombre(nombre: string): string {
+    const abreviaciones: Record<string, string> = {
+      'arquitectura': 'Arq.',
+      'ingeniería civil': 'Ing. Civil',
+      'ingeniería eléctrica': 'Ing. Eléc.',
+      'ingeniería electrónica': 'Ing. Elect.',
+      'ingeniería industrial (presencial / a distancia)': 'Ing. Ind.',
+      'ingeniería mecánica': 'Ing. Mec.',
+      'ingeniería mecatrónica': 'Ing. Mecatr.',
+      'ingeniería química': 'Ing. Quím.',
+      'ingeniería bioquímica': 'Ing. Bioq.',
+      'ingeniería sistemas computacionales (presencial / virtual)': 'Ing. Sist.',
+      'ingeniería gestión empresarial': 'Ing. Gest.',
+      "ingeniería tecnologías de la información y comunicaciones (tic's)": "Ing. TIC's",
+      'ingeniería informática': 'Ing. Info.',
+      'licenciatura administración (presencial / a distancia)': 'Lic. Adm.',
+      'maestría': 'Maestría',
+      'posgrado': 'Posgrado',
+      'ingeniería biomédica': 'Ing. Biom.',
+      'ingeniería en semiconductores': 'Ing. Semi.',
+      'ingeniería en inteligencia artificial': 'Ing. IA',
+      'ingeniería logística': 'Ing. Log.',
+    };
+
+    const normalizado = nombre.toLowerCase().trim();
+    return abreviaciones[normalizado] ?? nombre;
+  }
+
   private construirCharts(d: DashboardResumen): void {
 
+    // Usamos abreviarNombre para ambas vistas (mini y modal)
+    const etiquetasCortas = d.graficas.porCarrera.map(c => this.abreviarNombre(c.nombre_carrera));
+
     // 1. Barras — top 5 carreras
-    const maxTotal = Math.max(...d.graficas.porCarrera.map(c => +c.total));
     this.chartBarras = {
       series: [{ name: 'Egresados', data: d.graficas.porCarrera.map(c => +c.total) }],
       chart: {
@@ -158,9 +188,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         toolbar: { show: false }, animations: { enabled: true, speed: 600 },
       },
       xaxis: {
-        categories: d.graficas.porCarrera.map(c =>
-          c.nombre_carrera.replace('Ingeniería ', 'Ing. ').replace(' (Presencial / Virtual)', '').replace(' (Presencial / A distancia)', '')
-        ),
+        categories: etiquetasCortas,
         labels: { style: { fontFamily: this.chartFontFamily, fontSize: '10px', colors: '#64748b' } },
       },
       colors: ['#003366'],
@@ -188,7 +216,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
         toolbar: { show: false },
       },
       labels: d.graficas.situacionLaboral.map(s =>
-        s.situacion.replace('Empleado en el sector ', '').replace('Empresario / Trabajo por cuenta propia (Freelance)', 'Freelance').replace('Dedicado al hogar u otras actividades', 'Otras actividades')
+        s.situacion
+          .replace('Empleado en el sector privado', 'Privado')
+          .replace('Empleado en el sector público', 'Público')
+          .replace('Empleado en el sector ', '')
+          .replace('Empresario / Trabajo por cuenta propia (Freelance)', 'Freelance')
+          .replace('Dedicado al hogar u otras actividades', 'Otras actividades')
       ),
       colors: coloresPastel,
       plotOptions: {
@@ -221,8 +254,26 @@ export class DashboardComponent implements OnInit, OnDestroy {
         sparkline: { enabled: false },
       },
       xaxis: {
-        categories: d.graficas.respuestasPorMes.map(m => m.mes_label),
-        labels: { style: { fontFamily: this.chartFontFamily, fontSize: '10px', colors: '#64748b' } },
+        categories: d.graficas.respuestasPorMes.map(m => {
+          const mesesES: Record<string, string> = {
+            'Jan': 'Ene', 'Feb': 'Feb', 'Mar': 'Mar', 'Apr': 'Abr',
+            'May': 'May', 'Jun': 'Jun', 'Jul': 'Jul', 'Aug': 'Ago',
+            'Sep': 'Sep', 'Oct': 'Oct', 'Nov': 'Nov', 'Dec': 'Dic',
+          };
+          return m.mes_label.replace(/^[A-Za-z]+/, match => mesesES[match] ?? match);
+        }),
+        labels: {
+          rotate: -45,
+          rotateAlways: true,
+          hideOverlappingLabels: true,
+          trim: false,
+          style: {
+            fontFamily: this.chartFontFamily,
+            fontSize: '9px',
+            colors: '#64748b',
+          },
+        },
+        tickPlacement: 'on',
       },
       colors: ['#003366'],
       fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.3, opacityTo: 0.02, stops: [0, 100] } },
@@ -243,10 +294,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
         height: tipo === 'donut' ? 460 : 420,
       },
     };
+
     this.modalTipo = tipo;
     this.modalTitulo = titulo;
     this.modalSubtitulo = subtitulo;
     this.modalAbierto = true;
+
     if (isPlatformBrowser(this.platformId)) {
       document.body.style.overflow = 'hidden';
     }

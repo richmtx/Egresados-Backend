@@ -231,6 +231,10 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
     return ((parte / total) * 100).toFixed(1);
   }
 
+  private formatPct(valor: string): string {
+    return valor.replace(/(\d)%/g, '$1 %');
+  }
+
   private poblarFiltros(data: EstadisticasResponse): void {
     const carreras = [...new Set(data.empleabilidadCarrera.map(e => e.nombre_carrera))];
     const anios = [...new Set(data.titulacionAnio.map(t => t.anio_egreso))].sort();
@@ -548,7 +552,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
     };
   }
 
-  // INSIGHTS
+  // ── INSIGHTS ───────────────────────────────────────────────────────────────
 
   private generarInsights(data: EstadisticasResponse): void {
     const insights: { icon: SafeHtml; iconColor: string; bg: string; titulo: string; descripcion: string }[] = [];
@@ -556,15 +560,10 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
 
     const iconos = {
       trofeo: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>`,
-
       diploma: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>`,
-
       globo: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>`,
-
       estrella: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
-
       avion: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22 11 13 2 9l20-7z"/></svg>`,
-
       pin: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`,
     };
 
@@ -578,7 +577,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
         icon: this.sanitizer.bypassSecurityTrustHtml(iconos.trofeo),
         iconColor: '#7c3aed', bg: '#ede9fe',
         titulo: 'Carrera más empleable',
-        descripcion: `${this.abrevCarrera(masEmpleable.nombre_carrera)} tiene la tasa más alta de empleo: ${pct}% de sus egresados trabajan actualmente.`
+        descripcion: `${this.abrevCarrera(masEmpleable.nombre_carrera)} tiene la tasa más alta de empleo: ${pct} % de sus egresados trabajan actualmente.`
       });
     }
 
@@ -586,7 +585,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
       icon: this.sanitizer.bypassSecurityTrustHtml(iconos.diploma),
       iconColor: '#059669', bg: '#dcfce7',
       titulo: 'Tasa de titulación',
-      descripcion: `El ${this.getPct(+k.titulados, +k.total_egresados)}% de los egresados ya están titulados. ${k.en_tramite} tienen el proceso en trámite actualmente.`
+      descripcion: `El ${this.getPct(+k.titulados, +k.total_egresados)} % de los egresados ya están titulados. ${k.en_tramite} tienen el proceso en trámite actualmente.`
     });
 
     const nivelDominante = data.nivelesIngles.reduce((a, b) => +b.total > +a.total ? b : a, data.nivelesIngles[0]);
@@ -595,7 +594,7 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
         icon: this.sanitizer.bypassSecurityTrustHtml(iconos.globo),
         iconColor: '#d97706', bg: '#fef3c7',
         titulo: 'Nivel de inglés dominante',
-        descripcion: `El ${this.getPct(+nivelDominante.total, +k.total_egresados)}% de los egresados tienen nivel ${nivelDominante.nivel}. Considerar programas de mejora del idioma.`
+        descripcion: `El ${this.getPct(+nivelDominante.total, +k.total_egresados)} % de los egresados tienen nivel ${nivelDominante.nivel}. Considerar programas de mejora del idioma.`
       });
     }
 
@@ -628,6 +627,10 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
       });
     }
 
-    this.insights = insights;
+    // ← ÚNICO CAMBIO: aplica el espacio antes de % en todas las descripciones
+    this.insights = insights.map(i => ({
+      ...i,
+      descripcion: i.descripcion.replace(/(\d)%/g, '$1 %')
+    }));
   }
 }

@@ -336,6 +336,9 @@ table {
 thead tr {
   background: #f9fafb;
   border-bottom: 0.5px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 th {
@@ -820,7 +823,7 @@ tr:last-child td {
 }
 
 .toast.toast-error {
-  background: #18181b;    
+  background: #18181b;
 }
 
 .toast-left {
@@ -849,12 +852,12 @@ tr:last-child td {
 }
 
 .toast-icon-success {
-  background: #16a34a;  
+  background: #16a34a;
   color: #ffffff;
 }
 
 .toast-icon-error {
-  background: #dc2626;  
+  background: #dc2626;
   color: #ffffff;
 }
 

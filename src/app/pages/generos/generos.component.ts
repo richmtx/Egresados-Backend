@@ -58,7 +58,7 @@ export class GenerosComponent implements OnInit, OnDestroy {
   modalTipo = '';
   modalChart: any = {};
 
-  // Chart configs (any — igual que estadisticas)
+  // Chart configs
   chartEgresoAnio: any = {};
   chartTendenciaGenero: any = {};
   chartComposicionCarrera: any = {};
@@ -71,7 +71,6 @@ export class GenerosComponent implements OnInit, OnDestroy {
   chartInglesGenero: any = {};
   chartHabilidadesGenero: any = {};
 
-  // Paleta y helpers (igual que estadisticas)
   private COLOR_H = '#3b82f6';
   private COLOR_M = '#f43f5e';
 
@@ -99,7 +98,6 @@ export class GenerosComponent implements OnInit, OnDestroy {
     markers: { width: 8, height: 8, radius: 2 }
   };
 
-  // Export
   exportMenuVisible = false;
   exportando = false;
 
@@ -117,7 +115,6 @@ export class GenerosComponent implements OnInit, OnDestroy {
     if (isPlatformBrowser(this.platformId)) document.body.style.overflow = '';
   }
 
-  // MODAL  (mismo patrón que estadisticas)
   abrirModal(tipo: string, titulo: string, subtitulo: string, chartConfig: any): void {
     this.modalChart = {
       ...chartConfig,
@@ -185,7 +182,6 @@ export class GenerosComponent implements OnInit, OnDestroy {
     this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => { } });
   }
 
-  // CARGA DE DATOS
   cargarDatos(): void {
     this.cargando = true;
     this.error = false;
@@ -214,7 +210,6 @@ export class GenerosComponent implements OnInit, OnDestroy {
     this.cargarDatos();
   }
 
-  // PROCESAMIENTO CENTRAL
   private procesarDatos(res: EstadisticasGeneroResponse): void {
     this.calcularKPIs(res);
     this.calcularRankingCarreras(res);
@@ -229,7 +224,6 @@ export class GenerosComponent implements OnInit, OnDestroy {
     this.generarInsights(res);
   }
 
-  // KPIs
   private calcularKPIs(res: EstadisticasGeneroResponse): void {
     const hombre = res.kpisGenero.find(k => k.genero === 'Hombre');
     const mujer = res.kpisGenero.find(k => k.genero === 'Mujer');
@@ -257,7 +251,6 @@ export class GenerosComponent implements OnInit, OnDestroy {
     this.carreraMasMasculina = { nombre: nombreM, pct: maxM };
   }
 
-  // RANKING CARRERAS
   private calcularRankingCarreras(res: EstadisticasGeneroResponse): void {
     const map = this.agruparPorCarrera(res.composicionCarreraGenero);
     this.rankingCarreras = Object.entries(map)
@@ -269,7 +262,6 @@ export class GenerosComponent implements OnInit, OnDestroy {
       .sort((a, b) => b.pctMujeres - a.pctMujeres);
   }
 
-  // COINCIDENCIA LABORAL
   private calcularCoincidencia(res: EstadisticasGeneroResponse): void {
     const niveles = [...new Set(res.coincidenciaLaboralGenero.map(c => c.coincidencia))];
     const nivelPositivo = niveles.find(n =>
@@ -286,7 +278,6 @@ export class GenerosComponent implements OnInit, OnDestroy {
     });
   }
 
-  // TIEMPO DE EMPLEO
   private calcularTiempoEmpleo(res: EstadisticasGeneroResponse): void {
     this.tiempoEmpleoResumen = res.tiempoEmpleoGenero.map(t => ({
       genero: t.genero,
@@ -295,7 +286,6 @@ export class GenerosComponent implements OnInit, OnDestroy {
     this.maxTiempoEmpleo = Math.max(1, ...this.tiempoEmpleoResumen.map(t => t.tiempo));
   }
 
-  // GEOGRAFÍA
   private calcularGeografia(res: EstadisticasGeneroResponse): void {
     this.geografiaResumen = res.geografiaGenero.map(g => {
       const total = +(g.total ?? 1);
@@ -308,7 +298,6 @@ export class GenerosComponent implements OnInit, OnDestroy {
     });
   }
 
-  // POSGRADO
   private calcularPosgrado(res: EstadisticasGeneroResponse): void {
     const totalH = this.totalHombres || 1;
     const totalM = this.totalMujeres || 1;
@@ -321,7 +310,6 @@ export class GenerosComponent implements OnInit, OnDestroy {
     }));
   }
 
-  // INGLÉS
   private calcularIngles(res: EstadisticasGeneroResponse): void {
     const ordenNiveles = ['Básico', 'Intermedio', 'Avanzado'];
     this.inglesResumen = ['Hombre', 'Mujer'].map(genero => {
@@ -335,7 +323,6 @@ export class GenerosComponent implements OnInit, OnDestroy {
     });
   }
 
-  // SATISFACCIÓN
   private calcularSatisfaccion(res: EstadisticasGeneroResponse): void {
     this.satisfaccionResumen = res.satisfaccionGenero.map(s => {
       const total = +(s.total ?? 1);
@@ -353,7 +340,6 @@ export class GenerosComponent implements OnInit, OnDestroy {
     });
   }
 
-  // FILTROS
   private generarFiltros(res: EstadisticasGeneroResponse): void {
     const carreras = [...new Set(res.composicionCarreraGenero.map(c => c.nombre_carrera))].sort();
     const anios = [...new Set(res.egresoAnioGenero.map(e => e.anio_egreso))].sort();
@@ -361,7 +347,6 @@ export class GenerosComponent implements OnInit, OnDestroy {
     if (!this.filtroAnio) this.aniosDisponibles = anios;
   }
 
-  // CONSTRUCCIÓN DE CHARTS
   private construirCharts(res: EstadisticasGeneroResponse): void {
     this.buildChartEgresoAnio(res);
     this.buildChartTendenciaGenero(res);
@@ -376,7 +361,6 @@ export class GenerosComponent implements OnInit, OnDestroy {
     this.buildChartHabilidadesGenero(res);
   }
 
-  // 1. Egreso por año (barras agrupadas)
   private buildChartEgresoAnio(res: EstadisticasGeneroResponse): void {
     const anios = [...new Set(res.egresoAnioGenero.map(e => e.anio_egreso))].sort();
     const datosH = anios.map(a => +(res.egresoAnioGenero.find(e => e.anio_egreso === a && e.genero === 'Hombre')?.total ?? 0));
@@ -394,7 +378,6 @@ export class GenerosComponent implements OnInit, OnDestroy {
     };
   }
 
-  // 2. Tendencia % género por año (líneas)
   private buildChartTendenciaGenero(res: EstadisticasGeneroResponse): void {
     const anios = [...new Set(res.egresoAnioGenero.map(e => e.anio_egreso))].sort();
     const pctH = anios.map(a => +(res.egresoAnioGenero.find(e => e.anio_egreso === a && e.genero === 'Hombre')?.porcentaje_en_anio ?? 0));
@@ -415,14 +398,12 @@ export class GenerosComponent implements OnInit, OnDestroy {
     };
   }
 
-  // 3. Composición por carrera (100% apiladas)
   private buildChartComposicionCarrera(res: EstadisticasGeneroResponse): void {
     const carreras = [...new Set(res.composicionCarreraGenero.map(c => c.nombre_carrera))];
 
     const datosH = carreras.map(c => +(res.composicionCarreraGenero.find(d => d.nombre_carrera === c && d.genero === 'Hombre')?.porcentaje ?? 0));
     const datosM = carreras.map(c => +(res.composicionCarreraGenero.find(d => d.nombre_carrera === c && d.genero === 'Mujer')?.porcentaje ?? 0));
 
-    // Extraer cantidades reales por carrera
     const cantidadesH = carreras.map(c => res.composicionCarreraGenero.find(d => d.nombre_carrera === c && d.genero === 'Hombre')?.total ?? 0);
     const cantidadesM = carreras.map(c => res.composicionCarreraGenero.find(d => d.nombre_carrera === c && d.genero === 'Mujer')?.total ?? 0);
 
@@ -480,30 +461,25 @@ export class GenerosComponent implements OnInit, OnDestroy {
       legend: { ...this.baseLegend, position: 'top' },
       grid: this.baseGrid,
       tooltip: {
-        x: {
-          formatter: (_val: any, opts: any) => carreras[opts?.dataPointIndex] ?? _val
-        },
-        // ✅ Aquí se inyecta la cantidad real según el género (seriesIndex)
+        x: { formatter: (_val: any, opts: any) => carreras[opts?.dataPointIndex] ?? _val },
         y: {
           formatter: (value: number, opts: any) => {
             const index = opts?.dataPointIndex;
             const seriesIndex = opts?.seriesIndex;
             const cantidad = seriesIndex === 0 ? cantidadesH[index] : cantidadesM[index];
-            return `${value.toFixed(1)}%  (${cantidad} ${seriesIndex === 0 ? 'hombres' : 'mujeres'})`;
+            return `${value.toFixed(1)} %  (${cantidad} ${seriesIndex === 0 ? 'hombres' : 'mujeres'})`;
           }
         }
       },
     };
   }
 
-  // 4. Tasa de empleo H/M
   private buildChartEmpleabilidadGenero(res: EstadisticasGeneroResponse): void {
     const empleH = res.empleabilidadGenero.find(e => e.genero === 'Hombre');
     const empleM = res.empleabilidadGenero.find(e => e.genero === 'Mujer');
 
     const pctH = +(empleH?.pct_empleados ?? 0);
     const pctM = +(empleM?.pct_empleados ?? 0);
-
     const totalH = +(empleH?.empleados ?? 0);
     const totalM = +(empleM?.empleados ?? 0);
 
@@ -532,14 +508,13 @@ export class GenerosComponent implements OnInit, OnDestroy {
           formatter: (value: number, opts: any) => {
             const cantidad = opts?.dataPointIndex === 0 ? totalH : totalM;
             const etiqueta = opts?.dataPointIndex === 0 ? 'hombres' : 'mujeres';
-            return `${value.toFixed(1)}%  (${cantidad} ${etiqueta})`;
+            return `${value.toFixed(1)} %  (${cantidad} ${etiqueta})`;
           }
         }
       },
     };
   }
 
-  // 5. Sector laboral H/M (barras apiladas)
   private buildChartSectorGenero(res: EstadisticasGeneroResponse): void {
     const sectores = [...new Set(res.sectorLaboralGenero.map(s => s.sector))];
     const series = ['Hombre', 'Mujer'].map(genero => ({
@@ -588,23 +563,20 @@ export class GenerosComponent implements OnInit, OnDestroy {
       legend: { ...this.baseLegend, position: 'top' },
       grid: this.baseGrid,
       tooltip: {
-        x: {
-          formatter: (_val: any, opts: any) => sectores[opts?.dataPointIndex] ?? _val
-        },
+        x: { formatter: (_val: any, opts: any) => sectores[opts?.dataPointIndex] ?? _val },
         y: {
           formatter: (value: number, opts: any) => {
             const index = opts?.dataPointIndex;
             const seriesIndex = opts?.seriesIndex;
             const cantidad = seriesIndex === 0 ? cantidadesH[index] : cantidadesM[index];
             const etiqueta = seriesIndex === 0 ? 'hombres' : 'mujeres';
-            return `${value.toFixed(1)}%  (${cantidad} ${etiqueta})`;
+            return `${value.toFixed(1)} %  (${cantidad} ${etiqueta})`;
           }
         }
       },
     };
   }
 
-  // 6. Top ciudades H/M (barras horizontales)
   private buildChartCiudadesGenero(res: EstadisticasGeneroResponse): void {
     const ciudadesMap: Record<string, { h: number; m: number }> = {};
     res.topCiudadesGenero.forEach(c => {
@@ -631,11 +603,9 @@ export class GenerosComponent implements OnInit, OnDestroy {
     };
   }
 
-  // 7. Titulación H/M (barras apiladas 100%)
   private buildChartTitulacionGenero(res: EstadisticasGeneroResponse): void {
     const etiquetas = res.titulacionGenero.map(t => t.genero === 'Hombre' ? 'Hombres' : 'Mujeres');
 
-    // Totales reales por género y estado de titulación
     const totalesPorGenero = res.titulacionGenero.map(t => ({
       titulados: +(t.titulados ?? 0),
       en_tramite: +(t.en_tramite ?? 0),
@@ -675,20 +645,17 @@ export class GenerosComponent implements OnInit, OnDestroy {
               seriesIdx === 0 ? datos.titulados :
                 seriesIdx === 1 ? datos.en_tramite :
                   datos.no_titulados;
-
             const etiqueta =
               seriesIdx === 0 ? 'titulados' :
                 seriesIdx === 1 ? 'en trámite' :
                   'no titulados';
-
-            return `${value.toFixed(1)}%  (${cantidad} ${etiqueta})`;
+            return `${value.toFixed(1)} %  (${cantidad} ${etiqueta})`;
           }
         }
       },
     };
   }
 
-  // 8. Titulación por año × género (líneas)
   private buildChartTitulacionAnioGenero(res: EstadisticasGeneroResponse): void {
     const anios = [...new Set(res.titulacionAnioGenero.map(t => t.anio_egreso))].sort();
     const datH = anios.map(a => +(res.titulacionAnioGenero.find(t => t.anio_egreso === a && t.genero === 'Hombre')?.pct_titulados ?? 0));
@@ -709,7 +676,6 @@ export class GenerosComponent implements OnInit, OnDestroy {
     };
   }
 
-  // 9. Tipo de posgrado H/M (barras agrupadas)
   private buildChartPosgradoGenero(res: EstadisticasGeneroResponse): void {
     const tipos = [...new Set(res.posgradoTipoGenero.map(p => p.tipo_posgrado))];
     const series = ['Hombre', 'Mujer'].map(genero => ({
@@ -729,7 +695,6 @@ export class GenerosComponent implements OnInit, OnDestroy {
     };
   }
 
-  // 10. Inglés por género (barras agrupadas)
   private buildChartInglesGenero(res: EstadisticasGeneroResponse): void {
     const orden = ['Básico', 'Intermedio', 'Avanzado'];
     const niveles = orden.filter(n => res.inglesGenero.some(i => i.nivel === n || i.nivel.startsWith(n)));
@@ -761,7 +726,6 @@ export class GenerosComponent implements OnInit, OnDestroy {
     };
   }
 
-  // 11. Habilidades H/M (barras horizontales)
   private buildChartHabilidadesGenero(res: EstadisticasGeneroResponse): void {
     const habMap: Record<string, { h: number; m: number }> = {};
     res.habilidadesGenero.forEach(h => {
@@ -809,7 +773,7 @@ export class GenerosComponent implements OnInit, OnDestroy {
         icon: this.sanitizer.bypassSecurityTrustHtml(iconos.maletin),
         iconColor: '#2563eb', bg: '#eff6ff',
         titulo: 'Brecha de empleo',
-        descripcion: `La tasa de empleo de ${masAlto} es ${dif}% mayor. H: ${(+(empH.pct_empleados ?? 0)).toFixed(1)}% · M: ${(+(empM.pct_empleados ?? 0)).toFixed(1)}%`
+        descripcion: `La tasa de empleo de ${masAlto} es ${dif} % mayor. H: ${(+(empH.pct_empleados ?? 0)).toFixed(1)} % · M: ${(+(empM.pct_empleados ?? 0)).toFixed(1)} %`
       });
     }
 
@@ -821,7 +785,7 @@ export class GenerosComponent implements OnInit, OnDestroy {
         icon: this.sanitizer.bypassSecurityTrustHtml(iconos.gorro),
         iconColor: '#059669', bg: '#dcfce7',
         titulo: 'Titulación',
-        descripcion: `${masAlto} tienen mayor porcentaje de titulación. H: ${(+(titH.pct_titulados ?? 0)).toFixed(1)}% · M: ${(+(titM.pct_titulados ?? 0)).toFixed(1)}%`
+        descripcion: `${masAlto} tienen mayor porcentaje de titulación. H: ${(+(titH.pct_titulados ?? 0)).toFixed(1)} % · M: ${(+(titM.pct_titulados ?? 0)).toFixed(1)} %`
       });
     }
 
@@ -831,7 +795,7 @@ export class GenerosComponent implements OnInit, OnDestroy {
         icon: this.sanitizer.bypassSecurityTrustHtml(iconos.libro),
         iconColor: '#d97706', bg: '#fef3c7',
         titulo: 'Posgrado',
-        descripcion: `${mayor.genero === 'Hombre' ? 'Los hombres tienen' : 'Las mujeres tienen'} mayor continuidad en posgrado: ${mayor.pct}%.`
+        descripcion: `${mayor.genero === 'Hombre' ? 'Los hombres tienen' : 'Las mujeres tienen'} mayor continuidad en posgrado: ${mayor.pct} %.`
       });
     }
 
@@ -843,7 +807,7 @@ export class GenerosComponent implements OnInit, OnDestroy {
         icon: this.sanitizer.bypassSecurityTrustHtml(iconos.mapa),
         iconColor: '#9333ea', bg: '#fdf2f8',
         titulo: 'Movilidad geográfica',
-        descripcion: `${masMovil} tienen mayor movilidad fuera de Durango. H: ${geoH.pctFueraMx}% · M: ${geoM.pctFueraMx}%`
+        descripcion: `${masMovil} tienen mayor movilidad fuera de Durango. H: ${geoH.pctFueraMx} % · M: ${geoM.pctFueraMx} %`
       });
     }
 
@@ -864,12 +828,17 @@ export class GenerosComponent implements OnInit, OnDestroy {
         icon: this.sanitizer.bypassSecurityTrustHtml(iconos.escuela),
         iconColor: '#e11d48', bg: '#fff1f2',
         titulo: 'Carrera más femenina',
-        descripcion: `${this.carreraMasFemenina.nombre} tiene el mayor % de mujeres: ${this.carreraMasFemenina.pct}%.`
+        descripcion: `${this.carreraMasFemenina.nombre} tiene el mayor % de mujeres: ${this.carreraMasFemenina.pct} %.`
       });
     }
+
+    // ← Aplica espacio antes de % en todas las descripciones
+    this.insights = this.insights.map(i => ({
+      ...i,
+      descripcion: i.descripcion.replace(/(\d)%/g, '$1 %')
+    }));
   }
 
-  // UTILIDADES
   private agruparPorCarrera(
     datos: { nombre_carrera: string; genero: string; porcentaje: number }[]
   ): Record<string, Record<string, number>> {
