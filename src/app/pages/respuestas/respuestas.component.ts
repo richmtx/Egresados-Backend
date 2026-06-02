@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { RespuestasService, Respuesta } from './respuestas.service';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 export interface RespuestaPerfil extends Respuesta {
   certificaciones: string[];
@@ -50,7 +51,8 @@ export class RespuestasComponent implements OnInit {
   private toastTimer: any;
 
   // URL base para imágenes
-  private readonly BASE_URL = 'http://localhost:3000';
+  private readonly BASE_URL = environment.apiUrl;
+
   private destroyRef = inject(DestroyRef);
 
   get totalRespuestas() { return this.respuestas.length; }
@@ -73,7 +75,6 @@ export class RespuestasComponent implements OnInit {
     this.cargando = true;
     this.respuestasService.getAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
-        // ✅ Usa el campo revisado que viene de la BD — no localStorage
         this.respuestas = data.map(r => ({
           ...r,
           revisado: Boolean(r.revisado),
@@ -129,6 +130,9 @@ export class RespuestasComponent implements OnInit {
   // ── Foto de perfil ────────────────────────────────────────────────
   getFotoUrl(fotoUrl: string | null): string | null {
     if (!fotoUrl) return null;
+    if (fotoUrl.startsWith('data:') || fotoUrl.startsWith('http')) {
+      return fotoUrl;
+    }
     return `${this.BASE_URL}/${fotoUrl}`;
   }
 
