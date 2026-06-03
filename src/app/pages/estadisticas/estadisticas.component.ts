@@ -245,8 +245,8 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
   private abrevCarrera(nombre: string): string {
     return nombre
       .replace('Ingeniería ', 'Ing. ')
-      .replace('Sistemas Computacionales (Presencial / Virtual)', 'Sistemas Comp.')
-      .replace('Sistemas Computacionales', 'Sistemas Comp.');
+      .replace('en Sistemas Computacionales (Presencial / Virtual)', 'en Sist. Comp.')
+      .replace('en Sistemas Computacionales', 'en Sist. Comp.');
   }
 
   // ── CONSTRUCCIÓN DE GRÁFICAS ───────────────────────────────────────────────
