@@ -154,10 +154,13 @@
                     <option *ngFor="let a of anios" [value]="a">{{ a }}</option>
                 </select>
 
-                <select [(ngModel)]="filtroSituacion" (ngModelChange)="aplicarFiltros()">
-                    <option value="">Situación laboral</option>
-                    <option *ngFor="let s of situaciones" [value]="s">{{ s }}</option>
-                </select>
+                <div class="filter-select-group">
+                    <label class="filter-select-label">Situación laboral</label>
+                    <select [(ngModel)]="filtroSituacion" (ngModelChange)="aplicarFiltros()">
+                        <option value="">Todas</option>
+                        <option *ngFor="let s of situaciones" [value]="s">{{ s }}</option>
+                    </select>
+                </div>
 
                 <div class="chip-filters">
                     <button class="chip-btn" [class.active]="isChipActivo('todos')" (click)="onFiltroChip('todos')">

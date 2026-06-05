@@ -448,12 +448,21 @@
     transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
+.rating-scale-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
 .rating-legend {
     display: flex;
     justify-content: space-between;
     font-size: 10px;
     color: #9ca3af;
-    margin-bottom: 12px;
+    margin-top: 6px;
+    width: calc(5 * 48px + 4 * 6px);
+    /* 5 botones × 48px + 4 gaps × 6px */
 }
 
 .satisfaccion-promedio {

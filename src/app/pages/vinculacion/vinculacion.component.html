@@ -175,16 +175,18 @@
                         <p class="section-title">Satisfacción con la formación — ITD</p>
 
                         <!-- Escala con colores -->
-                        <div class="rating-scale">
-                            <div *ngFor="let n of [1,2,3,4,5]" class="rating-box"
-                                [class.rating-box--active]="n === roundedSatisfaccion"
-                                [style.--sat-color]="getSatColor(n)">
-                                {{ n }}
+                        <div class="rating-scale-wrap">
+                            <div class="rating-scale">
+                                <div *ngFor="let n of [1,2,3,4,5]" class="rating-box"
+                                    [class.rating-box--active]="n === roundedSatisfaccion"
+                                    [style.--sat-color]="getSatColor(n)">
+                                    {{ n }}
+                                </div>
                             </div>
-                        </div>
-                        <div class="rating-legend">
-                            <span>Muy insatisfecho</span>
-                            <span>Muy satisfecho</span>
+                            <div class="rating-legend">
+                                <span>Muy insatisfecho</span>
+                                <span>Muy satisfecho</span>
+                            </div>
                         </div>
 
                         <div class="satisfaccion-promedio">
