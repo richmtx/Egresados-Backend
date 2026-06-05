@@ -44,7 +44,16 @@ export class AuthService {
     if (!token) return null;
     try {
       const payload = token.split('.')[1];
-      const decoded = JSON.parse(atob(payload));
+
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonString = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'))
+          .join('')
+      );
+
+      const decoded = JSON.parse(jsonString);
       return {
         id_usuario: decoded.sub,
         usuario: decoded.usuario,
