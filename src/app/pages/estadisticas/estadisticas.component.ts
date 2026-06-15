@@ -106,6 +106,20 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
     labels: { colors: '#64748b' }, markers: { width: 8, height: 8, radius: 2 }
   };
 
+  /** A partir de cuántos años en el eje X se activa el scroll horizontal */
+  private readonly UMBRAL_SCROLL_ANIOS = 15;
+  /** A partir de cuántos años se ocultan las etiquetas de datos (solo hover) */
+  private readonly UMBRAL_LABELS_ANIOS = 12;
+  /** Ancho (px) reservado por cada año cuando hay scroll */
+  private readonly PX_POR_ANIO = 64;
+
+  /** Ancho mínimo (px) del contenido; 0 = sin mínimo (cabe completo) */
+  private minWidthCronologico(totalAnios: number): number {
+    return totalAnios > this.UMBRAL_SCROLL_ANIOS
+      ? totalAnios * this.PX_POR_ANIO
+      : 0;
+  }
+
   chartSituacion: any = {};
   chartEmpCarrera: any = {};
   chartTitulacion: any = {};
@@ -363,13 +377,16 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
         { name: '% Titulados', data: sorted.map(t => +t.pct_titulados) },
         { name: 'En trámite', data: sorted.map(t => +(+t.en_tramite * 100 / (+t.total || 1)).toFixed(1)) }
       ],
-      chart: { ...this.baseChart('area', 260) },
+      chart: { ...this.baseChart('area', 260), width: '100%' },
+      minWidth: this.minWidthCronologico(sorted.length),
       xaxis: { categories: sorted.map(t => t.anio_egreso.toString()), labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
       yaxis: { max: 100, labels: { formatter: (v: number) => `${v}%`, style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
       colors: ['#10b981', '#f59e0b'],
       stroke: { curve: 'smooth', width: 2.5 },
       fill: { type: 'gradient', gradient: { opacityFrom: 0.3, opacityTo: 0.05 } },
-      markers: { size: 4 }, grid: this.baseGrid,
+      markers: { size: 4 },
+      dataLabels: { enabled: sorted.length <= this.UMBRAL_LABELS_ANIOS },
+      grid: this.baseGrid,
       tooltip: { y: { formatter: (v: number) => `${v}%` } }
     };
   }
@@ -467,13 +484,17 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
         { name: 'Titulación %', data: sorted.map(e => +e.pct_titulados) },
         { name: 'Satisfacción %', data: sorted.map(e => +e.satisfaccion_pct) }
       ],
-      chart: { ...this.baseChart('line', 280) },
+      chart: { ...this.baseChart('line', 280), width: '100%' },
+      minWidth: this.minWidthCronologico(sorted.length),
       xaxis: { categories: sorted.map(e => e.anio_egreso.toString()), labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
       yaxis: { min: 0, max: 100, labels: { formatter: (v: number) => `${v}%`, style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
       colors: ['#6366f1', '#10b981', '#f59e0b'],
       stroke: { curve: 'smooth', width: [2.5, 2.5, 2], dashArray: [0, 0, 5] },
-      fill: { type: 'solid', opacity: 1 }, markers: { size: 4 },
-      legend: { ...this.baseLegend, position: 'top' }, grid: this.baseGrid,
+      fill: { type: 'solid', opacity: 1 },
+      markers: { size: 4 },
+      dataLabels: { enabled: false },
+      legend: { ...this.baseLegend, position: 'top' },
+      grid: this.baseGrid,
       tooltip: { y: { formatter: (v: number) => `${v}%` } }
     };
   }

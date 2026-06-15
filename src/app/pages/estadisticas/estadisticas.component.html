@@ -299,12 +299,17 @@
             </div>
             <span class="chart-badge">Línea</span>
           </div>
-          <apx-chart id="chart-tend-titulacion" [series]="chartTendTitulacion.series"
-            [chart]="chartTendTitulacion.chart" [xaxis]="chartTendTitulacion.xaxis" [yaxis]="chartTendTitulacion.yaxis"
-            [colors]="chartTendTitulacion.colors" [stroke]="chartTendTitulacion.stroke"
-            [fill]="chartTendTitulacion.fill" [markers]="chartTendTitulacion.markers" [grid]="chartTendTitulacion.grid"
-            [tooltip]="chartTendTitulacion.tooltip">
-          </apx-chart>
+          <div class="chart-scroll-wrap">
+            <div class="chart-min" [style.min-width.px]="chartTendTitulacion.minWidth">
+              <apx-chart id="chart-tend-titulacion" [series]="chartTendTitulacion.series"
+                [chart]="chartTendTitulacion.chart" [xaxis]="chartTendTitulacion.xaxis"
+                [yaxis]="chartTendTitulacion.yaxis" [colors]="chartTendTitulacion.colors"
+                [stroke]="chartTendTitulacion.stroke" [fill]="chartTendTitulacion.fill"
+                [markers]="chartTendTitulacion.markers" [dataLabels]="chartTendTitulacion.dataLabels"
+                [grid]="chartTendTitulacion.grid" [tooltip]="chartTendTitulacion.tooltip">
+              </apx-chart>
+            </div>
+          </div>
           <div class="chart-card-hint">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
@@ -428,11 +433,15 @@
             </div>
             <span class="chart-badge">Líneas</span>
           </div>
-          <apx-chart [series]="chartEvolucion.series" [chart]="chartEvolucion.chart" [xaxis]="chartEvolucion.xaxis"
-            [yaxis]="chartEvolucion.yaxis" [colors]="chartEvolucion.colors" [stroke]="chartEvolucion.stroke"
-            [fill]="chartEvolucion.fill" [markers]="chartEvolucion.markers" [legend]="chartEvolucion.legend"
-            [grid]="chartEvolucion.grid" [tooltip]="chartEvolucion.tooltip">
-          </apx-chart>
+          <div class="chart-scroll-wrap">
+            <div class="chart-min" [style.min-width.px]="chartEvolucion.minWidth">
+              <apx-chart [series]="chartEvolucion.series" [chart]="chartEvolucion.chart" [xaxis]="chartEvolucion.xaxis"
+                [yaxis]="chartEvolucion.yaxis" [colors]="chartEvolucion.colors" [stroke]="chartEvolucion.stroke"
+                [fill]="chartEvolucion.fill" [markers]="chartEvolucion.markers" [dataLabels]="chartEvolucion.dataLabels"
+                [legend]="chartEvolucion.legend" [grid]="chartEvolucion.grid" [tooltip]="chartEvolucion.tooltip">
+              </apx-chart>
+            </div>
+          </div>
           <div class="chart-card-hint">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />

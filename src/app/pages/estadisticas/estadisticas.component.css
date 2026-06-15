@@ -464,15 +464,15 @@
 }
 
 .row-2 {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
 .row-3 {
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .row-1-2 {
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
 }
 
 /* ── Chart card ── */
@@ -485,10 +485,39 @@
     flex-direction: column;
     gap: 10px;
     transition: box-shadow 0.15s;
+    min-width: 0;
+    /* ← agrega esta línea */
 }
 
 .chart-card:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, .06);
+}
+
+.chart-scroll-wrap {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.chart-scroll-wrap::-webkit-scrollbar {
+    height: 6px;
+}
+
+.chart-scroll-wrap::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chart-scroll-wrap::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, .25);
+    border-radius: 3px;
+}
+
+.chart-scroll-wrap::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, .4);
+}
+
+.chart-min {
+    width: 100%;
 }
 
 .chart-header {

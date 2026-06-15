@@ -77,7 +77,7 @@ export class TitulacionComponent implements OnInit {
       style: { fontSize: '10px' },
       rotate: -45,
       rotateAlways: true,
-      trim: false,        
+      trim: false,
       hideOverlappingLabels: false,
     },
   };
@@ -114,7 +114,7 @@ export class TitulacionComponent implements OnInit {
 
   // Gráfica 3: Línea de tendencia por año
   lineaSeries: ApexAxisChartSeries = [];
-  lineaChart: ApexChart = { type: 'line', height: 250, toolbar: { show: false }, fontFamily: 'inherit' };
+  lineaChart: ApexChart = { type: 'line', height: 250, width: '100%', toolbar: { show: false }, fontFamily: 'inherit' };
   lineaXAxis: ApexXAxis = { categories: [], labels: { style: { fontSize: '12px' } } };
   lineaYAxis: ApexYAxis = { labels: { formatter: (v: number) => String(Math.round(v)) } };
   lineaColors: string[] = ['#639922', '#EF9F27', '#E24B4A'];
@@ -185,7 +185,7 @@ export class TitulacionComponent implements OnInit {
   }
 
   private logAccion(accion: string, descripcion: string, seccion: string): void {
-    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => {} });
+    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => { } });
   }
 
   // Carga y mapeo
@@ -255,6 +255,20 @@ export class TitulacionComponent implements OnInit {
     this.totalDoctorado = Number(tipos.find(t => t.tipo_posgrado === 'Posgrado')?.total) || 0;
   }
 
+  /** A partir de cuántos años en el eje X se activa el scroll horizontal */
+  private readonly UMBRAL_SCROLL_ANIOS = 15;
+  /** Ancho (px) reservado por cada año cuando hay scroll */
+  private readonly PX_POR_ANIO = 64;
+
+  /** Ancho mínimo (px) del contenido de la línea; 0 = cabe completo */
+  lineaMinWidth = 0;
+
+  private minWidthCronologico(totalAnios: number): number {
+    return totalAnios > this.UMBRAL_SCROLL_ANIOS
+      ? totalAnios * this.PX_POR_ANIO
+      : 0;
+  }
+
   private construirGraficas(): void {
 
     // Totales por carrera para mostrarlos en el tooltip
@@ -266,7 +280,7 @@ export class TitulacionComponent implements OnInit {
         style: { fontSize: '10px' },
         rotate: -45,
         rotateAlways: true,
-        trim: false,   
+        trim: false,
         hideOverlappingLabels: false,
       },
     };
@@ -344,6 +358,7 @@ export class TitulacionComponent implements OnInit {
         )],
       },
     ];
+    this.lineaMinWidth = this.minWidthCronologico(this.rawAnio.length);
     this.lineaChart = { ...this.lineaChart };
 
     // Configs completos para modal
