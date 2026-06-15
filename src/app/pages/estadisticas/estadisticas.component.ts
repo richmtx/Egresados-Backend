@@ -424,12 +424,15 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
     };
   }
 
-  // 7. Satisfacción por carrera – Radar
+  // 7. Satisfacción por carrera – Radar (etiquetas ocultas en la tarjeta)
   private buildRadar(data: EstadisticasResponse): void {
     this.chartRadar = {
       series: [{ name: 'Satisfacción promedio', data: data.satisfaccionCarrera.map(s => +s.promedio) }],
       chart: { ...this.baseChart('radar', 270) },
-      xaxis: { categories: data.satisfaccionCarrera.map(s => this.abrevCarrera(s.nombre_carrera)) },
+      xaxis: {
+        categories: data.satisfaccionCarrera.map(s => this.abrevCarrera(s.nombre_carrera)),
+        labels: { show: false }   // ← oculta los nombres amontonados
+      },
       colors: ['#6366f1'], fill: { opacity: 0.18 }, markers: { size: 4 },
       yaxis: { min: 0, max: 5, tickAmount: 5, labels: { formatter: (v: number) => v.toFixed(0) } }
     };
