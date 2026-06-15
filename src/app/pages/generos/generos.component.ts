@@ -182,6 +182,20 @@ export class GenerosComponent implements OnInit, OnDestroy {
     this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => { } });
   }
 
+  /** A partir de cuántos años en el eje X se activa el scroll horizontal */
+  private readonly UMBRAL_SCROLL_ANIOS = 15;
+  /** A partir de cuántos años se ocultan las etiquetas de datos (solo hover) */
+  private readonly UMBRAL_LABELS_ANIOS = 12;
+  /** Ancho (px) reservado por cada año cuando hay scroll */
+  private readonly PX_POR_ANIO = 64;
+
+  /** Ancho mínimo (px) del contenido; 0 = sin mínimo (cabe completo en la tarjeta) */
+  private minWidthCronologico(totalAnios: number): number {
+    return totalAnios > this.UMBRAL_SCROLL_ANIOS
+      ? totalAnios * this.PX_POR_ANIO
+      : 0;
+  }
+
   cargarDatos(): void {
     this.cargando = true;
     this.error = false;
@@ -368,7 +382,8 @@ export class GenerosComponent implements OnInit, OnDestroy {
 
     this.chartEgresoAnio = {
       series: [{ name: 'Hombres', data: datosH }, { name: 'Mujeres', data: datosM }],
-      chart: this.baseChart('bar', 260),
+      chart: { ...this.baseChart('bar', 260), width: '100%' },
+      minWidth: this.minWidthCronologico(anios.length),
       colors: [this.COLOR_H, this.COLOR_M],
       plotOptions: { bar: { columnWidth: '60%', borderRadius: 4 } },
       dataLabels: { enabled: false },
@@ -385,13 +400,37 @@ export class GenerosComponent implements OnInit, OnDestroy {
 
     this.chartTendenciaGenero = {
       series: [{ name: 'Hombres %', data: pctH }, { name: 'Mujeres %', data: pctM }],
-      chart: this.baseChart('area', 260),
+      chart: { ...this.baseChart('area', 260), width: '100%' },
+      minWidth: this.minWidthCronologico(anios.length),
       colors: [this.COLOR_H, this.COLOR_M],
       stroke: { curve: 'smooth', width: 2.5 },
       fill: { type: 'gradient', gradient: { opacityFrom: 0.25, opacityTo: 0.02 } },
       markers: { size: 4 },
+      dataLabels: { enabled: anios.length <= this.UMBRAL_LABELS_ANIOS },
       xaxis: { categories: anios.map(String), labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
       yaxis: { max: 100, labels: { formatter: (v: number) => v.toFixed(0) + '%', style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
+      grid: this.baseGrid,
+      legend: { ...this.baseLegend, position: 'top' },
+      tooltip: { y: { formatter: (v: number) => v.toFixed(1) + '%' } },
+    };
+  }
+
+  private buildChartTitulacionAnioGenero(res: EstadisticasGeneroResponse): void {
+    const anios = [...new Set(res.titulacionAnioGenero.map(t => t.anio_egreso))].sort();
+    const datH = anios.map(a => +(res.titulacionAnioGenero.find(t => t.anio_egreso === a && t.genero === 'Hombre')?.pct_titulados ?? 0));
+    const datM = anios.map(a => +(res.titulacionAnioGenero.find(t => t.anio_egreso === a && t.genero === 'Mujer')?.pct_titulados ?? 0));
+
+    this.chartTitulacionAnioGenero = {
+      series: [{ name: 'Hombres %', data: datH }, { name: 'Mujeres %', data: datM }],
+      chart: { ...this.baseChart('area', 260), width: '100%' },
+      minWidth: this.minWidthCronologico(anios.length),
+      colors: [this.COLOR_H, this.COLOR_M],
+      stroke: { curve: 'smooth', width: 2.5 },
+      fill: { type: 'gradient', gradient: { opacityFrom: 0.25, opacityTo: 0.02 } },
+      markers: { size: 4 },
+      dataLabels: { enabled: anios.length <= this.UMBRAL_LABELS_ANIOS },
+      xaxis: { categories: anios.map(String), labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
+      yaxis: { min: 0, max: 100, labels: { formatter: (v: number) => v + '%', style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
       grid: this.baseGrid,
       legend: { ...this.baseLegend, position: 'top' },
       tooltip: { y: { formatter: (v: number) => v.toFixed(1) + '%' } },
@@ -653,26 +692,6 @@ export class GenerosComponent implements OnInit, OnDestroy {
           }
         }
       },
-    };
-  }
-
-  private buildChartTitulacionAnioGenero(res: EstadisticasGeneroResponse): void {
-    const anios = [...new Set(res.titulacionAnioGenero.map(t => t.anio_egreso))].sort();
-    const datH = anios.map(a => +(res.titulacionAnioGenero.find(t => t.anio_egreso === a && t.genero === 'Hombre')?.pct_titulados ?? 0));
-    const datM = anios.map(a => +(res.titulacionAnioGenero.find(t => t.anio_egreso === a && t.genero === 'Mujer')?.pct_titulados ?? 0));
-
-    this.chartTitulacionAnioGenero = {
-      series: [{ name: 'Hombres %', data: datH }, { name: 'Mujeres %', data: datM }],
-      chart: this.baseChart('area', 260),
-      colors: [this.COLOR_H, this.COLOR_M],
-      stroke: { curve: 'smooth', width: 2.5 },
-      fill: { type: 'gradient', gradient: { opacityFrom: 0.25, opacityTo: 0.02 } },
-      markers: { size: 4 },
-      xaxis: { categories: anios.map(String), labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
-      yaxis: { min: 0, max: 100, labels: { formatter: (v: number) => v + '%', style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
-      grid: this.baseGrid,
-      legend: { ...this.baseLegend, position: 'top' },
-      tooltip: { y: { formatter: (v: number) => v.toFixed(1) + '%' } },
     };
   }
 

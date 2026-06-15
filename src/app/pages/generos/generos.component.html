@@ -229,7 +229,7 @@
                 Egreso por año
             </div>
 
-            <div class="charts-row row-2">
+            <div class="charts-row row-stack">
 
                 <!-- Barras agrupadas H/M por año -->
                 <div class="chart-card"
@@ -241,11 +241,15 @@
                         </div>
                         <span class="chart-badge">Barras agrupadas</span>
                     </div>
-                    <apx-chart [series]="chartEgresoAnio.series" [chart]="chartEgresoAnio.chart"
-                        [xaxis]="chartEgresoAnio.xaxis" [colors]="chartEgresoAnio.colors"
-                        [plotOptions]="chartEgresoAnio.plotOptions" [dataLabels]="chartEgresoAnio.dataLabels"
-                        [legend]="chartEgresoAnio.legend" [grid]="chartEgresoAnio.grid">
-                    </apx-chart>
+                    <div class="chart-scroll-wrap">
+                        <div class="chart-min" [style.min-width.px]="chartEgresoAnio.minWidth">
+                            <apx-chart [series]="chartEgresoAnio.series" [chart]="chartEgresoAnio.chart"
+                                [xaxis]="chartEgresoAnio.xaxis" [colors]="chartEgresoAnio.colors"
+                                [plotOptions]="chartEgresoAnio.plotOptions" [dataLabels]="chartEgresoAnio.dataLabels"
+                                [legend]="chartEgresoAnio.legend" [grid]="chartEgresoAnio.grid">
+                            </apx-chart>
+                        </div>
+                    </div>
                     <div class="chart-card-hint">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
@@ -264,12 +268,17 @@
                         </div>
                         <span class="chart-badge">Línea</span>
                     </div>
-                    <apx-chart [series]="chartTendenciaGenero.series" [chart]="chartTendenciaGenero.chart"
-                        [xaxis]="chartTendenciaGenero.xaxis" [yaxis]="chartTendenciaGenero.yaxis"
-                        [colors]="chartTendenciaGenero.colors" [stroke]="chartTendenciaGenero.stroke"
-                        [fill]="chartTendenciaGenero.fill" [markers]="chartTendenciaGenero.markers"
-                        [grid]="chartTendenciaGenero.grid" [tooltip]="chartTendenciaGenero.tooltip">
-                    </apx-chart>
+                    <div class="chart-scroll-wrap">
+                        <div class="chart-min" [style.min-width.px]="chartTendenciaGenero.minWidth">
+                            <apx-chart [series]="chartTendenciaGenero.series" [chart]="chartTendenciaGenero.chart"
+                                [xaxis]="chartTendenciaGenero.xaxis" [yaxis]="chartTendenciaGenero.yaxis"
+                                [colors]="chartTendenciaGenero.colors" [stroke]="chartTendenciaGenero.stroke"
+                                [fill]="chartTendenciaGenero.fill" [markers]="chartTendenciaGenero.markers"
+                                [dataLabels]="chartTendenciaGenero.dataLabels" [grid]="chartTendenciaGenero.grid"
+                                [tooltip]="chartTendenciaGenero.tooltip">
+                            </apx-chart>
+                        </div>
+                    </div>
                     <div class="chart-card-hint">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
@@ -573,9 +582,9 @@
                 Titulación por género
             </div>
 
-            <div class="charts-row row-2">
+            <div class="charts-row row-stack">
 
-                <!-- % titulados H/M global -->
+                <!-- % titulados H/M global (sin cambios en la gráfica) -->
                 <div class="chart-card"
                     (click)="abrirModal('bar', 'Titulación por Género', '% titulados hombres vs mujeres', chartTitulacionGenero)">
                     <div class="chart-header">
@@ -609,12 +618,18 @@
                         </div>
                         <span class="chart-badge">Línea</span>
                     </div>
-                    <apx-chart [series]="chartTitulacionAnioGenero.series" [chart]="chartTitulacionAnioGenero.chart"
-                        [xaxis]="chartTitulacionAnioGenero.xaxis" [yaxis]="chartTitulacionAnioGenero.yaxis"
-                        [colors]="chartTitulacionAnioGenero.colors" [stroke]="chartTitulacionAnioGenero.stroke"
-                        [fill]="chartTitulacionAnioGenero.fill" [markers]="chartTitulacionAnioGenero.markers"
-                        [grid]="chartTitulacionAnioGenero.grid" [tooltip]="chartTitulacionAnioGenero.tooltip">
-                    </apx-chart>
+                    <div class="chart-scroll-wrap">
+                        <div class="chart-min" [style.min-width.px]="chartTitulacionAnioGenero.minWidth">
+                            <apx-chart [series]="chartTitulacionAnioGenero.series"
+                                [chart]="chartTitulacionAnioGenero.chart" [xaxis]="chartTitulacionAnioGenero.xaxis"
+                                [yaxis]="chartTitulacionAnioGenero.yaxis" [colors]="chartTitulacionAnioGenero.colors"
+                                [stroke]="chartTitulacionAnioGenero.stroke" [fill]="chartTitulacionAnioGenero.fill"
+                                [markers]="chartTitulacionAnioGenero.markers"
+                                [dataLabels]="chartTitulacionAnioGenero.dataLabels"
+                                [grid]="chartTitulacionAnioGenero.grid" [tooltip]="chartTitulacionAnioGenero.tooltip">
+                            </apx-chart>
+                        </div>
+                    </div>
                     <div class="chart-card-hint">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
