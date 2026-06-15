@@ -80,9 +80,9 @@ export class DirectorioComponent implements OnInit, OnDestroy {
     this.directorioService.getDirectorio({
       page: this.paginaActual,
       limit: this.porPagina,
-      busqueda:   this.busqueda       || undefined,
-      carrera:    this.filtroCarrera  || undefined,
-      anio:       this.filtroAnio     ? +this.filtroAnio : undefined,
+      busqueda: this.busqueda || undefined,
+      carrera: this.filtroCarrera || undefined,
+      anio: this.filtroAnio ? +this.filtroAnio : undefined,
       titulacion: this.filtroTitulacion || undefined,
     }).subscribe({
       next: (res) => {
@@ -166,7 +166,25 @@ export class DirectorioComponent implements OnInit, OnDestroy {
 
   getFotoUrl(fotoUrl: string | null): string | null {
     if (!fotoUrl) return null;
-    return fotoUrl.startsWith('http') ? fotoUrl : `${this.baseUrl}/${fotoUrl}`;
+
+    // URL absoluta o data URI ya completo -> se usa tal cual
+    if (fotoUrl.startsWith('http') || fotoUrl.startsWith('data:')) {
+      return fotoUrl;
+    }
+
+    // Base64 "crudo" (sin prefijo data:) -> lo envolvemos
+    if (this.esBase64(fotoUrl)) {
+      return `data:image/jpeg;base64,${fotoUrl}`;
+    }
+
+    // Ruta relativa en disco (esquema antiguo) -> prefijamos baseUrl
+    return `${this.baseUrl}/${fotoUrl}`;
+  }
+
+  private esBase64(valor: string): boolean {
+    // Las cadenas Base64 son largas y solo contienen A-Z a-z 0-9 + / =
+    // (descarta rutas tipo "uploads/foto.jpg")
+    return valor.length > 100 && /^[A-Za-z0-9+/=]+$/.test(valor);
   }
 
   getAvatarColor(eg: EgresadoDirectorio): string {
@@ -182,34 +200,34 @@ export class DirectorioComponent implements OnInit, OnDestroy {
 
   getTagClass(estatus: string): string {
     switch (estatus) {
-      case 'Titulado':    return 'tag-tit';
+      case 'Titulado': return 'tag-tit';
       case 'No titulado': return 'tag-notit';
-      case 'En trámite':  return 'tag-tramite';
-      default:            return 'tag-tramite';
+      case 'En trámite': return 'tag-tramite';
+      default: return 'tag-tramite';
     }
   }
 
   getCoincidenciaPct(nivel: string | null): number {
     switch (nivel) {
-      case 'Totalmente':                                    return 100;
-      case 'En gran medida':                                return 85;
-      case 'Parcialmente':                                  return 60;
-      case 'Poco':                                          return 35;
-      case 'Nada':                                          return 10;
-      case 'No aplica / Actualmente no estoy laborando':    return 0;
-      default:                                              return 0;
+      case 'Totalmente': return 100;
+      case 'En gran medida': return 85;
+      case 'Parcialmente': return 60;
+      case 'Poco': return 35;
+      case 'Nada': return 10;
+      case 'No aplica / Actualmente no estoy laborando': return 0;
+      default: return 0;
     }
   }
 
   getCoincidenciaColor(nivel: string | null): string {
     switch (nivel) {
-      case 'Totalmente':                                    return '#16a34a';
-      case 'En gran medida':                                return '#65a30d';
-      case 'Parcialmente':                                  return '#ca8a04';
-      case 'Poco':                                          return '#ea580c';
-      case 'Nada':                                          return '#dc2626';
-      case 'No aplica / Actualmente no estoy laborando':    return '#9ca3af';
-      default:                                              return '#9ca3af';
+      case 'Totalmente': return '#16a34a';
+      case 'En gran medida': return '#65a30d';
+      case 'Parcialmente': return '#ca8a04';
+      case 'Poco': return '#ea580c';
+      case 'Nada': return '#dc2626';
+      case 'No aplica / Actualmente no estoy laborando': return '#9ca3af';
+      default: return '#9ca3af';
     }
   }
 
