@@ -54,6 +54,12 @@ export class EmpleabilidadComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private usuariosService = inject(UsuariosService);
 
+  private readonly NIVELES_POSITIVOS = new Set<string>([
+    'Totalmente',
+    'En gran medida',
+    // 'Parcialmente',  // descomenta si lo consideras coincidencia positiva
+  ]);
+
   constructor(private egresadosService: EgresadosService) { }
 
   ngOnInit(): void {
@@ -102,7 +108,7 @@ export class EmpleabilidadComponent implements OnInit {
   }
 
   private logAccion(accion: string, descripcion: string, seccion: string): void {
-    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => {} });
+    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => { } });
   }
 
   cargarEstadisticas(): void {
@@ -144,11 +150,7 @@ export class EmpleabilidadComponent implements OnInit {
     this.tiempoPromedioGeneral = Number(res.tiempoEmpleoGeneral?.anios_promedio_general ?? 0);
 
     const positivos = (res.coincidenciaCarrera ?? [])
-      .filter(c =>
-        c.coincidencia?.toLowerCase().includes('alta') ||
-        c.coincidencia?.toLowerCase().includes('totalmente') ||
-        c.coincidencia?.toLowerCase().includes('relacionad')
-      )
+      .filter(c => c.coincidencia && this.NIVELES_POSITIVOS.has(c.coincidencia))
       .reduce((acc, c) => acc + Number(c.total), 0);
 
     this.coincidenciaGlobal = res.kpis.total_egresados > 0
@@ -326,11 +328,9 @@ export class EmpleabilidadComponent implements OnInit {
     for (const item of res.coincidenciaCarrera ?? []) {
       if (!mapa[item.nombre_carrera]) mapa[item.nombre_carrera] = { pos: 0, total: 0 };
       mapa[item.nombre_carrera].total += Number(item.total);
-      const esPos =
-        item.coincidencia?.toLowerCase().includes('alta') ||
-        item.coincidencia?.toLowerCase().includes('totalmente') ||
-        item.coincidencia?.toLowerCase().includes('relacionad');
-      if (esPos) mapa[item.nombre_carrera].pos += Number(item.total);
+      if (item.coincidencia && this.NIVELES_POSITIVOS.has(item.coincidencia)) {
+        mapa[item.nombre_carrera].pos += Number(item.total);
+      }
     }
     // Nombres completos en el eje X
     const carreras = Object.keys(mapa);
@@ -350,8 +350,8 @@ export class EmpleabilidadComponent implements OnInit {
           rotate: -45,
           rotateAlways: true,
           hideOverlappingLabels: false,
-          trim: false,            
-          maxHeight: 160, 
+          trim: false,
+          maxHeight: 160,
         },
         axisBorder: { show: false },
         axisTicks: { show: false },

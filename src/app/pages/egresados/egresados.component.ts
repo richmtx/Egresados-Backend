@@ -68,12 +68,17 @@ export class EgresadosComponent implements OnInit {
     this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => { } });
   }
 
+  /** Ordena dejando el registro más reciente (id más alto) hasta arriba */
+  private ordenarRecientesPrimero(data: EgresadoDetalle[]): EgresadoDetalle[] {
+    return [...data].sort((a, b) => b.id_egresado - a.id_egresado);
+  }
+
   ngOnInit(): void {
     this.egresadosService.getEgresadosDetalle().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
-        this.egresados = data;
-        this.egresadosFiltrados = data;
-        this.cargarOpciones(data);
+        this.egresados = this.ordenarRecientesPrimero(data);
+        this.egresadosFiltrados = this.egresados;
+        this.cargarOpciones(this.egresados);
         this.cargando = false;
       },
       error: (err) => {
@@ -230,8 +235,9 @@ export class EgresadosComponent implements OnInit {
         },
         error: () => {
           if (this.egresadoEliminadoTemporal) {
-            this.egresados = [...this.egresados, this.egresadoEliminadoTemporal]
-              .sort((a, b) => a.nombre_completo.localeCompare(b.nombre_completo));
+            this.egresados = this.ordenarRecientesPrimero(
+              [...this.egresados, this.egresadoEliminadoTemporal]
+            );
             this.aplicarFiltros();
             this.egresadoEliminadoTemporal = null;
           }
@@ -245,12 +251,10 @@ export class EgresadosComponent implements OnInit {
     clearTimeout(this.toastTimer);
 
     if (this.egresadoEliminadoTemporal) {
-      this.egresados = [...this.egresados, this.egresadoEliminadoTemporal]
-        .sort((a, b) => a.nombre_completo.localeCompare(b.nombre_completo));
-
-      this.egresadosFiltrados = [...this.egresados];
+      this.egresados = this.ordenarRecientesPrimero(
+        [...this.egresados, this.egresadoEliminadoTemporal]
+      );
       this.aplicarFiltros();
-
       this.egresadoEliminadoTemporal = null;
     }
 
