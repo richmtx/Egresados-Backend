@@ -103,9 +103,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   tiempoRelativo(fecha: string): string {
     const diff = Date.now() - new Date(fecha).getTime();
+    if (diff < 0) return 'hace un momento';
     const min = Math.floor(diff / 60000);
     const hrs = Math.floor(diff / 3600000);
     const dias = Math.floor(diff / 86400000);
+    if (min < 1) return 'hace un momento';
     if (min < 60) return `hace ${min} min`;
     if (hrs < 24) return `hace ${hrs} h`;
     return `hace ${dias} día${dias !== 1 ? 's' : ''}`;
@@ -126,12 +128,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return '#ffffff';
   }
 
+  // dashboard.component.ts
+
   iconoNotificacion(tipo: string): string {
     const iconos: Record<string, string> = {
       nueva_encuesta: 'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 0 2-2h2a2 2 0 0 0 2 2',
       nueva_encuesta_ubicacion: 'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z M12 10m-3 0a3 3 0 1 0 6 0 3 3 0 0 0-6 0',
-      contacto: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z',
-      eventos: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
+      contacto: 'M20 6L9 17l-5-5',                                  // ✓ checkmark
+      eventos: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', // 📅 calendario
+      exportacion: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3', // descarga
+      actualizacion: 'M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15', // refresh
     };
     return iconos[tipo] ?? iconos['nueva_encuesta'];
   }
@@ -139,9 +145,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   colorNotificacion(tipo: string): { bg: string; color: string } {
     const map: Record<string, { bg: string; color: string }> = {
       nueva_encuesta: { bg: '#eff6ff', color: '#2563eb' },
-      nueva_encuesta_ubicacion: { bg: '#f0fdf4', color: '#16a34a' },
-      contacto: { bg: '#fef3c7', color: '#d97706' },
+      nueva_encuesta_ubicacion: { bg: '#fef2f2', color: '#dc2626' },
+      contacto: { bg: '#f0fdf4', color: '#16a34a' },
       eventos: { bg: '#ede9fe', color: '#7c3aed' },
+      exportacion: { bg: '#f0fdf4', color: '#16a34a' },
+      actualizacion: { bg: '#fffbeb', color: '#d97706' },
     };
     return map[tipo] ?? map['nueva_encuesta'];
   }
