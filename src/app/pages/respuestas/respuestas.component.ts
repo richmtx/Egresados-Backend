@@ -1,6 +1,6 @@
 import { Component, OnInit, Inject, PLATFORM_ID, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
@@ -49,6 +49,9 @@ export class RespuestasComponent implements OnInit {
   toastMensaje = '';
   toastError = false;
   private toastTimer: any;
+
+  // Exportación PDF
+  exportandoPdf = false;
 
   // URL base para imágenes
   private readonly BASE_URL = environment.apiUrl;
@@ -187,7 +190,52 @@ export class RespuestasComponent implements OnInit {
   }
 
   exportarPDF(): void {
-    this.mostrarToast('Función de exportar PDF próximamente.', false);
+    if (!this.perfilSeleccionado || this.exportandoPdf) return;
+
+    const { id_egresado, nombre_completo } = this.perfilSeleccionado;
+
+    this.exportandoPdf = true;
+    this.mostrarToast('Generando PDF...', false);
+
+    this.respuestasService.exportarPerfilPdf(id_egresado)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (blob) => {
+          this.descargarBlob(blob, this.nombreArchivoPdf(nombre_completo));
+          this.exportandoPdf = false;
+          this.mostrarToast('PDF exportado correctamente.', false);
+        },
+        error: (err) => {
+          console.error('Error exportando PDF:', err);
+          this.exportandoPdf = false;
+          this.mostrarToast('No se pudo exportar el PDF.', true);
+        },
+      });
+  }
+
+  // ── Helpers de descarga ───────────────────────────────────────────
+  private descargarBlob(blob: Blob, nombreArchivo: string): void {
+    // Guard SSR: solo en navegador
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nombreArchivo;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }
+
+  private nombreArchivoPdf(nombre: string): string {
+    const limpio = (nombre || 'egresado')
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '_')              
+      .replace(/^_+|_+$/g, '');                     
+    const fecha = new Date().toISOString().slice(0, 10);
+    return `perfil_${limpio}_${fecha}.pdf`;
   }
 
   // ── Toast ─────────────────────────────────────────────────────────

@@ -61,4 +61,10 @@ export class RespuestasService {
   getPendientesRevision(): Observable<{ total: number; egresados: any[] }> {
     return this.http.get<{ total: number; egresados: any[] }>(`${this.base}/pendientes-revision`);
   }
+
+  exportarPerfilPdf(id: number): Observable<Blob> {
+    return this.http.get(`${this.base}/${id}/export/pdf`, {
+      responseType: 'blob',
+    });
+  }
 }

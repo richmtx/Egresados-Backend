@@ -125,6 +125,13 @@ export class VinculacionComponent implements OnInit {
   // Foto de perfil
   getFotoUrl(fotoUrl: string | null | undefined): string | null {
     if (!fotoUrl) return null;
+
+    // Base64 (Railway) o URL absoluta → se usa tal cual
+    if (fotoUrl.startsWith('data:') || fotoUrl.startsWith('http')) {
+      return fotoUrl;
+    }
+
+    // Ruta relativa en disco (servidor ITD) → se le antepone la base
     return `${this.BASE_URL}/${fotoUrl}`;
   }
 
