@@ -74,7 +74,20 @@
           <option *ngFor="let a of aniosDisponibles" [value]="a">{{ a }}</option>
         </select>
       </div>
-      <button class="btn-limpiar" (click)="limpiarFiltros()" *ngIf="filtroCarrera || filtroAnio">
+      <div class="filtro-item">
+        <select class="filtro-select" [(ngModel)]="filtroTiempo" (change)="onFiltroChange()">
+          <option value="">Cualquier tiempo de colocación</option>
+          <option *ngFor="let t of tiemposDisponibles" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+      <div class="filtro-item">
+        <select class="filtro-select" [(ngModel)]="filtroMedio" (change)="onFiltroChange()">
+          <option value="">Cualquier medio</option>
+          <option *ngFor="let m of mediosDisponibles" [value]="m">{{ m }}</option>
+        </select>
+      </div>
+      <button class="btn-limpiar" (click)="limpiarFiltros()"
+        *ngIf="filtroCarrera || filtroAnio || filtroTiempo || filtroMedio">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <line x1="18" y1="6" x2="6" y2="18" />
           <line x1="6" y1="6" x2="18" y2="18" />
@@ -146,8 +159,8 @@
           </div>
           <div class="kpi-body">
             <span class="kpi-label">Tiempo prom. para emplearse</span>
-            <span class="kpi-value">{{ tiempoPromedioGeneral | number:'1.1-1' }}<small> años</small></span>
-            <span class="kpi-sub">estimado por antigüedad y egreso</span>
+            <span class="kpi-value">{{ tiempoPromedioValor }}<small> {{ tiempoPromedioUnidad }}</small></span>
+            <span class="kpi-sub">promedio de quienes ya se emplearon</span>
           </div>
         </div>
 
@@ -233,23 +246,43 @@
       <!-- Tiempo promedio para emplearse — ocupa todo el ancho -->
       <div class="charts-row row-full">
         <div class="chart-card"
-          (click)="abrirModal('bar', 'Tiempo para emplearse', 'Años estimados por carrera', chartTiempoEmpleo)">
+          (click)="abrirModal('bar', 'Tiempo para emplearse', 'Cuántos egresados por rango de tiempo', chartTiempoEmpleo)">
           <div class="chart-header">
             <div>
               <h3 class="chart-title">Tiempo para emplearse</h3>
-              <p class="chart-sub">Distribución por rango declarado, por carrera</p>
+              <p class="chart-sub">Cuánto tardan en conseguir su primer empleo</p>
             </div>
-            <span class="chart-badge badge-cyan">Distribución %</span>
+            <span class="chart-badge badge-cyan">Global</span>
           </div>
-          <p class="chart-note">
-            Basado en lo que cada egresado declaró sobre cuánto tardó en
-            conseguir su primer empleo. Las carreras se ordenan por mayor
-            colocación en 6 meses o menos.
-          </p>
           <apx-chart [series]="chartTiempoEmpleo.series" [chart]="chartTiempoEmpleo.chart"
             [xaxis]="chartTiempoEmpleo.xaxis" [yaxis]="chartTiempoEmpleo.yaxis" [colors]="chartTiempoEmpleo.colors"
             [plotOptions]="chartTiempoEmpleo.plotOptions" [dataLabels]="chartTiempoEmpleo.dataLabels"
             [legend]="chartTiempoEmpleo.legend" [grid]="chartTiempoEmpleo.grid" [tooltip]="chartTiempoEmpleo.tooltip">
+          </apx-chart>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            Clic para expandir
+          </div>
+        </div>
+      </div>
+
+      <!-- Medio de obtención del primer empleo — ocupa todo el ancho -->
+      <div class="charts-row row-full">
+        <div class="chart-card"
+          (click)="abrirModal('bar', 'Medio del primer empleo', 'Cómo consiguieron su primer trabajo', chartMedioEmpleo)">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Medio del primer empleo</h3>
+              <p class="chart-sub">Cómo consiguieron su primer trabajo</p>
+            </div>
+            <span class="chart-badge badge-cyan">Global</span>
+          </div>
+          <apx-chart [series]="chartMedioEmpleo.series" [chart]="chartMedioEmpleo.chart"
+            [xaxis]="chartMedioEmpleo.xaxis" [yaxis]="chartMedioEmpleo.yaxis" [colors]="chartMedioEmpleo.colors"
+            [plotOptions]="chartMedioEmpleo.plotOptions" [dataLabels]="chartMedioEmpleo.dataLabels"
+            [legend]="chartMedioEmpleo.legend" [grid]="chartMedioEmpleo.grid" [tooltip]="chartMedioEmpleo.tooltip">
           </apx-chart>
           <div class="chart-card-hint">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

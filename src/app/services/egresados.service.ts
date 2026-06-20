@@ -48,6 +48,12 @@ export interface EstadisticasEmpleabilidad {
     rango: string;
     total: number | string;
   }[];
+  medioPrimerEmpleo: {
+    id_medio: number | string;
+    medio: string;
+    orden: number | string;
+    total: number | string;
+  }[];
 }
 
 @Injectable({
@@ -58,17 +64,21 @@ export class EgresadosService {
 
   constructor(private http: HttpClient) { }
 
-  getEstadisticas(carrera?: string, anio?: number): Observable<EstadisticasEmpleabilidad> {
+  getEstadisticas(carrera?: string, anio?: number, tiempo?: string, medio?: string): Observable<EstadisticasEmpleabilidad> {
     let params = new HttpParams();
     if (carrera) params = params.set('carrera', carrera);
     if (anio) params = params.set('anio', anio.toString());
+    if (tiempo) params = params.set('tiempo', tiempo);
+    if (medio) params = params.set('medio', medio);
     return this.http.get<EstadisticasEmpleabilidad>(`${this.API_URL}/egresados/estadisticas`, { params });
   }
 
-  exportarPdfEmpleabilidad(carrera?: string, anio?: number): Observable<Blob> {
+  exportarPdfEmpleabilidad(carrera?: string, anio?: number, tiempo?: string, medio?: string): Observable<Blob> {
     let params = new HttpParams();
     if (carrera) params = params.set('carrera', carrera);
     if (anio) params = params.set('anio', anio.toString());
+    if (tiempo) params = params.set('tiempo', tiempo);
+    if (medio) params = params.set('medio', medio);
     return this.http.get(`${this.API_URL}/egresados/empleabilidad/export/pdf`, { params, responseType: 'blob' });
   }
 

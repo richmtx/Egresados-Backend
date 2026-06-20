@@ -24,6 +24,10 @@ export class EmpleabilidadComponent implements OnInit {
   // Filtros
   filtroCarrera = '';
   filtroAnio: number | '' = '';
+  filtroTiempo = '';
+  filtroMedio = '';
+  tiemposDisponibles: string[] = [];
+  mediosDisponibles: string[] = [];
   carrerasDisponibles: string[] = [];
   aniosDisponibles: number[] = [];
   private filtrosInicializados = false;
@@ -51,6 +55,8 @@ export class EmpleabilidadComponent implements OnInit {
   modalSubtitulo = '';
   modalChart: any = {};
 
+  chartMedioEmpleo: any = {};
+
   private destroyRef = inject(DestroyRef);
   private usuariosService = inject(UsuariosService);
 
@@ -70,12 +76,37 @@ export class EmpleabilidadComponent implements OnInit {
   ];
 
   private readonly COLOR_RANGOS: Record<string, string> = {
-    'Menos de 3 meses': '#059669', // verde fuerte
-    'De 3 a 6 meses': '#34d399', // verde claro
-    'De 6 meses a 1 año': '#fbbf24', // ámbar
+    'Menos de 3 meses': '#22c55e', // verde fuerte
+    'De 3 a 6 meses': '#84cc16', // verde claro
+    'De 6 meses a 1 año': '#eab308', // ámbar
     'De 1 a 2 años': '#f97316', // naranja
     'Más de 2 años': '#ef4444', // rojo
     'Aún no he conseguido empleo': '#94a3b8', // gris
+  };
+
+  private readonly RANGO_CORTO: Record<string, string> = {
+    'Menos de 3 meses': '< 3 meses',
+    'De 3 a 6 meses': '3–6 meses',
+    'De 6 meses a 1 año': '6 m – 1 año',
+    'De 1 a 2 años': '1–2 años',
+    'Más de 2 años': '> 2 años',
+    'Aún no he conseguido empleo': 'Sin empleo aún',
+  };
+
+  private readonly COLOR_MEDIOS: Record<string, string> = {
+    'LinkedIn': '#0a66c2',
+    'Otra plataforma de empleo': '#6366f1',
+    'Bolsa de trabajo ITD': '#6b1331',
+    'Por recomendación': '#f59e0b',
+    'Otra': '#94a3b8',
+  };
+
+  private readonly MEDIO_CORTO: Record<string, string> = {
+    'LinkedIn': 'LinkedIn',
+    'Otra plataforma de empleo': 'Otra plataforma',
+    'Bolsa de trabajo ITD': 'Bolsa ITD',
+    'Por recomendación': 'Recomendación',
+    'Otra': 'Otra',
   };
 
   constructor(private egresadosService: EgresadosService) { }
@@ -91,6 +122,8 @@ export class EmpleabilidadComponent implements OnInit {
     this.egresadosService.exportarPdfEmpleabilidad(
       this.filtroCarrera || undefined,
       this.filtroAnio || undefined,
+      this.filtroTiempo || undefined,
+      this.filtroMedio || undefined,
     ).subscribe({
       next: (blob) => {
         this.descargarArchivo(blob, `empleabilidad_${new Date().toISOString().split('T')[0]}.pdf`);
@@ -136,6 +169,8 @@ export class EmpleabilidadComponent implements OnInit {
     this.egresadosService.getEstadisticas(
       this.filtroCarrera || undefined,
       this.filtroAnio || undefined,
+      this.filtroTiempo || undefined,
+      this.filtroMedio || undefined,
     ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.datos = res;
@@ -156,6 +191,8 @@ export class EmpleabilidadComponent implements OnInit {
   limpiarFiltros(): void {
     this.filtroCarrera = '';
     this.filtroAnio = '';
+    this.filtroTiempo = '';
+    this.filtroMedio = '';
     this.cargarEstadisticas();
   }
 
@@ -181,6 +218,14 @@ export class EmpleabilidadComponent implements OnInit {
         ...new Set(res.empleabilidadCarrera.map(e => e.nombre_carrera)),
       ];
 
+      this.tiemposDisponibles = this.ORDEN_RANGOS.filter(r =>
+        (res.distribucionTiempoEmpleo ?? []).some(d => d.rango === r),
+      );
+
+      this.mediosDisponibles = [...(res.medioPrimerEmpleo ?? [])]
+        .sort((a, b) => Number(a.orden) - Number(b.orden))
+        .map(m => m.medio);
+
       const aniosSet = new Set<number>();
       (res as any).titulacionAnio?.forEach((t: any) => aniosSet.add(Number(t.anio_egreso)));
       (res as any).evolucionGeneracion?.forEach((e: any) => aniosSet.add(Number(e.anio_egreso)));
@@ -192,6 +237,7 @@ export class EmpleabilidadComponent implements OnInit {
     this.buildChartEmpleabilidadCarrera(res);
     this.buildChartSectores(res);
     this.buildChartTiempoEmpleo(res);
+    this.buildChartMedioEmpleo(res);
     this.buildChartCoincidencia(res);
     this.buildChartTopEmpresas(res);
   }
@@ -306,71 +352,137 @@ export class EmpleabilidadComponent implements OnInit {
   private buildChartTiempoEmpleo(res: EstadisticasEmpleabilidad): void {
     const filas = res.distribucionTiempoEmpleo ?? [];
 
-    // Pivot: carrera -> { rango: total }
-    const mapa: Record<string, Record<string, number>> = {};
+    // Suma de egresados por rango, juntando todas las carreras
+    const totalPorRango: Record<string, number> = {};
     for (const f of filas) {
-      if (!mapa[f.nombre_carrera]) mapa[f.nombre_carrera] = {};
-      mapa[f.nombre_carrera][f.rango] = Number(f.total);
+      totalPorRango[f.rango] = (totalPorRango[f.rango] || 0) + Number(f.total);
     }
 
-    // Solo los rangos que realmente aparecen, en orden cronológico
-    const rangos = this.ORDEN_RANGOS.filter(r =>
-      filas.some(f => f.rango === r),
-    );
-
-    // Carreras ordenadas por % de colocación rápida (<= 6 meses).
-    // Ascendente: en barra horizontal, el último del array queda arriba,
-    // así la carrera que coloca más rápido aparece en la cima.
-    const carreras = Object.keys(mapa).sort(
-      (a, b) => this.pctRapido(mapa[a]) - this.pctRapido(mapa[b]),
-    );
-
-    const series = rangos.map(rango => ({
-      name: rango,
-      data: carreras.map(c => mapa[c][rango] || 0),
-    }));
+    // Solo los rangos con datos, en orden cronológico
+    const rangos = this.ORDEN_RANGOS.filter(r => (totalPorRango[r] || 0) > 0);
+    const valores = rangos.map(r => totalPorRango[r]);
+    const totalGeneral = valores.reduce((a, b) => a + b, 0);
 
     this.chartTiempoEmpleo = {
-      series,
+      series: [{ name: 'Egresados', data: valores }],
       chart: {
         type: 'bar',
-        height: Math.max(420, carreras.length * 30),
-        stacked: true,
-        stackType: '100%',
+        height: 400,
         toolbar: { show: false },
         fontFamily: 'inherit',
       },
-      plotOptions: { bar: { horizontal: true, barHeight: '70%' } },
-      dataLabels: { enabled: false },
-      xaxis: {
-        categories: carreras,
-        max: 100,
-        labels: {
-          formatter: (val: number) => `${Math.round(val)}%`,
-          style: { fontSize: '11px', colors: ['#94a3b8'] },
+      plotOptions: {
+        bar: {
+          distributed: true,        // un color por barra
+          borderRadius: 6,
+          columnWidth: '55%',
+          dataLabels: { position: 'top' },
         },
+      },
+      dataLabels: {
+        enabled: true,
+        offsetY: -20,
+        formatter: (val: number) => {
+          const pct = totalGeneral > 0 ? Math.round((val / totalGeneral) * 100) : 0;
+          return `${val} (${pct}%)`;
+        },
+        style: { fontSize: '12px', fontWeight: 600, colors: ['#334155'] },
+      },
+      xaxis: {
+        categories: rangos.map(r => this.RANGO_CORTO[r] ?? r),
+        labels: { style: { fontSize: '11px', colors: rangos.map(() => '#475569') } },
         axisBorder: { show: false },
         axisTicks: { show: false },
       },
       yaxis: {
-        labels: { style: { fontSize: '11px', colors: ['#475569'] }, maxWidth: 220 },
+        labels: {
+          formatter: (v: number) => `${Math.round(v)}`,
+          style: { fontSize: '11px', colors: ['#94a3b8'] },
+        },
+        title: {
+          text: 'Número de egresados',
+          style: { fontSize: '12px', color: '#64748b', fontWeight: 500 },
+        },
       },
       colors: rangos.map(r => this.COLOR_RANGOS[r] ?? '#cbd5e1'),
-      legend: {
-        position: 'top',
-        fontSize: '12px',
-        markers: { size: 7 },
-        labels: { colors: rangos.map(() => '#374151') },
-      },
+      legend: { show: false },
       grid: {
         borderColor: '#f1f5f9',
-        xaxis: { lines: { show: true } },
-        yaxis: { lines: { show: false } },
+        xaxis: { lines: { show: false } },
+        yaxis: { lines: { show: true } },
       },
       tooltip: {
-        shared: false,
-        intersect: false,
-        y: { formatter: (val: number) => `${val} egresado(s)` },
+        y: {
+          formatter: (val: number) => {
+            const pct = totalGeneral > 0 ? Math.round((val / totalGeneral) * 100) : 0;
+            return `${val} egresado(s) — ${pct}% del total`;
+          },
+        },
+      },
+    };
+  }
+
+  private buildChartMedioEmpleo(res: EstadisticasEmpleabilidad): void {
+    const filas = res.medioPrimerEmpleo ?? []; // ya viene ordenado por 'orden'
+    const medios = filas.map(f => f.medio);
+    const valores = filas.map(f => Number(f.total));
+    const totalGeneral = valores.reduce((a, b) => a + b, 0);
+
+    this.chartMedioEmpleo = {
+      series: [{ name: 'Egresados', data: valores }],
+      chart: {
+        type: 'bar',
+        height: 400,
+        toolbar: { show: false },
+        fontFamily: 'inherit',
+      },
+      plotOptions: {
+        bar: {
+          distributed: true,
+          borderRadius: 6,
+          columnWidth: '55%',
+          dataLabels: { position: 'top' },
+        },
+      },
+      dataLabels: {
+        enabled: true,
+        offsetY: -20,
+        formatter: (val: number) => {
+          const pct = totalGeneral > 0 ? Math.round((val / totalGeneral) * 100) : 0;
+          return `${val} (${pct}%)`;
+        },
+        style: { fontSize: '12px', fontWeight: 600, colors: ['#334155'] },
+      },
+      xaxis: {
+        categories: medios.map(m => this.MEDIO_CORTO[m] ?? m),
+        labels: { style: { fontSize: '11px', colors: medios.map(() => '#475569') } },
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+      },
+      yaxis: {
+        labels: {
+          formatter: (v: number) => `${Math.round(v)}`,
+          style: { fontSize: '11px', colors: ['#94a3b8'] },
+        },
+        title: {
+          text: 'Número de egresados',
+          style: { fontSize: '12px', color: '#64748b', fontWeight: 500 },
+        },
+      },
+      colors: medios.map(m => this.COLOR_MEDIOS[m] ?? '#cbd5e1'),
+      legend: { show: false },
+      grid: {
+        borderColor: '#f1f5f9',
+        xaxis: { lines: { show: false } },
+        yaxis: { lines: { show: true } },
+      },
+      tooltip: {
+        y: {
+          formatter: (val: number) => {
+            const pct = totalGeneral > 0 ? Math.round((val / totalGeneral) * 100) : 0;
+            return `${val} egresado(s) — ${pct}% del total`;
+          },
+        },
       },
     };
   }
@@ -393,17 +505,31 @@ export class EmpleabilidadComponent implements OnInit {
         mapa[item.nombre_carrera].pos += Number(item.total);
       }
     }
-    // Nombres completos en el eje X
+
+    // Conservamos conteos alineados con las carreras
     const carreras = Object.keys(mapa);
-    const porcentajes = Object.values(mapa).map(v =>
-      v.total > 0 ? Math.round((v.pos / v.total) * 100) : 0,
+    const pos = carreras.map(c => mapa[c].pos);
+    const totales = carreras.map(c => mapa[c].total);
+    const porcentajes = carreras.map(c =>
+      mapa[c].total > 0 ? Math.round((mapa[c].pos / mapa[c].total) * 100) : 0,
     );
 
     this.chartCoincidencia = {
       series: [{ name: 'Coincidencia laboral', data: porcentajes }],
       chart: { type: 'bar', height: 420, toolbar: { show: false }, fontFamily: 'inherit' },
-      plotOptions: { bar: { borderRadius: 4, columnWidth: '50%' } },
-      dataLabels: { enabled: false },
+      plotOptions: {
+        bar: { borderRadius: 4, columnWidth: '50%', dataLabels: { position: 'top' } },
+      },
+      dataLabels: {
+        enabled: false,
+        offsetY: -16,
+        // Número exacto de egresados que coinciden, encima de cada barra
+        formatter: (_val: number, opts: any) => {
+          const i = opts?.dataPointIndex ?? 0;
+          return `${pos[i]}`;
+        },
+        style: { fontSize: '10px', fontWeight: 600, colors: ['#475569'] },
+      },
       xaxis: {
         categories: carreras,
         labels: {
@@ -423,7 +549,14 @@ export class EmpleabilidadComponent implements OnInit {
       },
       colors: ['#10b981'],
       grid: { borderColor: '#f1f5f9', yaxis: { lines: { show: true } }, xaxis: { lines: { show: false } } },
-      tooltip: { y: { formatter: (val: number) => `${val}% trabaja en su área` } },
+      tooltip: {
+        y: {
+          formatter: (val: number, opts: any) => {
+            const i = opts?.dataPointIndex ?? 0;
+            return `${val}% · ${pos[i]} de ${totales[i]} egresados`;
+          },
+        },
+      },
     };
   }
 
@@ -474,7 +607,37 @@ export class EmpleabilidadComponent implements OnInit {
   }
 
   getTiempoCarrera(carrera: string): string {
-    const item = (this.datos?.tiempoEmpleoCarrera ?? []).find(t => t.nombre_carrera === carrera);
-    return item ? `${Number(item.anios_promedio_para_emplearse ?? 0).toFixed(1)} años` : '—';
+    const item = (this.datos?.tiempoEmpleoCarrera ?? [])
+      .find(t => t.nombre_carrera === carrera);
+    if (!item) return '—';
+
+    const anios = Number(item.anios_promedio_para_emplearse ?? 0);
+    const totalMeses = Math.round(anios * 12);
+    if (totalMeses <= 0) return '—';
+
+    // Menos de un año → solo meses
+    if (totalMeses < 12) {
+      return `${totalMeses} ${totalMeses === 1 ? 'mes' : 'meses'}`;
+    }
+
+    // Un año o más → "X año(s)" y, si sobran meses, "y Y mes(es)"
+    const aniosEnteros = Math.floor(totalMeses / 12);
+    const meses = totalMeses % 12;
+    const parteAnios = `${aniosEnteros} ${aniosEnteros === 1 ? 'año' : 'años'}`;
+
+    if (meses === 0) return parteAnios;
+    return `${parteAnios} y ${meses} ${meses === 1 ? 'mes' : 'meses'}`;
+  }
+
+  /** Valor del KPI: meses si es < 1 año, si no años con 1 decimal */
+  get tiempoPromedioValor(): string {
+    if (!this.tiempoPromedioGeneral) return '—';
+    const meses = this.tiempoPromedioGeneral * 12;
+    return meses < 12 ? `${Math.round(meses)}` : this.tiempoPromedioGeneral.toFixed(1);
+  }
+
+  get tiempoPromedioUnidad(): string {
+    if (!this.tiempoPromedioGeneral) return '';
+    return this.tiempoPromedioGeneral * 12 < 12 ? 'meses' : 'años';
   }
 }
