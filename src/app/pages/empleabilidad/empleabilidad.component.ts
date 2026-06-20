@@ -60,6 +60,24 @@ export class EmpleabilidadComponent implements OnInit {
     // 'Parcialmente',  // descomenta si lo consideras coincidencia positiva
   ]);
 
+  private readonly ORDEN_RANGOS = [
+    'Menos de 3 meses',
+    'De 3 a 6 meses',
+    'De 6 meses a 1 año',
+    'De 1 a 2 años',
+    'Más de 2 años',
+    'Aún no he conseguido empleo',
+  ];
+
+  private readonly COLOR_RANGOS: Record<string, string> = {
+    'Menos de 3 meses': '#059669', // verde fuerte
+    'De 3 a 6 meses': '#34d399', // verde claro
+    'De 6 meses a 1 año': '#fbbf24', // ámbar
+    'De 1 a 2 años': '#f97316', // naranja
+    'Más de 2 años': '#ef4444', // rojo
+    'Aún no he conseguido empleo': '#94a3b8', // gris
+  };
+
   constructor(private egresadosService: EgresadosService) { }
 
   ngOnInit(): void {
@@ -286,41 +304,84 @@ export class EmpleabilidadComponent implements OnInit {
   }
 
   private buildChartTiempoEmpleo(res: EstadisticasEmpleabilidad): void {
-    const sorted = [...(res.tiempoEmpleoCarrera ?? [])].sort(
-      (a, b) => Number(a.anios_promedio_para_emplearse) - Number(b.anios_promedio_para_emplearse),
+    const filas = res.distribucionTiempoEmpleo ?? [];
+
+    // Pivot: carrera -> { rango: total }
+    const mapa: Record<string, Record<string, number>> = {};
+    for (const f of filas) {
+      if (!mapa[f.nombre_carrera]) mapa[f.nombre_carrera] = {};
+      mapa[f.nombre_carrera][f.rango] = Number(f.total);
+    }
+
+    // Solo los rangos que realmente aparecen, en orden cronológico
+    const rangos = this.ORDEN_RANGOS.filter(r =>
+      filas.some(f => f.rango === r),
     );
-    // Nombres completos en el eje Y
-    const carreras = sorted.map(t => t.nombre_carrera);
-    const anios = sorted.map(t => parseFloat(Number(t.anios_promedio_para_emplearse ?? 0).toFixed(1)));
+
+    // Carreras ordenadas por % de colocación rápida (<= 6 meses).
+    // Ascendente: en barra horizontal, el último del array queda arriba,
+    // así la carrera que coloca más rápido aparece en la cima.
+    const carreras = Object.keys(mapa).sort(
+      (a, b) => this.pctRapido(mapa[a]) - this.pctRapido(mapa[b]),
+    );
+
+    const series = rangos.map(rango => ({
+      name: rango,
+      data: carreras.map(c => mapa[c][rango] || 0),
+    }));
 
     this.chartTiempoEmpleo = {
-      series: [{ name: 'Años para emplearse', data: anios }],
+      series,
       chart: {
         type: 'bar',
-        height: 420,
+        height: Math.max(420, carreras.length * 30),
+        stacked: true,
+        stackType: '100%',
         toolbar: { show: false },
-        fontFamily: 'inherit'
+        fontFamily: 'inherit',
       },
-      plotOptions: { bar: { horizontal: true, borderRadius: 4 } },
+      plotOptions: { bar: { horizontal: true, barHeight: '70%' } },
       dataLabels: { enabled: false },
       xaxis: {
         categories: carreras,
+        max: 100,
         labels: {
-          style: { fontSize: '11px', colors: ['#94a3b8'] }
+          formatter: (val: number) => `${Math.round(val)}%`,
+          style: { fontSize: '11px', colors: ['#94a3b8'] },
         },
         axisBorder: { show: false },
         axisTicks: { show: false },
       },
       yaxis: {
-        labels: {
-          style: { fontSize: '11px', colors: ['#475569'] },
-          maxWidth: 200,
-        }
+        labels: { style: { fontSize: '11px', colors: ['#475569'] }, maxWidth: 220 },
       },
-      colors: ['#22d3ee'],
-      grid: { borderColor: '#f1f5f9', xaxis: { lines: { show: true } }, yaxis: { lines: { show: false } } },
-      tooltip: { y: { formatter: (val: number) => `${val} años en promedio` } },
+      colors: rangos.map(r => this.COLOR_RANGOS[r] ?? '#cbd5e1'),
+      legend: {
+        position: 'top',
+        fontSize: '12px',
+        markers: { size: 7 },
+        labels: { colors: rangos.map(() => '#374151') },
+      },
+      grid: {
+        borderColor: '#f1f5f9',
+        xaxis: { lines: { show: true } },
+        yaxis: { lines: { show: false } },
+      },
+      tooltip: {
+        shared: false,
+        intersect: false,
+        y: { formatter: (val: number) => `${val} egresado(s)` },
+      },
     };
+  }
+
+  /** % de egresados de la carrera que colocaron en <= 6 meses */
+  private pctRapido(porRango: Record<string, number>): number {
+    const total = Object.values(porRango).reduce((a, b) => a + b, 0);
+    if (!total) return 0;
+    const rapido =
+      (porRango['Menos de 3 meses'] || 0) + (porRango['De 3 a 6 meses'] || 0);
+    return (rapido / total) * 100;
   }
 
   private buildChartCoincidencia(res: EstadisticasEmpleabilidad): void {

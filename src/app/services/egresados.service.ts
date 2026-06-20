@@ -42,6 +42,12 @@ export interface EstadisticasEmpleabilidad {
   tiempoEmpleoGeneral: {
     anios_promedio_general: number | string;
   };
+  distribucionTiempoEmpleo: {
+    nombre_carrera: string;
+    id_tiempo: number | string;
+    rango: string;
+    total: number | string;
+  }[];
 }
 
 @Injectable({
@@ -50,7 +56,7 @@ export interface EstadisticasEmpleabilidad {
 export class EgresadosService {
   private readonly API_URL = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getEstadisticas(carrera?: string, anio?: number): Observable<EstadisticasEmpleabilidad> {
     let params = new HttpParams();
