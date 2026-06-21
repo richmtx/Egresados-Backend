@@ -309,55 +309,80 @@
         Detalle por Carrera
       </div>
 
-      <div class="charts-row row-full">
-        <div class="chart-card">
-          <div class="chart-header">
-            <div>
-              <h3 class="chart-title">Detalle por carrera y año de egreso</h3>
-              <p class="chart-sub">Estatus de titulación con semáforo de rendimiento</p>
+      <div class="detalle-card">
+
+        <div class="detalle-toolbar">
+          <span class="detalle-count">{{ gruposFiltrados.length }} carrera(s)</span>
+          <div class="detalle-actions">
+            <button type="button" class="btn-detalle" (click)="expandirTodo()">Expandir todo</button>
+            <button type="button" class="btn-detalle" (click)="colapsarTodo()">Colapsar todo</button>
+          </div>
+        </div>
+
+        <div class="detalle-scroll">
+
+          <!-- Encabezado de columnas -->
+          <div class="detalle-head">
+            <span class="col-carrera">Carrera</span>
+            <span class="col-num">Año</span>
+            <span class="col-num">Total</span>
+            <span class="col-num">Titulados</span>
+            <span class="col-num">En trámite</span>
+            <span class="col-num">No titulados</span>
+            <span class="col-num">% Titulados</span>
+            <span class="col-estado">Estado</span>
+          </div>
+
+          <ng-container *ngFor="let g of gruposFiltrados; trackBy: trackByCarrera">
+
+            <!-- Fila resumen de carrera -->
+            <div class="detalle-row row-grupo" (click)="toggleGrupo(g)">
+              <span class="col-carrera">
+                <span class="caret" [class.caret-open]="g.expandido">▸</span>
+                {{ g.nombre_carrera }}
+                <span class="badge-anios">{{ g.anios.length }} años</span>
+              </span>
+              <span class="col-num td-muted">Todos</span>
+              <span class="col-num"><strong>{{ g.total }}</strong></span>
+              <span class="col-num">{{ g.titulados }}</span>
+              <span class="col-num">{{ g.en_tramite }}</span>
+              <span class="col-num">{{ g.no_titulados }}</span>
+              <span class="col-num"><strong>{{ g.pct_titulados }}%</strong></span>
+              <span class="col-estado">
+                <span class="pct-badge" [class.pct-high]="g.pct_titulados >= 70"
+                  [class.pct-mid]="g.pct_titulados >= 50 && g.pct_titulados < 70"
+                  [class.pct-low]="g.pct_titulados < 50">
+                  {{ getBadgeTexto(g.pct_titulados) }}
+                </span>
+              </span>
             </div>
-            <input *ngIf="!filtroCarrera" type="text" class="filtro-select" style="width:200px;"
-              placeholder="Buscar carrera..." (input)="filtrarTabla($event)" />
+
+            <!-- Detalle por año -->
+            <ng-container *ngIf="g.expandido">
+              <div class="detalle-row row-detalle" *ngFor="let row of g.anios; trackBy: trackByAnio">
+                <span class="col-carrera td-sub"></span>
+                <span class="col-num">{{ row.anio_egreso }}</span>
+                <span class="col-num">{{ row.total }}</span>
+                <span class="col-num">{{ row.titulados }}</span>
+                <span class="col-num">{{ row.en_tramite }}</span>
+                <span class="col-num">{{ row.no_titulados }}</span>
+                <span class="col-num"><strong>{{ row.pct_titulados }}%</strong></span>
+                <span class="col-estado">
+                  <span class="pct-badge" [class.pct-high]="row.pct_titulados >= 70"
+                    [class.pct-mid]="row.pct_titulados >= 50 && row.pct_titulados < 70"
+                    [class.pct-low]="row.pct_titulados < 50">
+                    {{ getBadgeTexto(row.pct_titulados) }}
+                  </span>
+                </span>
+              </div>
+            </ng-container>
+
+          </ng-container>
+
+          <div class="detalle-empty" *ngIf="gruposFiltrados.length === 0">
+            Sin resultados para el filtro aplicado.
           </div>
-          <div class="table-wrap">
-            <table class="tit-table">
-              <thead>
-                <tr>
-                  <th>Carrera</th>
-                  <th>Año egreso</th>
-                  <th>Total</th>
-                  <th>Titulados</th>
-                  <th>En trámite</th>
-                  <th>No titulados</th>
-                  <th>% Titulados</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let row of tablaFiltrada">
-                  <td class="td-carrera">{{ row.nombre_carrera }}</td>
-                  <td class="td-center">{{ row.anio_egreso }}</td>
-                  <td class="td-center">{{ row.total }}</td>
-                  <td class="td-center">{{ row.titulados }}</td>
-                  <td class="td-center">{{ row.en_tramite }}</td>
-                  <td class="td-center">{{ row.no_titulados }}</td>
-                  <td class="td-center"><strong>{{ row.pct_titulados }}%</strong></td>
-                  <td class="td-center">
-                    <span class="pct-badge" [class.pct-high]="row.pct_titulados >= 70"
-                      [class.pct-mid]="row.pct_titulados >= 50 && row.pct_titulados < 70"
-                      [class.pct-low]="row.pct_titulados < 50">
-                      {{ getBadgeTexto(row.pct_titulados) }}
-                    </span>
-                  </td>
-                </tr>
-                <tr *ngIf="tablaFiltrada.length === 0">
-                  <td colspan="8" class="td-center" style="padding:2rem; color:#9ca3af;">
-                    Sin resultados para el filtro aplicado.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+
         </div>
       </div>
 

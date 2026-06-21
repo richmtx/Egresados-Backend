@@ -82,10 +82,17 @@ export class EgresadosService {
     return this.http.get(`${this.API_URL}/egresados/empleabilidad/export/pdf`, { params, responseType: 'blob' });
   }
 
-  exportarExcelEmpleabilidad(carrera?: string, anio?: number): Observable<Blob> {
+  exportarExcelEmpleabilidad(
+    carrera?: string,
+    anio?: number,
+    tiempo?: string,
+    medio?: string,
+  ): Observable<Blob> {
     let params = new HttpParams();
     if (carrera) params = params.set('carrera', carrera);
     if (anio) params = params.set('anio', anio.toString());
+    if (tiempo) params = params.set('tiempo', tiempo);
+    if (medio) params = params.set('medio', medio);
     return this.http.get(`${this.API_URL}/egresados/empleabilidad/export/excel`, { params, responseType: 'blob' });
   }
 }

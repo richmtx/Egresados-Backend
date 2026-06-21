@@ -765,3 +765,249 @@
 .chart-modal-body {
     padding: 20px;
 }
+
+.detalle-card {
+    background: #fff;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 6px;
+}
+
+.detalle-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.detalle-count {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+.detalle-actions {
+    display: flex;
+    gap: .75rem;
+}
+
+.detalle-scroll {
+    overflow-x: auto;
+}
+
+/* La MISMA plantilla de columnas para encabezado y filas → todo alineado */
+.detalle-head,
+.detalle-row {
+    display: grid;
+    grid-template-columns: minmax(220px, 2.2fr) repeat(6, minmax(78px, 1fr)) minmax(92px, 1fr);
+    align-items: center;
+    gap: 8px;
+    min-width: 780px;
+}
+
+.detalle-head {
+    padding: 10px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #6b7280;
+    background: #f9fafb;
+    border-radius: 8px;
+    margin: 4px 0;
+}
+
+.detalle-row {
+    padding: 12px;
+    border-bottom: 0.5px solid #f3f4f6;
+    font-size: 13px;
+}
+
+.detalle-row:last-child {
+    border-bottom: none;
+}
+
+.col-carrera {
+    font-weight: 500;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.col-num,
+.col-estado {
+    text-align: center;
+    color: #6b7280;
+}
+
+.detalle-head .col-num,
+.detalle-head .col-estado {
+    color: #6b7280;
+}
+
+.detalle-row strong {
+    color: #111827;
+}
+
+.row-grupo {
+    cursor: pointer;
+    transition: background .15s;
+    border-radius: 8px;
+}
+
+.row-grupo:hover {
+    background: #faf9ff;
+}
+
+.row-grupo .col-carrera {
+    font-weight: 600;
+}
+
+.row-detalle {
+    background: #fcfcfd;
+}
+
+.row-detalle .col-carrera {
+    border-left: 2px solid #ede9fe;
+    min-height: 1px;
+}
+
+.detalle-empty {
+    padding: 2rem;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+.detalle-card {
+    background: #fff;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 6px;
+}
+
+.detalle-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.detalle-count {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+.detalle-actions {
+    display: flex;
+    gap: .75rem;
+}
+
+.detalle-scroll {
+    overflow-x: auto;
+}
+
+/* La MISMA plantilla de columnas para encabezado y filas → todo alineado */
+.detalle-head,
+.detalle-row {
+    display: grid;
+    grid-template-columns: minmax(220px, 2.2fr) repeat(6, minmax(78px, 1fr)) minmax(92px, 1fr);
+    align-items: center;
+    gap: 8px;
+    min-width: 780px;
+}
+
+.detalle-head {
+    padding: 10px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #6b7280;
+    background: #f9fafb;
+    border-radius: 8px;
+    margin: 4px 0;
+}
+
+.detalle-row {
+    padding: 12px;
+    border-bottom: 0.5px solid #f3f4f6;
+    font-size: 13px;
+}
+
+.detalle-row:last-child {
+    border-bottom: none;
+}
+
+.col-carrera {
+    font-weight: 500;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.col-num,
+.col-estado {
+    text-align: center;
+    color: #6b7280;
+}
+
+.detalle-head .col-num,
+.detalle-head .col-estado {
+    color: #6b7280;
+}
+
+.detalle-row strong {
+    color: #111827;
+    font-weight: 400;
+}
+
+.row-grupo {
+    cursor: pointer;
+    transition: background .15s;
+    border-radius: 8px;
+}
+
+.row-grupo:hover {
+    background: #faf9ff;
+}
+
+.row-grupo .col-carrera {
+    font-weight: 600;
+}
+
+.row-detalle {
+    background: #fcfcfd;
+}
+
+.row-detalle .col-carrera {
+    border-left: 2px solid #ede9fe;
+    min-height: 1px;
+}
+
+.detalle-empty {
+    padding: 2rem;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+.btn-detalle {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+    background: #f9fafb;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .15s;
+}
+
+.btn-detalle:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}

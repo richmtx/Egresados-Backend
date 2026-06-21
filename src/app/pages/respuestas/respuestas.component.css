@@ -962,3 +962,25 @@ tr:last-child td {
   justify-content: center;
   margin-top: 4px;
 }
+
+.df-facebook svg,
+.df-instagram svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+.df-facebook svg {
+  color: #1877F2;
+}
+
+.df-instagram svg {
+  color: #E4405F;
+}
+
+.df-facebook,
+.df-instagram {
+  text-decoration: none;
+}

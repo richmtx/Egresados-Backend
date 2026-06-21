@@ -47,6 +47,14 @@ export interface EgresadoPerfil extends EgresadoDetalle {
   telefono: string;
   ciudad_residencia: string;
   foto_url: string | null;
+
+  // ── Redes sociales (Datos personales) ──
+  facebook: string | null;
+  instagram: string | null;
+
+  // ── Primer empleo (Situación laboral) ──
+  tiempo_primer_empleo: string | null;
+  medio_primer_empleo: string | null;
 }
 
 @Injectable({

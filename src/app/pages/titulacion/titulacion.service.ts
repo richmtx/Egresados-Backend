@@ -57,6 +57,17 @@ export interface EstadisticasResponse {
   titulacionCarreraAnio: TitulacionCarreraAnio[];
 }
 
+export interface CarreraGrupo {
+  nombre_carrera: string;
+  total: number;
+  titulados: number;
+  en_tramite: number;
+  no_titulados: number;
+  pct_titulados: number;
+  anios: TitulacionCarreraAnio[];
+  expandido: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -64,26 +75,26 @@ export class TitulacionService {
 
   private apiUrl = `${environment.apiUrl}/egresados/estadisticas`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getEstadisticas(carrera?: string, anio?: number): Observable<EstadisticasResponse> {
     let params: any = {};
     if (carrera) params['carrera'] = carrera;
-    if (anio)    params['anio']    = anio;
+    if (anio) params['anio'] = anio;
     return this.http.get<EstadisticasResponse>(this.apiUrl, { params });
   }
 
   exportarPdf(carrera?: string, anio?: number): Observable<Blob> {
     let params: any = {};
     if (carrera) params['carrera'] = carrera;
-    if (anio)    params['anio']    = anio;
+    if (anio) params['anio'] = anio;
     return this.http.get(`${environment.apiUrl}/egresados/titulacion/export/pdf`, { params, responseType: 'blob' });
   }
 
   exportarExcel(carrera?: string, anio?: number): Observable<Blob> {
     let params: any = {};
     if (carrera) params['carrera'] = carrera;
-    if (anio)    params['anio']    = anio;
+    if (anio) params['anio'] = anio;
     return this.http.get(`${environment.apiUrl}/egresados/titulacion/export/excel`, { params, responseType: 'blob' });
   }
 }

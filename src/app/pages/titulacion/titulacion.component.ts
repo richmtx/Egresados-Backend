@@ -10,7 +10,7 @@ import {
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import {
   TitulacionService, TitulacionCarrera, TitulacionAnio,
-  TitulacionCarreraAnio, PosgradoPorTipo,
+  TitulacionCarreraAnio, PosgradoPorTipo, CarreraGrupo,
 } from './titulacion.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
 
@@ -47,9 +47,10 @@ export class TitulacionComponent implements OnInit {
   totalMaestria = 0;
   totalDoctorado = 0;
 
-  // Tabla de detalle
-  tablaDetalle: TitulacionCarreraAnio[] = [];
-  tablaFiltrada: TitulacionCarreraAnio[] = [];
+  // Tabla de detalle (agrupada)
+  private tablaDetalle: TitulacionCarreraAnio[] = [];
+  grupos: CarreraGrupo[] = [];
+  gruposFiltrados: CarreraGrupo[] = [];
 
   // Datos crudos
   private rawCarrera: TitulacionCarrera[] = [];
@@ -204,7 +205,7 @@ export class TitulacionComponent implements OnInit {
         this.rawAnio = data.titulacionAnio;
         this.rawPosgrado = data.posgradoPorTipo;
         this.tablaDetalle = data.titulacionCarreraAnio;
-        this.tablaFiltrada = [...this.tablaDetalle];
+        this.agruparPorCarrera();
 
         if (!this.filtroCarrera && !this.filtroAnio) {
           this.carrerasDisponibles = data.titulacionCarrera
@@ -407,13 +408,6 @@ export class TitulacionComponent implements OnInit {
     this.cargarDatos();
   }
 
-  filtrarTabla(event: Event): void {
-    const texto = (event.target as HTMLInputElement).value.toLowerCase();
-    this.tablaFiltrada = this.tablaDetalle.filter(row =>
-      row.nombre_carrera.toLowerCase().includes(texto)
-    );
-  }
-
   // Modal
   abrirModal(tipo: string, titulo: string, subtitulo: string, chart: any): void {
     this.modalTipo = tipo;
@@ -439,4 +433,63 @@ export class TitulacionComponent implements OnInit {
     if (pct >= 50) return 'Medio';
     return 'Bajo';
   }
+
+  private agruparPorCarrera(): void {
+    const mapa = new Map<string, CarreraGrupo>();
+
+    for (const row of this.tablaDetalle) {
+      let g = mapa.get(row.nombre_carrera);
+      if (!g) {
+        g = {
+          nombre_carrera: row.nombre_carrera,
+          total: 0, titulados: 0, en_tramite: 0, no_titulados: 0,
+          pct_titulados: 0, anios: [], expandido: false,
+        };
+        mapa.set(row.nombre_carrera, g);
+      }
+      g.total += Number(row.total);
+      g.titulados += Number(row.titulados);
+      g.en_tramite += Number(row.en_tramite);
+      g.no_titulados += Number(row.no_titulados);
+      g.anios.push(row);
+    }
+
+    this.grupos = Array.from(mapa.values())
+      .map(g => {
+        // Año más reciente primero dentro de cada carrera
+        g.anios.sort((a, b) => b.anio_egreso - a.anio_egreso);
+        g.pct_titulados = g.total > 0
+          ? Math.round((g.titulados / g.total) * 1000) / 10  // 1 decimal
+          : 0;
+        return g;
+      })
+      .sort((a, b) => a.nombre_carrera.localeCompare(b.nombre_carrera, 'es'));
+
+    this.gruposFiltrados = [...this.grupos];
+  }
+
+  filtrarTabla(event: Event): void {
+    const texto = (event.target as HTMLInputElement).value.toLowerCase().trim();
+    this.gruposFiltrados = texto
+      ? this.grupos.filter(g => g.nombre_carrera.toLowerCase().includes(texto))
+      : [...this.grupos];
+  }
+
+  toggleGrupo(g: CarreraGrupo): void {
+    g.expandido = !g.expandido;
+    this.gruposFiltrados = [...this.gruposFiltrados]; // fuerza re-render
+  }
+
+  expandirTodo(): void {
+    this.gruposFiltrados.forEach(g => g.expandido = true);
+    this.gruposFiltrados = [...this.gruposFiltrados];
+  }
+
+  colapsarTodo(): void {
+    this.gruposFiltrados.forEach(g => g.expandido = false);
+    this.gruposFiltrados = [...this.gruposFiltrados];
+  }
+
+  trackByCarrera = (_: number, g: CarreraGrupo) => g.nombre_carrera;
+  trackByAnio = (_: number, r: TitulacionCarreraAnio) => r.anio_egreso;
 }

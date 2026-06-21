@@ -15,6 +15,12 @@ export interface RespuestaPerfil extends Respuesta {
   colaboraciones: string[];
   colaboraciones_otro: string[];
   foto_url: string | null;
+
+  // ── Nuevos campos ──
+  facebook: string | null;
+  instagram: string | null;
+  tiempo_primer_empleo: string | null;
+  medio_primer_empleo: string | null;
 }
 
 @Component({
@@ -232,8 +238,8 @@ export class RespuestasComponent implements OnInit {
     const limpio = (nombre || 'egresado')
       .toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, '_')              
-      .replace(/^_+|_+$/g, '');                     
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
     const fecha = new Date().toISOString().slice(0, 10);
     return `perfil_${limpio}_${fecha}.pdf`;
   }

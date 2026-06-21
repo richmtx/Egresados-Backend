@@ -141,6 +141,8 @@ export class EmpleabilidadComponent implements OnInit {
     this.egresadosService.exportarExcelEmpleabilidad(
       this.filtroCarrera || undefined,
       this.filtroAnio || undefined,
+      this.filtroTiempo || undefined,
+      this.filtroMedio || undefined,
     ).subscribe({
       next: (blob) => {
         this.descargarArchivo(blob, `empleabilidad_${new Date().toISOString().split('T')[0]}.xlsx`);
