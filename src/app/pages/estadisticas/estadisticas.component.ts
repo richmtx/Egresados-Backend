@@ -179,6 +179,11 @@ export class EstadisticasComponent implements OnInit, OnDestroy {
     return this.datos.situacionLaboral.map((s, i) => ({ label: s.situacion, color: this.PALETTE[i % this.PALETTE.length] }));
   }
 
+  /** Etiqueta de la carrera filtrada, o "Todas las carreras" si no hay filtro */
+  get etiquetaCarrera(): string {
+    return this.filtroCarrera || 'Todas las carreras';
+  }
+
   onFiltroChange(): void { this.cargarEstadisticas(); }
 
   limpiarFiltros(): void {

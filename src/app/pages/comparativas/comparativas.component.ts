@@ -72,6 +72,8 @@ export class ComparativasComponent implements OnInit, OnDestroy {
   chartMigracion: any = {};
   chartRadar: any = {};
   chartHeatmap: any = {};
+  chartTiempoPrimerEmpleo: any = {};
+  chartMedioPrimerEmpleo: any = {};
 
   // Export
   exportMenuVisible = false;
@@ -83,14 +85,14 @@ export class ComparativasComponent implements OnInit, OnDestroy {
   constructor(
     private svc: ComparativasService,
     @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.svc.getCarrerasDisponibles().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.carrerasDisponibles = res.map((r) => r.nombre_carrera);
       },
-      error: () => {},
+      error: () => { },
     });
   }
 
@@ -161,7 +163,7 @@ export class ComparativasComponent implements OnInit, OnDestroy {
     // 1. Empleo agrupado
     this.chartEmpleo = {
       series: [
-        { name: 'Empleados',    data: d.empleo.map((e) => +e.empleados) },
+        { name: 'Empleados', data: d.empleo.map((e) => +e.empleados) },
         { name: 'Desempleados', data: d.empleo.map((e) => +e.desempleados) },
       ],
       chart: this.baseChart('bar', 260),
@@ -177,8 +179,8 @@ export class ComparativasComponent implements OnInit, OnDestroy {
     // 2. Titulación apilada 100%
     this.chartTitulacion = {
       series: [
-        { name: 'Titulado',    data: d.titulacion.map((t) => +t.pct_titulados) },
-        { name: 'En trámite',  data: d.titulacion.map((t) => +t.pct_en_tramite) },
+        { name: 'Titulado', data: d.titulacion.map((t) => +t.pct_titulados) },
+        { name: 'En trámite', data: d.titulacion.map((t) => +t.pct_en_tramite) },
         { name: 'No titulado', data: d.titulacion.map((t) => +t.pct_no_titulados) },
       ],
       chart: { ...this.baseChart('bar', 260), stacked: true, stackType: '100%' },
@@ -258,9 +260,9 @@ export class ComparativasComponent implements OnInit, OnDestroy {
     // 6. Migración agrupada
     this.chartMigracion = {
       series: [
-        { name: 'En Durango',              data: d.migracion.map((m) => +m.en_durango) },
+        { name: 'En Durango', data: d.migracion.map((m) => +m.en_durango) },
         { name: 'Fuera de Durango (Méx.)', data: d.migracion.map((m) => +m.fuera_durango_mexico) },
-        { name: 'En el extranjero',        data: d.migracion.map((m) => +m.en_extranjero) },
+        { name: 'En el extranjero', data: d.migracion.map((m) => +m.en_extranjero) },
       ],
       chart: this.baseChart('bar', 260),
       xaxis: { categories: carreras, labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
@@ -306,11 +308,11 @@ export class ComparativasComponent implements OnInit, OnDestroy {
       series: d.resumen.map((r) => ({
         name: r.nombre_carrera,
         data: [
-          { x: 'Empleo %',       y: +r.pct_empleados },
-          { x: 'Titulación %',   y: +r.pct_titulados },
+          { x: 'Empleo %', y: +r.pct_empleados },
+          { x: 'Titulación %', y: +r.pct_titulados },
           { x: 'Satisfacción %', y: +(+r.satisfaccion_promedio * 20).toFixed(1) },
-          { x: 'Fuera Dgo. %',   y: +r.pct_fuera_durango },
-          { x: 'Extranjero %',   y: +(d.migracion.find((m) => m.nombre_carrera === r.nombre_carrera)?.pct_extranjero ?? 0) },
+          { x: 'Fuera Dgo. %', y: +r.pct_fuera_durango },
+          { x: 'Extranjero %', y: +(d.migracion.find((m) => m.nombre_carrera === r.nombre_carrera)?.pct_extranjero ?? 0) },
         ],
       })),
       chart: this.baseChart('heatmap', 220),
@@ -318,6 +320,61 @@ export class ComparativasComponent implements OnInit, OnDestroy {
       colors: ['#6366f1'],
       xaxis: { labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
       legend: { show: false },
+      tooltip: { y: { formatter: (v: number) => `${v.toFixed(1)}%` } },
+    };
+
+    // 9. Tiempo al primer empleo (100% apilado)
+    const tiempos = d.tiempoPrimerEmpleo ?? [];
+    // Orden real desde el catálogo (id_tiempo), sin labels hardcodeados
+    const ordenTiempoMap = new Map<string, number>();
+    tiempos.forEach((t) => { if (!ordenTiempoMap.has(t.rango)) ordenTiempoMap.set(t.rango, t.id_tiempo); });
+    const rangosTiempo = [...ordenTiempoMap.keys()].sort(
+      (a, b) => (ordenTiempoMap.get(a) ?? 99) - (ordenTiempoMap.get(b) ?? 99)
+    );
+
+    this.chartTiempoPrimerEmpleo = {
+      series: rangosTiempo.map((rango) => ({
+        name: rango,
+        data: carreras.map((car) => {
+          const found = tiempos.find((t) => t.nombre_carrera === car && t.rango === rango);
+          return found ? +found.porcentaje : 0;
+        }),
+      })),
+      chart: { ...this.baseChart('bar', 260), stacked: true, stackType: '100%' },
+      xaxis: { categories: carreras, labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
+      colors: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#6366f1', '#a855f7'].slice(0, rangosTiempo.length),
+      plotOptions: { bar: { columnWidth: '50%' } },
+      dataLabels: { enabled: true, formatter: (v: number) => v > 5 ? `${v.toFixed(0)}%` : '', style: { fontFamily: this.chartFontFamily, fontSize: '10px' } },
+      legend: { ...this.baseLegend, position: 'top' },
+      grid: this.baseGrid,
+      yaxis: { labels: { formatter: (v: number) => `${v}%`, style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
+      tooltip: { y: { formatter: (v: number) => `${v.toFixed(1)}%` } },
+    };
+
+    // 10. Medio del primer empleo (100% apilado)
+    const medios = d.medioPrimerEmpleo ?? [];
+    const ordenMedioMap = new Map<string, number>();
+    medios.forEach((m) => { if (!ordenMedioMap.has(m.medio)) ordenMedioMap.set(m.medio, m.orden); });
+    const tiposMedio = [...ordenMedioMap.keys()].sort(
+      (a, b) => (ordenMedioMap.get(a) ?? 99) - (ordenMedioMap.get(b) ?? 99)
+    );
+
+    this.chartMedioPrimerEmpleo = {
+      series: tiposMedio.map((medio) => ({
+        name: medio,
+        data: carreras.map((car) => {
+          const found = medios.find((m) => m.nombre_carrera === car && m.medio === medio);
+          return found ? +found.porcentaje : 0;
+        }),
+      })),
+      chart: { ...this.baseChart('bar', 280), stacked: true, stackType: '100%' },
+      xaxis: { categories: carreras, labels: { style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
+      colors: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#14b8a6', '#a855f7'].slice(0, tiposMedio.length),
+      plotOptions: { bar: { columnWidth: '50%' } },
+      dataLabels: { enabled: true, formatter: (v: number) => v > 6 ? `${v.toFixed(0)}%` : '', style: { fontFamily: this.chartFontFamily, fontSize: '10px' } },
+      legend: { ...this.baseLegend, position: 'top' },
+      grid: this.baseGrid,
+      yaxis: { labels: { formatter: (v: number) => `${v}%`, style: { fontFamily: this.chartFontFamily, fontSize: '11px', colors: '#64748b' } } },
       tooltip: { y: { formatter: (v: number) => `${v.toFixed(1)}%` } },
     };
   }
@@ -409,6 +466,6 @@ export class ComparativasComponent implements OnInit, OnDestroy {
   }
 
   private logAccion(accion: string, descripcion: string, seccion: string): void {
-    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => {} });
+    this.usuariosService.registrarAccion(accion, descripcion, seccion).subscribe({ error: () => { } });
   }
 }

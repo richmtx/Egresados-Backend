@@ -76,10 +76,29 @@ export interface ComparativasResponse {
     ingles: ComparativaIngles[];
     satisfaccion: ComparativaSatisfaccion[];
     migracion: ComparativaMigracion[];
+    tiempoPrimerEmpleo: ComparativaTiempoPrimerEmpleo[];
+    medioPrimerEmpleo: ComparativaMedioPrimerEmpleo[];
 }
 
 export interface CarrerasDisponiblesResponse {
     nombre_carrera: string;
+}
+
+export interface ComparativaTiempoPrimerEmpleo {
+    nombre_carrera: string;
+    id_tiempo: number;
+    rango: string;
+    total: number;
+    porcentaje: number;
+}
+
+export interface ComparativaMedioPrimerEmpleo {
+    nombre_carrera: string;
+    id_medio: number;
+    medio: string;
+    orden: number;
+    total: number;
+    porcentaje: number;
 }
 
 @Injectable({

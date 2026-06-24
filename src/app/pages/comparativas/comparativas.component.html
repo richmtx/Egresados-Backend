@@ -15,42 +15,61 @@
                 </p>
             </div>
             <div style="display:flex;gap:8px;align-items:center">
-              <button class="btn-export btn-reset" (click)="limpiarSeleccion()" *ngIf="datos">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                  Nueva comparativa
-              </button>
-              <div class="export-wrap" (click)="$event.stopPropagation()" *ngIf="datos">
-                <button class="btn-export" [class.btn-export-loading]="exportando" (click)="exportMenuVisible = !exportMenuVisible" [disabled]="exportando">
-                  <svg *ngIf="exportando" class="export-spinner" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6" stroke-dasharray="28" stroke-dashoffset="10"/></svg>
-                  <svg *ngIf="!exportando" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 12v2a1 1 0 001 1h8a1 1 0 001-1v-2M8 2v9M5 8l3 3 3-3"/></svg>
-                  {{ exportando ? 'Exportando...' : 'Exportar' }}
-                  <svg *ngIf="!exportando" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="width:10px;height:10px;margin-left:2px"><path d="M2 3.5l3 3 3-3"/></svg>
+                <button class="btn-export btn-reset" (click)="limpiarSeleccion()" *ngIf="datos">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                    Nueva comparativa
                 </button>
-                <div class="export-dropdown" *ngIf="exportMenuVisible">
-                  <button class="export-option" (click)="exportarPDF()">
-                    <span class="export-option-icon pdf">
-                      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="1" width="12" height="14" rx="1.5"/><path d="M5 6h4M5 9h6M5 12h3"/></svg>
-                    </span>
-                    <span class="export-option-label">
-                      <span class="export-option-name">Exportar como PDF</span>
-                      <span class="export-option-sub">Documento imprimible</span>
-                    </span>
-                  </button>
-                  <div class="export-option-divider"></div>
-                  <button class="export-option" (click)="exportarExcel()">
-                    <span class="export-option-icon excel">
-                      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="1" width="12" height="14" rx="1.5"/><path d="M5 6l2 3 2-3M5 12h6M5 9h6"/></svg>
-                    </span>
-                    <span class="export-option-label">
-                      <span class="export-option-name">Exportar como Excel</span>
-                      <span class="export-option-sub">Hoja de cálculo .xlsx</span>
-                    </span>
-                  </button>
+                <div class="export-wrap" (click)="$event.stopPropagation()" *ngIf="datos">
+                    <button class="btn-export" [class.btn-export-loading]="exportando"
+                        (click)="exportMenuVisible = !exportMenuVisible" [disabled]="exportando">
+                        <svg *ngIf="exportando" class="export-spinner" viewBox="0 0 16 16" fill="none"
+                            stroke="currentColor" stroke-width="1.5">
+                            <circle cx="8" cy="8" r="6" stroke-dasharray="28" stroke-dashoffset="10" />
+                        </svg>
+                        <svg *ngIf="!exportando" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round">
+                            <path d="M3 12v2a1 1 0 001 1h8a1 1 0 001-1v-2M8 2v9M5 8l3 3 3-3" />
+                        </svg>
+                        {{ exportando ? 'Exportando...' : 'Exportar' }}
+                        <svg *ngIf="!exportando" viewBox="0 0 10 10" fill="none" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" style="width:10px;height:10px;margin-left:2px">
+                            <path d="M2 3.5l3 3 3-3" />
+                        </svg>
+                    </button>
+                    <div class="export-dropdown" *ngIf="exportMenuVisible">
+                        <button class="export-option" (click)="exportarPDF()">
+                            <span class="export-option-icon pdf">
+                                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+                                    stroke-linecap="round">
+                                    <rect x="2" y="1" width="12" height="14" rx="1.5" />
+                                    <path d="M5 6h4M5 9h6M5 12h3" />
+                                </svg>
+                            </span>
+                            <span class="export-option-label">
+                                <span class="export-option-name">Exportar como PDF</span>
+                                <span class="export-option-sub">Documento imprimible</span>
+                            </span>
+                        </button>
+                        <div class="export-option-divider"></div>
+                        <button class="export-option" (click)="exportarExcel()">
+                            <span class="export-option-icon excel">
+                                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+                                    stroke-linecap="round">
+                                    <rect x="2" y="1" width="12" height="14" rx="1.5" />
+                                    <path d="M5 6l2 3 2-3M5 12h6M5 9h6" />
+                                </svg>
+                            </span>
+                            <span class="export-option-label">
+                                <span class="export-option-name">Exportar como Excel</span>
+                                <span class="export-option-sub">Hoja de cálculo .xlsx</span>
+                            </span>
+                        </button>
+                    </div>
                 </div>
-              </div>
             </div>
         </div>
 
@@ -452,6 +471,66 @@
                         [colors]="chartEmpleo.colors" [plotOptions]="chartEmpleo.plotOptions"
                         [dataLabels]="chartEmpleo.dataLabels" [legend]="chartEmpleo.legend" [grid]="chartEmpleo.grid"
                         [tooltip]="chartEmpleo.tooltip">
+                    </apx-chart>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
+                </div>
+
+                <!-- ── Tiempo al primer empleo ── -->
+                <div class="seccion-label" style="margin-top: 4px;" *ngIf="chartTiempoPrimerEmpleo?.series?.length">
+                    <span class="seccion-dot dot-blue"></span>
+                    ¿Cuánto tardaron en conseguir su primer empleo?
+                </div>
+
+                <div class="chart-card" *ngIf="chartTiempoPrimerEmpleo?.series?.length"
+                    (click)="abrirModal('bar', 'Tiempo al primer empleo', 'Distribución del tiempo de inserción por carrera', chartTiempoPrimerEmpleo)">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Tiempo al primer empleo</h3>
+                            <p class="chart-sub">Distribución porcentual por carrera</p>
+                        </div>
+                        <span class="chart-badge">Apiladas 100%</span>
+                    </div>
+                    <apx-chart [series]="chartTiempoPrimerEmpleo.series" [chart]="chartTiempoPrimerEmpleo.chart"
+                        [xaxis]="chartTiempoPrimerEmpleo.xaxis" [colors]="chartTiempoPrimerEmpleo.colors"
+                        [plotOptions]="chartTiempoPrimerEmpleo.plotOptions"
+                        [dataLabels]="chartTiempoPrimerEmpleo.dataLabels" [legend]="chartTiempoPrimerEmpleo.legend"
+                        [grid]="chartTiempoPrimerEmpleo.grid" [yaxis]="chartTiempoPrimerEmpleo.yaxis"
+                        [tooltip]="chartTiempoPrimerEmpleo.tooltip">
+                    </apx-chart>
+                    <div class="chart-card-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                        </svg>
+                        Clic para expandir
+                    </div>
+                </div>
+
+                <!-- ── Medio del primer empleo ── -->
+                <div class="seccion-label" style="margin-top: 4px;" *ngIf="chartMedioPrimerEmpleo?.series?.length">
+                    <span class="seccion-dot dot-purple"></span>
+                    ¿Por qué medio obtuvieron su primer empleo?
+                </div>
+
+                <div class="chart-card" *ngIf="chartMedioPrimerEmpleo?.series?.length"
+                    (click)="abrirModal('bar', 'Medio del primer empleo', 'Canal de obtención del empleo por carrera', chartMedioPrimerEmpleo)">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Medio del primer empleo</h3>
+                            <p class="chart-sub">Bolsa de trabajo · Recomendación · Redes · Prácticas · Otros</p>
+                        </div>
+                        <span class="chart-badge">Apiladas 100%</span>
+                    </div>
+                    <apx-chart [series]="chartMedioPrimerEmpleo.series" [chart]="chartMedioPrimerEmpleo.chart"
+                        [xaxis]="chartMedioPrimerEmpleo.xaxis" [colors]="chartMedioPrimerEmpleo.colors"
+                        [plotOptions]="chartMedioPrimerEmpleo.plotOptions"
+                        [dataLabels]="chartMedioPrimerEmpleo.dataLabels" [legend]="chartMedioPrimerEmpleo.legend"
+                        [grid]="chartMedioPrimerEmpleo.grid" [yaxis]="chartMedioPrimerEmpleo.yaxis"
+                        [tooltip]="chartMedioPrimerEmpleo.tooltip">
                     </apx-chart>
                     <div class="chart-card-hint">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

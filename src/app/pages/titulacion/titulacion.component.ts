@@ -434,6 +434,11 @@ export class TitulacionComponent implements OnInit {
     return 'Bajo';
   }
 
+  /** Etiqueta de la carrera filtrada, o "Todas las carreras" si no hay filtro */
+  get etiquetaCarrera(): string {
+    return this.filtroCarrera || 'Todas las carreras';
+  }
+
   private agruparPorCarrera(): void {
     const mapa = new Map<string, CarreraGrupo>();
 

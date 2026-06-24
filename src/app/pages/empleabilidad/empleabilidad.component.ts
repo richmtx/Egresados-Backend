@@ -642,4 +642,9 @@ export class EmpleabilidadComponent implements OnInit {
     if (!this.tiempoPromedioGeneral) return '';
     return this.tiempoPromedioGeneral * 12 < 12 ? 'meses' : 'años';
   }
+
+  /** Etiqueta de la carrera filtrada, o "Todas las carreras" si no hay filtro */
+  get etiquetaCarrera(): string {
+    return this.filtroCarrera || 'Todas las carreras';
+  }
 }

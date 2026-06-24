@@ -137,6 +137,11 @@ export class GenerosComponent implements OnInit, OnDestroy {
     if (isPlatformBrowser(this.platformId)) document.body.style.overflow = '';
   }
 
+  /** Etiqueta de la carrera filtrada, o "Todas las carreras" si no hay filtro */
+  get etiquetaCarrera(): string {
+    return this.filtroCarrera || 'Todas las carreras';
+  }
+
   exportarPDF(): void {
     if (!this.datos || this.exportando) return;
     this.exportMenuVisible = false;
