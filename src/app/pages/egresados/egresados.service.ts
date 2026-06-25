@@ -130,11 +130,14 @@ export class EgresadosService {
     });
   }
 
-  enviarCorreo(destinatarios: string[], asunto: string, mensaje: string): Observable<any> {
+  enviarCorreo(destinatariosEgresados: string[], asunto: string, mensaje: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/correo/enviar`, {
-      destinatarios,
+      // El correo institucional va visible en "Para" (remitente visible)
+      destinatarios: [environment.correoInstitucional],
+      // Todos los egresados van ocultos entre sí
+      bcc: destinatariosEgresados,
       asunto,
-      mensaje
+      mensaje,
     });
   }
 }

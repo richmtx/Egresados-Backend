@@ -124,11 +124,14 @@ export class VinculacionService {
     return this.http.get<number[]>(`${this.apiUrl}/egresados/vinculacion/anios`);
   }
 
-  enviarCorreo(destinatarios: string[], asunto: string, mensaje: string): Observable<any> {
+  enviarCorreo(destinatariosEgresados: string[], asunto: string, mensaje: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/correo/enviar`, {
-      destinatarios,
+      // El correo institucional va visible en "Para" (remitente visible)
+      destinatarios: [environment.correoInstitucional],
+      // Todos los egresados van ocultos entre sí
+      bcc: destinatariosEgresados,
       asunto,
-      mensaje
+      mensaje,
     });
   }
 

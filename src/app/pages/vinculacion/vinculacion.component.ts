@@ -522,15 +522,17 @@ export class VinculacionComponent implements OnInit {
       .map(e => e.correo)
       .filter(Boolean);
 
+    const totalReal = destinatarios.length;
+
     this.vinculacionSvc.enviarCorreo(
       destinatarios,
       this.correoAsunto || this.panel.titulo,
       this.correoMensaje
     ).subscribe({
-      next: (res) => {
+      next: () => {
         this.correoCargando = false;
         this.cerrarModalCorreo();
-        this.mostrarToast(`Correo enviado a ${res.enviados} egresado(s).`, false);
+        this.mostrarToast(`Correo enviado a ${totalReal} egresado(s).`, false);
       },
       error: () => {
         this.correoCargando = false;

@@ -404,16 +404,19 @@ export class EgresadosComponent implements OnInit {
     if (this.correoCargando) return;
     this.correoCargando = true;
 
+    // Número real de destinatarios (van a BCC en el servicio)
+    const totalReal = this.correosDestinatarios.length;
+
     this.egresadosService.enviarCorreo(
       this.correosDestinatarios,
       this.correoAsunto,
       this.correoMensaje
     ).subscribe({
-      next: (res) => {
-        this.logAccion('correo', `Envió correo masivo a ${res.enviados} egresado(s): "${this.correoAsunto}"`, 'egresados');
+      next: () => {
+        this.logAccion('correo', `Envió correo masivo a ${totalReal} egresado(s): "${this.correoAsunto}"`, 'egresados');
         this.correoCargando = false;
         this.cerrarModalCorreo();
-        this.mostrarToast(`Correo enviado a ${res.enviados} egresado(s).`, false);
+        this.mostrarToast(`Correo enviado a ${totalReal} egresado(s).`, false);
       },
       error: () => {
         this.correoCargando = false;
