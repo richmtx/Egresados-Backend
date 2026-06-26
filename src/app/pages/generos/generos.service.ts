@@ -55,7 +55,7 @@ export interface CoincidenciaLaboralGenero {
 
 export interface TiempoEmpleoGenero {
   genero: string;
-  tiempo_promedio_anios: number;
+  tiempo_promedio_meses: number;
 }
 
 export interface GeografiaGenero {

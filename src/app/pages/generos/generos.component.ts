@@ -300,7 +300,7 @@ export class GenerosComponent implements OnInit, OnDestroy {
   private calcularTiempoEmpleo(res: EstadisticasGeneroResponse): void {
     this.tiempoEmpleoResumen = res.tiempoEmpleoGenero.map(t => ({
       genero: t.genero,
-      tiempo: +(t.tiempo_promedio_anios ?? 0),
+      tiempo: +(t.tiempo_promedio_meses ?? 0),
     }));
     this.maxTiempoEmpleo = Math.max(1, ...this.tiempoEmpleoResumen.map(t => t.tiempo));
   }

@@ -459,7 +459,7 @@
 
                         <div class="mini-divider"></div>
 
-                        <p class="mini-stats-label">Tiempo promedio en conseguir empleo (años)</p>
+                        <p class="mini-stats-label">Tiempo promedio en conseguir empleo (meses)</p>
                         <div class="mini-stat-row" *ngFor="let item of tiempoEmpleoResumen">
                             <div class="mini-stat-genero">
                                 <span class="genero-dot"
@@ -472,7 +472,7 @@
                                     [style.width]="(item.tiempo / maxTiempoEmpleo * 100) + '%'">
                                 </div>
                             </div>
-                            <span class="mini-stat-val">{{ item.tiempo }} a.</span>
+                            <span class="mini-stat-val">{{ item.tiempo | number:'1.0-1' }} m.</span>
                         </div>
                     </div>
 
@@ -848,7 +848,7 @@
                             <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
                         </svg>
                         <span>Clic para expandir</span>
-                        <span class="hint-carrera" [title]="etiquetaCarrera">{{ etiquetaCarrera }}</span>n>
+                        <span class="hint-carrera" [title]="etiquetaCarrera">{{ etiquetaCarrera }}</span>
                     </div>
                 </div>
 
@@ -1047,7 +1047,7 @@
 
                             <div class="mini-divider"></div>
 
-                            <p class="mini-stats-label">Tiempo promedio en conseguir empleo (años)</p>
+                            <p class="mini-stats-label">Tiempo promedio en conseguir empleo (meses)</p>
                             <div class="mini-stat-row" *ngFor="let item of tiempoEmpleoResumen">
                                 <div class="mini-stat-genero">
                                     <span class="genero-dot"
@@ -1060,7 +1060,7 @@
                                         [style.width]="(item.tiempo / maxTiempoEmpleo * 100) + '%'">
                                     </div>
                                 </div>
-                                <span class="mini-stat-val">{{ item.tiempo }} a.</span>
+                                <span class="mini-stat-val">{{ item.tiempo | number:'1.0-1' }} m.</span>
                             </div>
 
                         </div>
