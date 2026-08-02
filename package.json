@@ -1,6 +1,12 @@
 {
   "name": "egresados-back",
   "version": "0.0.0",
+  "description": "Panel de administración del Sistema de Seguimiento de Egresados del ITD — Angular 19.",
+  "author": "Ricardo Martínez Hernández <rich.mtx1205@gmail.com> (https://github.com/richmtx)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/richmtx/Egresados-Backend.git"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
