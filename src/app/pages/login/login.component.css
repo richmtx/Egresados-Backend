@@ -290,52 +290,129 @@
 
 /* Estilo para mensajes de error LogIn*/
 .error-message {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #e53e3e;
-  font-size: 0.8rem;
-  background: #fff5f5;
-  border: 1px solid #fed7d7;
-  border-radius: 6px;
-  padding: 8px 12px;
-  margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #e53e3e;
+    font-size: 0.8rem;
+    background: #fff5f5;
+    border: 1px solid #fed7d7;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
 }
 
-/* DISEÑO RESPONSIVO */
+
+/* --- TABLET / PANTALLAS MEDIANAS --- */
 @media (max-width: 1024px) {
+
     .container {
         flex-direction: column;
+        min-height: 100dvh;
+        height: auto;
+        /* clave: permite crecer y hacer scroll */
     }
 
+    /* El panel izquierdo se vuelve un encabezado compacto */
     .left-panel {
-        flex: none;
-        padding: 40px 30px;
+        flex: 0 0 auto;
+        padding: 28px 24px;
     }
 
-    .right-panel {
-        flex: none;
-        padding: 40px 30px;
+    .left-panel .content {
+        gap: 16px;
+        max-width: 520px;
     }
-}
 
-@media (max-width: 768px) {
-    .left-panel {
-        padding: 30px 20px;
+    .itd-badge {
+        width: 84px;
+        height: 84px;
+        padding: 10px;
     }
 
     .left-panel h1 {
         font-size: 22px;
     }
 
+    .brand-divider {
+        margin: 4px auto;
+    }
+
+    /* Features en fila horizontal para ahorrar altura */
+    .features {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        max-width: 100%;
+    }
+
+    .feature-item {
+        padding: 8px 12px;
+    }
+
     .right-panel {
-        padding: 30px 20px;
+        flex: 1 0 auto;
+        padding: 36px 24px 48px;
         align-items: flex-start;
+    }
+}
+
+/* --- MÓVIL --- */
+@media (max-width: 768px) {
+
+    .left-panel {
+        padding: 24px 20px;
+    }
+
+    /* Círculos decorativos más discretos */
+    .left-panel::before {
+        width: 150px;
+        height: 150px;
+        top: -50px;
+        right: -50px;
+    }
+
+    .left-panel::after {
+        width: 170px;
+        height: 170px;
+        bottom: -70px;
+        left: -50px;
+    }
+
+    .itd-badge {
+        width: 72px;
+        height: 72px;
+        padding: 8px;
+    }
+
+    .brand-eyebrow {
+        font-size: 10px;
+        letter-spacing: 2px;
+    }
+
+    .left-panel h1 {
+        font-size: 20px;
+    }
+
+    .brand-sub {
+        font-size: 12px;
+    }
+
+    .feature-item span {
+        font-size: 11px;
+    }
+
+    .right-panel {
+        padding: 28px 20px 40px;
     }
 
     .login-box {
         max-width: 100%;
-        margin-top: 10px;
+    }
+
+    .login-header {
+        margin-bottom: 24px;
     }
 
     .login-box h2 {
@@ -343,18 +420,70 @@
     }
 }
 
+/* --- MÓVIL PEQUEÑO --- */
 @media (max-width: 480px) {
+
+    .left-panel {
+        padding: 20px 16px;
+    }
+
     .itd-badge {
-        width: 80px;
-        height: 80px;
-        font-size: 22px;
+        width: 64px;
+        height: 64px;
+        padding: 7px;
     }
 
     .left-panel h1 {
-        font-size: 19px;
+        font-size: 18px;
+    }
+
+    /* Se ocultan para dejar el formulario a la vista */
+    .features {
+        display: none;
+    }
+
+    .right-panel {
+        padding: 24px 16px 36px;
+    }
+
+    .login-box h2 {
+        font-size: 22px;
+    }
+
+    .subtitle {
+        font-size: 13px;
+    }
+
+    .input-wrapper input {
+        font-size: 16px;
+        /* evita el zoom automático en iOS */
+    }
+}
+
+/* --- MÓVIL EN HORIZONTAL --- */
+@media (max-width: 900px) and (orientation: landscape) {
+
+    .container {
+        flex-direction: row;
+    }
+
+    .left-panel {
+        flex: 1;
+        padding: 20px 16px;
+    }
+
+    .itd-badge {
+        width: 60px;
+        height: 60px;
     }
 
     .features {
-        max-width: 180px;
+        display: none;
+    }
+
+    .right-panel {
+        flex: 1;
+        padding: 24px 20px;
+        align-items: center;
     }
 }
