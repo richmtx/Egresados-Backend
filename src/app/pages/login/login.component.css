@@ -310,7 +310,6 @@
         flex-direction: column;
         min-height: 100dvh;
         height: auto;
-        /* clave: permite crecer y hacer scroll */
     }
 
     /* El panel izquierdo se vuelve un encabezado compacto */
@@ -456,7 +455,6 @@
 
     .input-wrapper input {
         font-size: 16px;
-        /* evita el zoom automático en iOS */
     }
 }
 
