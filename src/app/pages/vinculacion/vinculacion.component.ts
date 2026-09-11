@@ -7,6 +7,7 @@ import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { VinculacionService, EgresadoContacto, } from './vinculacion.service';
 import { EstadisticasService } from '../estadisticas/estadisticas.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
+import { environment } from '../../../environments/environment';
 
 interface ColaboracionRow {
   descripcion: string;
@@ -101,7 +102,7 @@ export class VinculacionComponent implements OnInit {
   correoCargando = false;
 
   // URL base para imágenes
-  private readonly BASE_URL = 'http://localhost:3000';
+  private readonly BASE_URL = environment.apiUrl;
   private destroyRef = inject(DestroyRef);
   private usuariosService = inject(UsuariosService);
 

@@ -5,6 +5,7 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { DirectorioService, EgresadoDirectorio } from './directorio.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-directorio',
@@ -34,7 +35,7 @@ export class DirectorioComponent implements OnInit, OnDestroy {
   modalAbierto = false;
 
   // Base URL para fotos
-  baseUrl = 'http://localhost:3000';
+  baseUrl = environment.apiUrl;
   Math = Math;
 
   // Paginación
