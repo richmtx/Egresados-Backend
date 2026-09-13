@@ -120,6 +120,7 @@ export class RespuestasComponent implements OnInit {
           r.nombre_completo?.toLowerCase().includes(term) ||
           r.nombre_carrera?.toLowerCase().includes(term) ||
           r.empresa?.toLowerCase().includes(term) ||
+          r.numero_control?.toLowerCase().includes(term) ||
           r.situacion_laboral?.toLowerCase().includes(term);
         if (!hayMatch) return false;
       }

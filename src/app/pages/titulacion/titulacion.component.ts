@@ -473,13 +473,6 @@ export class TitulacionComponent implements OnInit {
     this.gruposFiltrados = [...this.grupos];
   }
 
-  filtrarTabla(event: Event): void {
-    const texto = (event.target as HTMLInputElement).value.toLowerCase().trim();
-    this.gruposFiltrados = texto
-      ? this.grupos.filter(g => g.nombre_carrera.toLowerCase().includes(texto))
-      : [...this.grupos];
-  }
-
   toggleGrupo(g: CarreraGrupo): void {
     g.expandido = !g.expandido;
     this.gruposFiltrados = [...this.gruposFiltrados]; // fuerza re-render

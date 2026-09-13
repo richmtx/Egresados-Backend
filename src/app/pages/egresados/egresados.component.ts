@@ -101,7 +101,8 @@ export class EgresadosComponent implements OnInit {
       const q = this.busqueda.toLowerCase();
       if (q && !e.nombre_completo.toLowerCase().includes(q) &&
         !e.nombre_carrera.toLowerCase().includes(q) &&
-        !e.empresa.toLowerCase().includes(q)) return false;
+        !e.empresa.toLowerCase().includes(q) &&
+        !(e.numero_control ?? '').toLowerCase().includes(q)) return false;
 
       if (this.filtroCarrera && e.nombre_carrera !== this.filtroCarrera) return false;
       if (this.filtroAnio && e.anio_egreso !== +this.filtroAnio) return false;
@@ -449,15 +450,17 @@ export class EgresadosComponent implements OnInit {
   private getFiltrosExport(): Record<string, any> {
     const filtros: Record<string, any> = {};
 
-    if (this.busqueda) filtros['nombre'] = this.busqueda;
+    if (this.busqueda) filtros['busqueda'] = this.busqueda;
     if (this.filtroCarrera) filtros['carrera'] = this.filtroCarrera;
     if (this.filtroAnio) filtros['anio'] = this.filtroAnio;
     if (this.filtroSituacion) filtros['situacion_laboral'] = this.filtroSituacion;
 
-    // Chips de titulación
-    if (this.filtrosChip.has('titulado')) filtros['estatus_titulacion'] = 'Titulado';
-    if (this.filtrosChip.has('en-tramite')) filtros['estatus_titulacion'] = 'En trámite';
-    if (this.filtrosChip.has('no-titulado')) filtros['estatus_titulacion'] = 'No titulado';
+    // Chips de titulación (pueden ser varios)
+    const titulaciones: string[] = [];
+    if (this.filtrosChip.has('titulado')) titulaciones.push('Titulado');
+    if (this.filtrosChip.has('en-tramite')) titulaciones.push('En trámite');
+    if (this.filtrosChip.has('no-titulado')) titulaciones.push('No titulado');
+    if (titulaciones.length) filtros['estatus_titulacion'] = titulaciones.join(',');
 
     // Chips de autorización
     if (this.filtrosChip.has('contacto')) filtros['autorizo_contacto'] = true;
