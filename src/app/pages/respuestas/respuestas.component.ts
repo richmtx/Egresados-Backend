@@ -323,4 +323,16 @@ export class RespuestasComponent implements OnInit {
     };
     return map[estatus] ?? estatus;
   }
+
+  get generacionTexto(): string {
+    const p = this.perfilSeleccionado;
+    if (!p?.anio_ingreso) return '—';
+
+    const fin = p.anio_egreso ? ` – ${p.anio_egreso}` : '';
+    const periodo = p.periodo_ingreso && p.periodo_ingreso !== 'No lo recuerdo'
+      ? `${p.periodo_ingreso} `
+      : '';
+
+    return `${periodo}${p.anio_ingreso}${fin}`;
+  }
 }

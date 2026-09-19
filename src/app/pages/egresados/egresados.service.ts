@@ -9,6 +9,8 @@ export interface EgresadoDetalle {
   correo: string;
   telefono: string;
   ciudad_residencia: string;
+  anio_ingreso: number | null;
+  periodo_ingreso: string | null;
   anio_egreso: number;
   empresa: string;
   ciudad_trabajo: string;

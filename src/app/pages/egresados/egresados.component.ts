@@ -181,6 +181,18 @@ export class EgresadosComponent implements OnInit {
     return partes[0][0].toUpperCase();
   }
 
+  get generacionTexto(): string {
+    const p = this.perfilSeleccionado;
+    if (!p?.anio_ingreso) return '—';
+
+    const fin = p.anio_egreso ? ` – ${p.anio_egreso}` : '';
+    const periodo = p.periodo_ingreso && p.periodo_ingreso !== 'No lo recuerdo'
+      ? `${p.periodo_ingreso} `
+      : '';
+
+    return `${periodo}${p.anio_ingreso}${fin}`;
+  }
+
   getFotoUrl(fotoUrl: string | null): string | null {
     if (!fotoUrl) return null;
     // Si ya es Base64 o URL absoluta, devolverlo directo

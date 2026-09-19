@@ -11,6 +11,7 @@ import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import {
   TitulacionService, TitulacionCarrera, TitulacionAnio,
   TitulacionCarreraAnio, PosgradoPorTipo, CarreraGrupo,
+  TitulacionCohorte, CoberturaCohorte,
 } from './titulacion.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
 
@@ -55,6 +56,9 @@ export class TitulacionComponent implements OnInit {
   // Datos crudos
   private rawCarrera: TitulacionCarrera[] = [];
   private rawAnio: TitulacionAnio[] = [];
+  rawCohorte: TitulacionCohorte[] = [];
+  cobertura: CoberturaCohorte = { total: 0, con_cohorte: 0 };
+  vistaTendencia: 'egreso' | 'cohorte' = 'egreso';
   private rawPosgrado: PosgradoPorTipo[] = [];
 
   // Configs completos para modal
@@ -138,6 +142,34 @@ export class TitulacionComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private usuariosService = inject(UsuariosService);
 
+  cambiarVistaTendencia(vista: 'egreso' | 'cohorte', event: MouseEvent): void {
+    event.stopPropagation();
+    if (this.vistaTendencia === vista) return;
+    this.vistaTendencia = vista;
+    this.construirGraficas();
+  }
+
+  get tituloTendencia(): string {
+    return this.vistaTendencia === 'cohorte'
+      ? 'Titulación por cohorte de ingreso'
+      : 'Tendencia de titulación por año de egreso';
+  }
+
+  get subtituloTendencia(): string {
+    return this.vistaTendencia === 'cohorte'
+      ? 'De los que ingresaron cada año, cuántos se titularon'
+      : 'Número de egresados por estatus a lo largo de los años';
+  }
+
+  get mostrarAvisoCohorte(): boolean {
+    return this.vistaTendencia === 'cohorte' &&
+      this.cobertura.con_cohorte < this.cobertura.total;
+  }
+
+  get textoCobertura(): string {
+    return `Solo ${this.cobertura.con_cohorte} de ${this.cobertura.total} egresados tienen año de ingreso registrado.`;
+  }
+
   constructor(private titulacionService: TitulacionService) { }
 
   ngOnInit(): void {
@@ -203,6 +235,8 @@ export class TitulacionComponent implements OnInit {
         this.mapearPosgrado(data.posgradoPorTipo, data.totalPosgrado);
         this.rawCarrera = data.titulacionCarrera;
         this.rawAnio = data.titulacionAnio;
+        this.rawCohorte = data.titulacionCohorte ?? [];
+        this.cobertura = data.coberturaCohorte ?? { total: 0, con_cohorte: 0 };
         this.rawPosgrado = data.posgradoPorTipo;
         this.tablaDetalle = data.titulacionCarreraAnio;
         this.agruparPorCarrera();
@@ -344,22 +378,25 @@ export class TitulacionComponent implements OnInit {
     this.donaSeries = [...this.rawPosgrado.map(p => Number(p.total))];
     this.donaChart = { ...this.donaChart };
 
-    // Línea de tendencia
+    // Línea de tendencia — según la vista activa
+    const porCohorte = this.vistaTendencia === 'cohorte';
+    const datos: any[] = porCohorte ? this.rawCohorte : this.rawAnio;
+
     this.lineaXAxis = {
-      categories: [...this.rawAnio.map(a => String(a.anio_egreso))],
+      categories: datos.map(d => String(porCohorte ? d.anio_ingreso : d.anio_egreso)),
       labels: { style: { fontSize: '12px' } },
     };
     this.lineaSeries = [
-      { name: 'Titulados', data: [...this.rawAnio.map(a => Number(a.titulados))] },
-      { name: 'En trámite', data: [...this.rawAnio.map(a => Number(a.en_tramite))] },
+      { name: 'Titulados', data: datos.map(d => Number(d.titulados)) },
+      { name: 'En trámite', data: datos.map(d => Number(d.en_tramite)) },
       {
         name: 'No titulados',
-        data: [...this.rawAnio.map(a =>
-          Math.max(0, Number(a.total) - Number(a.titulados) - Number(a.en_tramite))
-        )],
+        data: datos.map(d =>
+          Math.max(0, Number(d.total) - Number(d.titulados) - Number(d.en_tramite))
+        ),
       },
     ];
-    this.lineaMinWidth = this.minWidthCronologico(this.rawAnio.length);
+    this.lineaMinWidth = this.minWidthCronologico(datos.length);
     this.lineaChart = { ...this.lineaChart };
 
     // Configs completos para modal

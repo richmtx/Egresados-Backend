@@ -48,9 +48,25 @@ export interface TitulacionCarreraAnio {
   pct_titulados: number;
 }
 
+export interface TitulacionCohorte {
+  anio_ingreso: number;
+  total: number;
+  titulados: number;
+  en_tramite: number;
+  no_titulados: number;
+  pct_titulados: number;
+}
+
+export interface CoberturaCohorte {
+  total: number;
+  con_cohorte: number;
+}
+
 export interface EstadisticasResponse {
   kpis: TitulacionKpis;
   titulacionAnio: TitulacionAnio[];
+  titulacionCohorte: TitulacionCohorte[];
+  coberturaCohorte: CoberturaCohorte;
   titulacionCarrera: TitulacionCarrera[];
   posgradoPorTipo: PosgradoPorTipo[];
   totalPosgrado: TotalPosgrado;

@@ -280,14 +280,22 @@
       </div>
 
       <div class="charts-row row-full">
-        <div class="chart-card"
-          (click)="abrirModal('line', 'Tendencia de titulación por año de egreso', 'Número de egresados por estatus a lo largo de los años', chartLineaConfig)">
+        <div class="chart-card" (click)="abrirModal('line', tituloTendencia, subtituloTendencia, chartLineaConfig)">
           <div class="chart-header">
             <div>
-              <h3 class="chart-title">Tendencia de titulación por año de egreso</h3>
-              <p class="chart-sub">Número de egresados por estatus a lo largo de los años</p>
+              <h3 class="chart-title">{{ tituloTendencia }}</h3>
+              <p class="chart-sub">{{ subtituloTendencia }}</p>
             </div>
-            <span class="chart-badge badge-cyan">Línea</span>
+            <div class="tendencia-toggle">
+              <button type="button" [class.activo]="vistaTendencia === 'egreso'"
+                (click)="cambiarVistaTendencia('egreso', $event)">Por año de egreso</button>
+              <button type="button" [class.activo]="vistaTendencia === 'cohorte'"
+                (click)="cambiarVistaTendencia('cohorte', $event)">Por cohorte de ingreso</button>
+            </div>
+          </div>
+
+          <div class="cohorte-aviso" *ngIf="mostrarAvisoCohorte">
+            {{ textoCobertura }}
           </div>
           <div class="chart-scroll-wrap">
             <div class="chart-min" [style.min-width.px]="lineaMinWidth">

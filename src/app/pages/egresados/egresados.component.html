@@ -140,8 +140,8 @@
                         <circle cx="7" cy="7" r="4" />
                         <path d="M10 10l3 3" />
                     </svg>
-                    <input type="text" placeholder="Buscar por nombre, no. control, carrera, empresa…" [value]="busqueda"
-                        (input)="onBusqueda($event)" />
+                    <input type="text" placeholder="Buscar por nombre, no. control, carrera, empresa…"
+                        [value]="busqueda" (input)="onBusqueda($event)" />
                 </div>
 
                 <select [(ngModel)]="filtroCarrera" (ngModelChange)="aplicarFiltros()">
@@ -558,6 +558,10 @@
                                 <div class="drawer-field full">
                                     <span class="df-label">Carrera</span>
                                     <span class="df-val">{{ perfilSeleccionado.nombre_carrera }}</span>
+                                </div>
+                                <div class="drawer-field full">
+                                    <span class="df-label">Generación</span>
+                                    <span class="df-val">{{ generacionTexto }}</span>
                                 </div>
                                 <div class="drawer-field">
                                     <span class="df-label">Nivel de inglés</span>
