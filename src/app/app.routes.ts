@@ -13,6 +13,7 @@ export const routes: Routes = [
   { path: 'titulacion', loadComponent: () => import('./pages/titulacion/titulacion.component').then(m => m.TitulacionComponent), canActivate: [adminGuard] },
   { path: 'notificaciones', loadComponent: () => import('./pages/notificaciones/notificaciones.component').then(m => m.NotificacionesComponent), canActivate: [adminGuard] },  { path: 'vinculacion', loadComponent: () => import('./pages/vinculacion/vinculacion.component').then(m => m.VinculacionComponent), canActivate: [adminGuard] },
   { path: 'generos', loadComponent: () => import('./pages/generos/generos.component').then(m => m.GenerosComponent), canActivate: [adminGuard] },
+  { path: 'inclusion', loadComponent: () => import('./pages/inclusion/inclusion.component').then(m => m.InclusionComponent), canActivate: [adminGuard] },
   { path: 'comparativas', loadComponent: () => import('./pages/comparativas/comparativas.component').then(m => m.ComparativasComponent), canActivate: [adminGuard] },
   { path: 'usuarios', loadComponent: () => import('./pages/usuarios/usuarios.component').then(m => m.UsuariosComponent), canActivate: [adminGuard] },
 
