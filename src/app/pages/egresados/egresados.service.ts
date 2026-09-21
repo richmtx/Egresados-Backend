@@ -12,12 +12,12 @@ export interface EgresadoDetalle {
   anio_ingreso: number | null;
   periodo_ingreso: string | null;
   anio_egreso: number;
-  empresa: string;
-  ciudad_trabajo: string;
+  empresa: string | null;
+  ciudad_trabajo: string | null;
   fecha_registro: string;
   numero_control: string;
-  linkedin: string;
-  puesto_trabajo: string;
+  linkedin: string | null;
+  puesto_trabajo: string | null;
   estatus_titulacion: string;
   satisfaccion_formacion: number;
   genero: string;
@@ -26,7 +26,7 @@ export interface EgresadoDetalle {
   antiguedad_empleo: string;
   coincidencia_laboral: string;
   situacion_laboral: string;
-  certificacion_vigente: string;
+  certificacion_vigente: string | null;
   autorizo_estadisticas: boolean;
   autorizo_contacto: boolean;
   autorizo_eventos: boolean;
@@ -57,8 +57,8 @@ export interface ProyectoSocial {
 }
 
 export interface EgresadoPerfil extends EgresadoDetalle {
-  linkedin: string;
-  certificacion_vigente: string;
+  linkedin: string | null;
+  certificacion_vigente: string | null;
   certificaciones: string[];
   habilidades: string[];
   habilidades_otro: string[];
@@ -66,8 +66,8 @@ export interface EgresadoPerfil extends EgresadoDetalle {
   colaboraciones_otro: string[];
   coincidencia_laboral: string;
   antiguedad_empleo: string;
-  puesto_trabajo: string;
-  ciudad_trabajo: string;
+  puesto_trabajo: string | null;
+  ciudad_trabajo: string | null;
   numero_control: string;
   telefono: string;
   ciudad_residencia: string;

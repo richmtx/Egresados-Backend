@@ -870,12 +870,12 @@ export class DistribucionComponent implements OnInit, OnDestroy, AfterViewInit {
     return Math.max(...this.datos.movilidadPorCarrera.map((c) => c.total));
   }
 
-  getCiudadCorta(ciudad: string): string {
-    return ciudad.split(',')[0].trim();
+  getCiudadCorta(ciudad: string | null | undefined): string {
+    return (ciudad ?? '').split(',')[0].trim();
   }
 
-  getPais(ciudad: string): string {
-    const partes = ciudad.split(',');
+  getPais(ciudad: string | null | undefined): string {
+    const partes = (ciudad ?? '').split(',');
     return partes[partes.length - 1].trim();
   }
 

@@ -71,6 +71,19 @@ export interface InclusionAnio {
   se_consideran_afromexicanos: ConteoRaw;
 }
 
+// 5. /inclusion/consentimiento/:id (solo admin)
+// Solo indica si hubo consentimiento; NUNCA incluye las respuestas de discapacidad ni identidad.
+export interface ConsentimientoInclusion {
+  id_egresado: number;
+  consintio: boolean;
+  fecha_consentimiento: string | null;
+}
+
+export interface RetiroConsentimientoResponse {
+  mensaje: string;
+  filas_eliminadas: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -94,5 +107,14 @@ export class InclusionService {
 
   getPorAnioEgreso(): Observable<InclusionResponse<InclusionAnio[]>> {
     return this.http.get<InclusionResponse<InclusionAnio[]>>(`${this.apiUrl}/por-anio-egreso`);
+  }
+
+  getConsentimiento(id: number): Observable<ConsentimientoInclusion> {
+    return this.http.get<ConsentimientoInclusion>(`${this.apiUrl}/consentimiento/${id}`);
+  }
+
+  /** Elimina las respuestas de discapacidad e identidad cultural; el resto del registro no se toca. */
+  retirarConsentimiento(id: number): Observable<RetiroConsentimientoResponse> {
+    return this.http.delete<RetiroConsentimientoResponse>(`${this.apiUrl}/consentimiento/${id}`);
   }
 }

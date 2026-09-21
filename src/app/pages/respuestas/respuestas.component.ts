@@ -7,6 +7,8 @@ import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { RespuestasService, Respuesta } from './respuestas.service';
 import { EstudioPosterior, Emprendimiento, ProyectoSocial } from '../egresados/egresados.service';
 import { AuthService } from '../../services/auth.service';
+import { InclusionService } from '../inclusion/inclusion.service';
+import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface RespuestaPerfil extends Respuesta {
@@ -70,6 +72,13 @@ export class RespuestasComponent implements OnInit {
   // Exportación PDF
   exportandoPdf = false;
 
+  // ── Datos de inclusión (solo consentimiento; nunca las respuestas) ──
+  consentimientoEstado: 'cargando' | 'consintio' | 'no_consintio' | 'no_disponible' = 'cargando';
+  consentimientoFecha: string | null = null;
+  modalRetiroVisible = false;
+  retirandoConsentimiento = false;
+  private consentimientoSub?: Subscription;
+
   // URL base para imágenes
   private readonly BASE_URL = environment.apiUrl;
 
@@ -83,6 +92,7 @@ export class RespuestasComponent implements OnInit {
   constructor(
     private respuestasService: RespuestasService,
     private authService: AuthService,
+    private inclusionService: InclusionService,
     private router: Router,
     @Inject(PLATFORM_ID) private platformId: object,
   ) { }
@@ -179,6 +189,7 @@ export class RespuestasComponent implements OnInit {
     this.drawerVisible = true;
     this.perfilCargando = true;
     this.perfilSeleccionado = null;
+    this.cargarConsentimiento(id);
 
     this.respuestasService.getPerfil(id).subscribe({
       next: (data) => {
@@ -208,6 +219,71 @@ export class RespuestasComponent implements OnInit {
   cerrarPerfil(): void {
     this.drawerVisible = false;
     this.perfilSeleccionado = null;
+    this.consentimientoSub?.unsubscribe();
+  }
+
+  // ── Datos de inclusión ──
+  /** Petición aparte del perfil: si falla, solo la sección muestra "No disponible". */
+  private cargarConsentimiento(id: number): void {
+    this.consentimientoSub?.unsubscribe();
+    this.consentimientoEstado = 'cargando';
+    this.consentimientoFecha = null;
+    this.modalRetiroVisible = false;
+
+    this.consentimientoSub = this.inclusionService.getConsentimiento(id).subscribe({
+      next: (res) => {
+        this.consentimientoEstado = res.consintio ? 'consintio' : 'no_consintio';
+        this.consentimientoFecha = res.fecha_consentimiento ?? null;
+      },
+      error: () => {
+        this.consentimientoEstado = 'no_disponible';
+      }
+    });
+  }
+
+  /** Fecha en español (ej. "12 de marzo de 2026"); '' si no viene o no es válida. */
+  get consentimientoFechaTexto(): string {
+    const f = this.consentimientoFecha;
+    if (!f) return '';
+    // Una fecha sin hora ("2026-03-12") se interpreta en UTC y se corre un día en México
+    const soloFecha = /^(\d{4})-(\d{2})-(\d{2})$/.exec(f);
+    const d = soloFecha ? new Date(+soloFecha[1], +soloFecha[2] - 1, +soloFecha[3]) : new Date(f);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  abrirModalRetiro(): void {
+    this.modalRetiroVisible = true;
+  }
+
+  cancelarRetiro(): void {
+    if (this.retirandoConsentimiento) return;
+    this.modalRetiroVisible = false;
+  }
+
+  confirmarRetiro(): void {
+    if (!this.perfilSeleccionado || this.retirandoConsentimiento) return;
+
+    const id = this.perfilSeleccionado.id_egresado;
+    this.retirandoConsentimiento = true;
+
+    this.inclusionService.retirarConsentimiento(id).subscribe({
+      next: () => {
+        this.retirandoConsentimiento = false;
+        this.modalRetiroVisible = false;
+        // Solo actualiza la sección si el drawer sigue en el mismo egresado
+        if (this.perfilSeleccionado?.id_egresado === id) {
+          this.consentimientoEstado = 'no_consintio';
+          this.consentimientoFecha = null;
+        }
+        this.mostrarToast('Datos de inclusión retirados correctamente.', false);
+      },
+      error: () => {
+        this.retirandoConsentimiento = false;
+        this.modalRetiroVisible = false;
+        this.mostrarToast('No se pudieron retirar los datos de inclusión. Intenta de nuevo.', true);
+      }
+    });
   }
 
   exportarPDF(): void {

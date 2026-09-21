@@ -351,19 +351,16 @@
           <!-- Certificaciones -->
           <div class="drawer-section">
             <span class="drawer-section-label">Certificaciones</span>
-            <div class="drawer-fields">
+            <div class="drawer-fields"
+              *ngIf="perfilSeleccionado.certificaciones && perfilSeleccionado.certificaciones.length > 0; else sinCert">
               <div class="drawer-field full">
-                <span class="df-label">¿Cuenta con certificación vigente?</span>
-                <span class="df-val">{{ perfilSeleccionado.certificacion_vigente }}</span>
-              </div>
-              <div class="drawer-field full"
-                *ngIf="perfilSeleccionado.certificaciones && perfilSeleccionado.certificaciones.length > 0">
                 <span class="df-label">Certificaciones obtenidas</span>
                 <div class="tag-list">
                   <span class="tag tag-blue" *ngFor="let c of perfilSeleccionado.certificaciones">{{ c }}</span>
                 </div>
               </div>
             </div>
+            <ng-template #sinCert><span class="df-empty">No registradas</span></ng-template>
           </div>
 
           <div class="drawer-divider"></div>
@@ -484,6 +481,25 @@
 
           <div class="drawer-divider"></div>
 
+          <!-- Datos de inclusión (solo consentimiento, nunca las respuestas) -->
+          <div class="drawer-section">
+            <span class="drawer-section-label">Datos de inclusión</span>
+            <ng-container [ngSwitch]="consentimientoEstado">
+              <span class="df-empty" *ngSwitchCase="'cargando'">Cargando…</span>
+              <span class="df-empty" *ngSwitchCase="'no_disponible'">No disponible</span>
+              <span class="df-val" *ngSwitchCase="'no_consintio'">No proporcionó datos de inclusión</span>
+              <div class="inc-consent" *ngSwitchCase="'consintio'">
+                <span class="df-val">Aceptó proporcionar datos de inclusión</span>
+                <span class="di-sub" *ngIf="consentimientoFechaTexto">Otorgado el {{ consentimientoFechaTexto }}</span>
+                <button type="button" class="btn-inc-retirar" (click)="abrirModalRetiro()">
+                  Retirar datos de inclusión
+                </button>
+              </div>
+            </ng-container>
+          </div>
+
+          <div class="drawer-divider"></div>
+
           <!-- Autorizaciones -->
           <div class="drawer-section">
             <span class="drawer-section-label">Autorizaciones</span>
@@ -525,6 +541,42 @@
         </div>
 
       </ng-container>
+    </div>
+
+    <!-- MODAL CONFIRMACIÓN RETIRAR DATOS DE INCLUSIÓN -->
+    <div class="modal-overlay" *ngIf="modalRetiroVisible" (click)="cancelarRetiro()">
+      <div class="modal-card" role="alertdialog" aria-modal="true" aria-labelledby="retiro-titulo"
+        aria-describedby="retiro-desc" (click)="$event.stopPropagation()">
+
+        <div class="modal-icon-wrap">
+          <div class="modal-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+              <path d="M10 11v6M14 11v6" />
+            </svg>
+          </div>
+        </div>
+
+        <div class="modal-body">
+          <h2 class="modal-title" id="retiro-titulo">¿Retirar datos de inclusión?</h2>
+          <p class="modal-desc" id="retiro-desc">
+            Se eliminarán de forma permanente las respuestas de discapacidad e identidad cultural de
+            este egresado, y dejará de contarse en los reportes de inclusión. El resto de su registro
+            no se modifica. Esta acción no se puede deshacer.
+          </p>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-modal-cancel" [disabled]="retirandoConsentimiento" (click)="cancelarRetiro()">
+            Cancelar
+          </button>
+          <button class="btn-modal-confirm" [disabled]="retirandoConsentimiento" (click)="confirmarRetiro()">
+            {{ retirandoConsentimiento ? 'Retirando…' : 'Retirar datos' }}
+          </button>
+        </div>
+
+      </div>
     </div>
 
     <!-- TOAST -->
