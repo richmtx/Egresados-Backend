@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { RespuestasService, Respuesta } from './respuestas.service';
+import { EstudioPosterior, Emprendimiento, ProyectoSocial } from '../egresados/egresados.service';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
 
@@ -21,6 +22,16 @@ export interface RespuestaPerfil extends Respuesta {
   instagram: string | null;
   tiempo_primer_empleo: string | null;
   medio_primer_empleo: string | null;
+  primer_empleo_empresa: string | null;
+  primer_empleo_puesto: string | null;
+
+  // ── Datos personales ──
+  pais_nacimiento: string | null;
+
+  // ── Trayectoria adicional ──
+  estudios: EstudioPosterior[];
+  emprendimientos: Emprendimiento[];
+  proyectos_sociales: ProyectoSocial[];
 }
 
 @Component({
@@ -180,6 +191,9 @@ export class RespuestasComponent implements OnInit {
           colaboraciones: data.colaboraciones ?? [],
           colaboraciones_otro: data.colaboraciones_otro ?? [],
           foto_url: data.foto_url ?? null,
+          estudios: data.estudios ?? [],
+          emprendimientos: data.emprendimientos ?? [],
+          proyectos_sociales: data.proyectos_sociales ?? [],
         };
         this.perfilCargando = false;
       },
@@ -270,6 +284,13 @@ export class RespuestasComponent implements OnInit {
     return d.toLocaleDateString('es-MX', {
       day: '2-digit', month: 'short', year: 'numeric',
     });
+  }
+
+  /** Une las partes con valor, omitiendo null/vacías para no dejar separadores sueltos. */
+  unirLinea(partes: (string | number | null | undefined)[]): string {
+    return partes
+      .filter(p => p !== null && p !== undefined && String(p).trim() !== '')
+      .join(' · ');
   }
 
   getEstrellas(valor: number): boolean[] {

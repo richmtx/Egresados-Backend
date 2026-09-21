@@ -1168,6 +1168,12 @@ tr:last-child td {
   font-style: italic;
 }
 
+/* Línea secundaria de items de lista */
+.di-sub {
+  font-size: 11px;
+  color: #6b7280;
+}
+
 /* Autorizaciones */
 .auth-list {
   display: flex;

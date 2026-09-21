@@ -493,6 +493,10 @@
                                     <span class="df-label">Ciudad</span>
                                     <span class="df-val">{{ perfilSeleccionado.ciudad_residencia || '—' }}</span>
                                 </div>
+                                <div class="drawer-field">
+                                    <span class="df-label">País de nacimiento</span>
+                                    <span class="df-val">{{ perfilSeleccionado.pais_nacimiento || '—' }}</span>
+                                </div>
                                 <div class="drawer-field full" *ngIf="perfilSeleccionado.linkedin">
                                     <span class="df-label">LinkedIn</span>
                                     <a class="df-val df-link df-linkedin" [href]="perfilSeleccionado.linkedin"
@@ -608,6 +612,65 @@
 
                         <div class="drawer-divider"></div>
 
+                        <!-- Estudios posteriores -->
+                        <div class="drawer-section">
+                            <span class="drawer-section-label">Estudios posteriores</span>
+                            <div class="drawer-fields" *ngIf="perfilSeleccionado.estudios.length > 0; else sinEstudios">
+                                <div class="drawer-field full" *ngFor="let est of perfilSeleccionado.estudios">
+                                    <span class="df-val">{{ unirLinea([est.nivel, est.nombre_programa]) }}</span>
+                                    <span class="di-sub"
+                                        *ngIf="unirLinea([est.institucion, est.estado, est.anio]) as sub">{{ sub
+                                        }}</span>
+                                </div>
+                            </div>
+                            <ng-template #sinEstudios>
+                                <span class="df-empty">No registrados</span>
+                            </ng-template>
+                        </div>
+
+                        <div class="drawer-divider"></div>
+
+                        <!-- Emprendimientos -->
+                        <div class="drawer-section">
+                            <span class="drawer-section-label">Emprendimientos</span>
+                            <div class="drawer-fields"
+                                *ngIf="perfilSeleccionado.emprendimientos.length > 0; else sinEmprendimientos">
+                                <div class="drawer-field full" *ngFor="let emp of perfilSeleccionado.emprendimientos">
+                                    <span class="df-val">{{ emp.nombre }}</span>
+                                    <span class="di-sub" *ngIf="unirLinea([
+                                        emp.giro,
+                                        emp.anio_inicio ? 'Desde ' + emp.anio_inicio : null,
+                                        'Sigue operando: ' + (emp.sigue_operando ? 'Sí' : 'No'),
+                                        emp.rango_empleados ? 'Empleados: ' + emp.rango_empleados : null
+                                    ]) as sub">{{ sub }}</span>
+                                </div>
+                            </div>
+                            <ng-template #sinEmprendimientos>
+                                <span class="df-empty">No registrados</span>
+                            </ng-template>
+                        </div>
+
+                        <div class="drawer-divider"></div>
+
+                        <!-- Proyectos sociales -->
+                        <div class="drawer-section">
+                            <span class="drawer-section-label">Proyectos sociales</span>
+                            <div class="drawer-fields"
+                                *ngIf="perfilSeleccionado.proyectos_sociales.length > 0; else sinProyectos">
+                                <div class="drawer-field full" *ngFor="let pro of perfilSeleccionado.proyectos_sociales">
+                                    <span class="df-val">{{ pro.nombre }}</span>
+                                    <span class="di-sub"
+                                        *ngIf="unirLinea([pro.tipo, pro.anio, pro.organizacion]) as sub">{{ sub
+                                        }}</span>
+                                </div>
+                            </div>
+                            <ng-template #sinProyectos>
+                                <span class="df-empty">No registrados</span>
+                            </ng-template>
+                        </div>
+
+                        <div class="drawer-divider"></div>
+
                         <!-- Situación laboral -->
                         <div class="drawer-section">
                             <span class="drawer-section-label">Situación laboral</span>
@@ -631,6 +694,14 @@
                                 <div class="drawer-field full">
                                     <span class="df-label">Coincidencia con carrera</span>
                                     <span class="df-val">{{ perfilSeleccionado.coincidencia_laboral || '—' }}</span>
+                                </div>
+                                <div class="drawer-field full">
+                                    <span class="df-label">Empresa del primer empleo</span>
+                                    <span class="df-val">{{ perfilSeleccionado.primer_empleo_empresa || '—' }}</span>
+                                </div>
+                                <div class="drawer-field full">
+                                    <span class="df-label">Puesto del primer empleo</span>
+                                    <span class="df-val">{{ perfilSeleccionado.primer_empleo_puesto || '—' }}</span>
                                 </div>
                                 <div class="drawer-field full">
                                     <span class="df-label">Tiempo en conseguir el primer empleo</span>

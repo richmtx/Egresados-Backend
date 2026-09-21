@@ -329,7 +329,12 @@ export class EgresadosComponent implements OnInit {
 
     this.egresadosService.getPerfilEgresado(id).subscribe({
       next: (data) => {
-        this.perfilSeleccionado = data;
+        this.perfilSeleccionado = {
+          ...data,
+          estudios: data.estudios ?? [],
+          emprendimientos: data.emprendimientos ?? [],
+          proyectos_sociales: data.proyectos_sociales ?? [],
+        };
         this.perfilCargando = false;
       },
       error: () => {
@@ -343,6 +348,13 @@ export class EgresadosComponent implements OnInit {
   cerrarPerfil(): void {
     this.drawerVisible = false;
     this.perfilSeleccionado = null;
+  }
+
+  /** Une las partes con valor, omitiendo null/vacías para no dejar separadores sueltos. */
+  unirLinea(partes: (string | number | null | undefined)[]): string {
+    return partes
+      .filter(p => p !== null && p !== undefined && String(p).trim() !== '')
+      .join(' · ');
   }
 
   getEstrellas(valor: number): boolean[] {

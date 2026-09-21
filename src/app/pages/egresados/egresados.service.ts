@@ -33,6 +33,29 @@ export interface EgresadoDetalle {
   foto_url: string | null;
 }
 
+export interface EstudioPosterior {
+  nivel: string;
+  nombre_programa: string;
+  institucion: string;
+  estado: string;
+  anio: number | null;
+}
+
+export interface Emprendimiento {
+  nombre: string;
+  giro: string;
+  anio_inicio: number | null;
+  sigue_operando: boolean;
+  rango_empleados: string | null;
+}
+
+export interface ProyectoSocial {
+  nombre: string;
+  tipo: string;
+  anio: number | null;
+  organizacion: string | null;
+}
+
 export interface EgresadoPerfil extends EgresadoDetalle {
   linkedin: string;
   certificacion_vigente: string;
@@ -57,6 +80,16 @@ export interface EgresadoPerfil extends EgresadoDetalle {
   // ── Primer empleo (Situación laboral) ──
   tiempo_primer_empleo: string | null;
   medio_primer_empleo: string | null;
+  primer_empleo_empresa: string | null;
+  primer_empleo_puesto: string | null;
+
+  // ── Datos personales ──
+  pais_nacimiento: string | null;
+
+  // ── Trayectoria adicional ──
+  estudios: EstudioPosterior[];
+  emprendimientos: Emprendimiento[];
+  proyectos_sociales: ProyectoSocial[];
 }
 
 @Injectable({
