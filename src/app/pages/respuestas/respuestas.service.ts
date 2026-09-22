@@ -26,7 +26,6 @@ export interface Respuesta {
   antiguedad_empleo: string;
   coincidencia_laboral: string;
   situacion_laboral: string;
-  certificacion_vigente: string | null;
   autorizo_estadisticas: boolean;
   autorizo_contacto: boolean;
   autorizo_eventos: boolean;

@@ -26,7 +26,6 @@ export interface EgresadoDetalle {
   antiguedad_empleo: string;
   coincidencia_laboral: string;
   situacion_laboral: string;
-  certificacion_vigente: string | null;
   autorizo_estadisticas: boolean;
   autorizo_contacto: boolean;
   autorizo_eventos: boolean;
@@ -58,7 +57,6 @@ export interface ProyectoSocial {
 
 export interface EgresadoPerfil extends EgresadoDetalle {
   linkedin: string | null;
-  certificacion_vigente: string | null;
   certificaciones: string[];
   habilidades: string[];
   habilidades_otro: string[];
