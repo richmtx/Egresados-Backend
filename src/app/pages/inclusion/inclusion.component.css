@@ -43,6 +43,161 @@
     font-weight: 600;
 }
 
+/* Botón de exportar (mismo patrón que titulación) */
+.btn-export {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: #003366;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.btn-export:hover {
+    background: #00254d;
+}
+
+.btn-export svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+
+.export-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.export-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: #fff;
+    border: 0.5px solid #E5E7EB;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, .08);
+    min-width: 240px;
+    z-index: 200;
+    overflow: hidden;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    animation: fadeDown .15s ease;
+}
+
+@keyframes fadeDown {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.export-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 12px;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: inherit;
+    color: #111827;
+    text-align: left;
+    transition: background .13s;
+}
+
+.export-option:hover {
+    background: #F9FAFB;
+}
+
+.export-option-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.export-option-icon.pdf {
+    background: #FEE2E2;
+    color: #DC2626;
+}
+
+.export-option-icon.excel {
+    background: #D1FAE5;
+    color: #059669;
+}
+
+.export-option-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.export-option-label {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex: 1;
+}
+
+.export-option-name {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #111827;
+}
+
+.export-option-sub {
+    font-size: 11.5px;
+    color: #6B7280;
+}
+
+.export-option-count {
+    font-size: 11px;
+    color: #6B7280;
+    background: #F3F4F6;
+    border: 0.5px solid #E5E7EB;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+.export-option-divider {
+    height: 0.5px;
+    background: #F3F4F6;
+    margin: 2px 0;
+}
+
+.btn-export-loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.export-spinner {
+    width: 14px;
+    height: 14px;
+    animation: spin .8s linear infinite;
+}
+
 /* Aviso permanente de umbral de privacidad */
 .aviso-umbral {
     display: flex;
@@ -266,6 +421,12 @@
     margin-right: 4px;
 }
 
+/* Leyenda suelta encima de las tablas desplegables de las gráficas */
+.table-wrap > .leyenda-oculto {
+    display: block;
+    margin-bottom: 8px;
+}
+
 /* Texto solo para lectores de pantalla */
 .sr-only {
     position: absolute;
@@ -308,6 +469,14 @@
 
 .dot-purple {
     background: #a78bfa;
+}
+
+.dot-amber {
+    background: #f59e0b;
+}
+
+.dot-indigo {
+    background: #4f46e5;
 }
 
 /* Chart rows */
@@ -369,6 +538,12 @@
     border-color: #a5f3fc;
 }
 
+.badge-amber {
+    background: #fffbeb;
+    color: #d97706;
+    border-color: #fde68a;
+}
+
 .cohorte-aviso {
     margin: 0 0 12px;
     padding: 8px 12px;
@@ -386,19 +561,87 @@
     padding-top: 8px;
 }
 
-.tabla-toggle summary {
+.tabla-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-size: 12px;
     font-weight: 500;
     color: #374151;
     cursor: pointer;
     padding: 4px 0;
     width: fit-content;
+    background: none;
+    border: none;
+    font-family: inherit;
 }
 
-.tabla-toggle summary:focus-visible {
+.tabla-toggle-btn:focus-visible {
     outline: 2px solid #003366;
     outline-offset: 2px;
     border-radius: 4px;
+}
+
+.tabla-toggle-chevron {
+    width: 9px;
+    height: 9px;
+    flex-shrink: 0;
+    transition: transform 0.15s;
+}
+
+.tabla-toggle-chevron-open {
+    transform: rotate(-180deg);
+}
+
+/* Desglose de lenguas indígenas declaradas */
+.lenguas-card {
+    margin-top: 14px;
+    border-top: 1px solid #f3f4f6;
+    padding-top: 12px;
+}
+
+.lenguas-title {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #374151;
+    margin: 0 0 6px;
+}
+
+.lenguas-table {
+    width: auto;
+    min-width: 0;
+    max-width: 360px;
+}
+
+/* Cobertura temporal: décadas de egreso */
+.decada-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.decada-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: #f9fafb;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 14px 16px;
+}
+
+.decada-etiqueta {
+    font-size: 12.5px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.decada-total {
+    font-size: 24px;
+    font-weight: 600;
+    color: #003366;
+    line-height: 1.2;
 }
 
 /* Detalle (tablas) */

@@ -952,10 +952,9 @@ export class DistribucionComponent implements OnInit, OnDestroy, AfterViewInit {
     });
 
     L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       {
-        attribution: '© OpenStreetMap © CartoDB',
-        subdomains: 'abcd',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19,
       },
     ).addTo(this.mapaMexico);
@@ -1028,10 +1027,9 @@ export class DistribucionComponent implements OnInit, OnDestroy, AfterViewInit {
     });
 
     L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       {
-        attribution: '© OpenStreetMap © CartoDB',
-        subdomains: 'abcd',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19,
       },
     ).addTo(this.mapaMundial);

@@ -1,7 +1,7 @@
 <div class="inc-layout">
   <app-sidebar></app-sidebar>
 
-  <main class="inc-main">
+  <main class="inc-main" (click)="exportMenuVisible = false">
 
     <!-- Header -->
     <div class="inc-header">
@@ -16,6 +16,54 @@
             <p class="page-subtitle">Consentimiento: dato oculto por protección de datos</p>
           </ng-template>
         </ng-container>
+      </div>
+
+      <div class="export-wrap" (click)="$event.stopPropagation()">
+        <button class="btn-export" [class.btn-export-loading]="exportando"
+          (click)="exportMenuVisible = !exportMenuVisible" [disabled]="exportando || cargando">
+          <svg *ngIf="exportando" class="export-spinner" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+            stroke-width="1.5">
+            <circle cx="8" cy="8" r="6" stroke-dasharray="28" stroke-dashoffset="10" />
+          </svg>
+          <svg *ngIf="!exportando" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round">
+            <path d="M3 12v2a1 1 0 001 1h8a1 1 0 001-1v-2M8 2v9M5 8l3 3 3-3" />
+          </svg>
+          {{ exportando ? 'Exportando...' : 'Exportar' }}
+          <svg *ngIf="!exportando" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" style="width:10px;height:10px;margin-left:2px">
+            <path d="M2 3.5l3 3 3-3" />
+          </svg>
+        </button>
+        <div class="export-dropdown" *ngIf="exportMenuVisible">
+          <button class="export-option" (click)="exportarPDF()">
+            <span class="export-option-icon pdf">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <rect x="2" y="1" width="12" height="14" rx="1.5" />
+                <path d="M5 6h4M5 9h6M5 12h3" />
+              </svg>
+            </span>
+            <span class="export-option-label">
+              <span class="export-option-name">Exportar como PDF</span>
+              <span class="export-option-sub">Documento imprimible</span>
+            </span>
+            <span class="export-option-count">{{ resumen?.totalEgresados ?? 0 }} reg.</span>
+          </button>
+          <div class="export-option-divider"></div>
+          <button class="export-option" (click)="exportarExcel()">
+            <span class="export-option-icon excel">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <rect x="2" y="1" width="12" height="14" rx="1.5" />
+                <path d="M5 6l2 3 2-3M5 12h6M5 9h6" />
+              </svg>
+            </span>
+            <span class="export-option-label">
+              <span class="export-option-name">Exportar como Excel</span>
+              <span class="export-option-sub">Hoja de cálculo .xlsx</span>
+            </span>
+            <span class="export-option-count">{{ resumen?.totalEgresados ?? 0 }} reg.</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -72,13 +120,14 @@
       <div class="detalle-card">
         <div class="detalle-toolbar">
           <span class="detalle-count">{{ filas.length }} {{ unidad }}</span>
-          <span class="leyenda-oculto"><span class="celda-oculta" aria-hidden="true">—</span> Oculto por protección de datos</span>
+          <span class="leyenda-oculto"><span class="celda-oculta" aria-hidden="true">—</span> Oculto (1 o 2 personas) · 0 = ninguna persona</span>
         </div>
         <div class="table-wrap">
           <table class="tit-table inc-table">
             <thead>
               <tr>
                 <th scope="col">{{ primera }}</th>
+                <th scope="col">Consintieron</th>
                 <th scope="col">Con discapacidad</th>
                 <th scope="col">Se consideran indígenas</th>
                 <th scope="col">Se consideran afromexicanos</th>
@@ -87,6 +136,7 @@
             <tbody>
               <tr *ngFor="let f of filas; trackBy: trackByFila">
                 <th scope="row" class="td-carrera" [title]="f.etiqueta">{{ f.etiqueta }}</th>
+                <td class="td-num">{{ f.consintieron | number }}</td>
                 <td class="td-num" [class.td-oculto]="f.discapacidad === null">
                   <ng-container *ngTemplateOutlet="conteo; context: { $implicit: f.discapacidad }"></ng-container>
                 </td>
@@ -237,9 +287,17 @@
             </apx-chart>
           </div>
 
-          <details class="tabla-toggle">
-            <summary>Ver datos en tabla</summary>
-            <div class="table-wrap">
+          <div class="tabla-toggle">
+            <button type="button" class="tabla-toggle-btn" (click)="mostrarTablaDominio = !mostrarTablaDominio"
+              [attr.aria-expanded]="mostrarTablaDominio">
+              <svg class="tabla-toggle-chevron" [class.tabla-toggle-chevron-open]="mostrarTablaDominio"
+                viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <path d="M2 3.5l3 3 3-3" />
+              </svg>
+              {{ mostrarTablaDominio ? 'Ocultar datos en tabla' : 'Ver datos en tabla' }}
+            </button>
+            <div class="table-wrap" *ngIf="mostrarTablaDominio">
+              <span class="leyenda-oculto"><span class="celda-oculta" aria-hidden="true">—</span> Oculto (1 o 2 personas) · 0 = ninguna persona</span>
               <table class="tit-table inc-table">
                 <thead>
                   <tr>
@@ -257,9 +315,118 @@
                 </tbody>
               </table>
             </div>
-          </details>
+          </div>
         </div>
       </div>
+
+      <!-- Sección: Identidad cultural -->
+      <div class="seccion-label">
+        <span class="seccion-dot dot-amber"></span>
+        Identidad Cultural
+      </div>
+
+      <div class="charts-row row-full">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Respuestas por pregunta de identidad</h3>
+              <p class="chart-sub">Personas por respuesta en cada pregunta. Los segmentos ocultos no se dibujan.</p>
+            </div>
+            <span class="chart-badge badge-amber">Barras apiladas</span>
+          </div>
+
+          <div class="cohorte-aviso" *ngIf="identidadSinDatos">
+            Todos los grupos de esta gráfica están por debajo del umbral de {{ umbral }} personas.
+          </div>
+
+          <div role="img" *ngIf="!identidadSinDatos"
+            aria-label="Gráfica de barras apiladas: respuestas por pregunta de identidad cultural. Los mismos datos están en la tabla que sigue.">
+            <apx-chart [series]="identidadSeries" [chart]="identidadChart" [xaxis]="identidadXAxis" [yaxis]="identidadYAxis"
+              [colors]="identidadColors" [plotOptions]="identidadPlotOptions" [dataLabels]="identidadDataLabels"
+              [legend]="identidadLegend" [tooltip]="identidadTooltip" [grid]="identidadGrid">
+            </apx-chart>
+          </div>
+
+          <div class="tabla-toggle">
+            <button type="button" class="tabla-toggle-btn" (click)="mostrarTablaIdentidad = !mostrarTablaIdentidad"
+              [attr.aria-expanded]="mostrarTablaIdentidad">
+              <svg class="tabla-toggle-chevron" [class.tabla-toggle-chevron-open]="mostrarTablaIdentidad"
+                viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <path d="M2 3.5l3 3 3-3" />
+              </svg>
+              {{ mostrarTablaIdentidad ? 'Ocultar datos en tabla' : 'Ver datos en tabla' }}
+            </button>
+            <div class="table-wrap" *ngIf="mostrarTablaIdentidad">
+              <span class="leyenda-oculto"><span class="celda-oculta" aria-hidden="true">—</span> Oculto (1 o 2 personas) · 0 = ninguna persona</span>
+              <table class="tit-table inc-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Pregunta</th>
+                    <th scope="col" *ngFor="let r of respuestasGrafica">{{ r.descripcion }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let p of preguntasIdentidad; trackBy: trackByPregunta">
+                    <th scope="row" class="td-carrera" [title]="p.pregunta">{{ p.pregunta }}</th>
+                    <td class="td-num" *ngFor="let r of respuestasGrafica" [class.td-oculto]="totalRespuesta(p, r.clave) === null">
+                      <ng-container *ngTemplateOutlet="conteo; context: { $implicit: totalRespuesta(p, r.clave) }"></ng-container>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Desglose de lenguas indígenas declaradas -->
+          <div class="lenguas-card" *ngIf="lenguasIndigena.length">
+            <h4 class="lenguas-title">Lenguas indígenas declaradas</h4>
+            <div class="table-wrap">
+              <table class="tit-table lenguas-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Lengua</th>
+                    <th scope="col">Egresados</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let l of lenguasIndigena; trackBy: trackByLengua">
+                    <th scope="row" class="td-carrera" [title]="l.lengua">{{ l.lengua }}</th>
+                    <td class="td-num" [class.td-oculto]="l.total === null">
+                      <ng-container *ngTemplateOutlet="conteo; context: { $implicit: l.total }"></ng-container>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección: Cobertura temporal -->
+      <ng-container *ngIf="resumen.cobertura as cobertura">
+        <div class="seccion-label">
+          <span class="seccion-dot dot-indigo"></span>
+          Cobertura Temporal
+        </div>
+
+        <div class="charts-row row-full">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <h3 class="chart-title">Egresados por década de egreso</h3>
+                <p class="chart-sub">Registros de {{ cobertura.anioMin }} a {{ cobertura.anioMax }}</p>
+              </div>
+            </div>
+
+            <div class="decada-grid">
+              <div class="decada-card" *ngFor="let d of cobertura.decadas">
+                <span class="decada-etiqueta">{{ d.etiqueta }}</span>
+                <span class="decada-total">{{ d.total | number }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
 
       <!-- Sección: Detalle por carrera -->
       <div class="seccion-label">

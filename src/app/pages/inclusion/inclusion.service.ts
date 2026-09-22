@@ -9,8 +9,11 @@ import { environment } from '../../../environments/environment';
  */
 export type Conteo = number | null;
 
-/** MySQL entrega los conteos como string; null llega cuando el grupo está oculto. */
-export type ConteoRaw = string | null;
+/**
+ * MySQL entrega los conteos como string; algunos endpoints (p.ej. lengua_indigena)
+ * ya los mandan como number. null llega cuando el grupo está oculto.
+ */
+export type ConteoRaw = string | number | null;
 
 /**
  * Convierte un conteo del backend preservando el null.
@@ -30,6 +33,20 @@ export interface InclusionResponse<T> {
   datos: T;
 }
 
+// Bloque de cobertura temporal: totales exactos, SIN umbral de privacidad
+export interface DecadaCobertura {
+  etiqueta: string;
+  desde: number;
+  hasta: number;
+  total: ConteoRaw;
+}
+
+export interface CoberturaInclusion {
+  anio_min: number;
+  anio_max: number;
+  decadas: DecadaCobertura[];
+}
+
 // 1. /inclusion/resumen
 export interface InclusionResumenDatos {
   total_egresados: ConteoRaw;
@@ -40,6 +57,7 @@ export interface InclusionResumenDatos {
   hablan_lengua_indigena: ConteoRaw;
   se_consideran_afromexicanos: ConteoRaw;
   nacidos_fuera_de_mexico: ConteoRaw;
+  cobertura: CoberturaInclusion;
 }
 
 // 2. /inclusion/discapacidad-por-dominio
@@ -58,6 +76,8 @@ export interface DominioDiscapacidad {
 // 3. /inclusion/por-carrera
 export interface InclusionCarrera {
   carrera: string;
+  /** Conteo exacto, sin umbral de privacidad */
+  consintieron: ConteoRaw;
   personas_con_discapacidad: ConteoRaw;
   se_consideran_indigenas: ConteoRaw;
   se_consideran_afromexicanos: ConteoRaw;
@@ -66,12 +86,40 @@ export interface InclusionCarrera {
 // 4. /inclusion/por-anio-egreso
 export interface InclusionAnio {
   anio_egreso: number;
+  /** Conteo exacto, sin umbral de privacidad */
+  consintieron: ConteoRaw;
   personas_con_discapacidad: ConteoRaw;
   se_consideran_indigenas: ConteoRaw;
   se_consideran_afromexicanos: ConteoRaw;
 }
 
-// 5. /inclusion/consentimiento/:id (solo admin)
+// 5. /inclusion/identidad-por-pregunta
+export interface RespuestaIdentidad {
+  clave: string;
+  descripcion: string;
+  total: ConteoRaw;
+}
+
+export interface PreguntaIdentidad {
+  pregunta_clave: string;
+  pregunta: string;
+  respuestas: RespuestaIdentidad[];
+}
+
+export interface LenguaIndigena {
+  lengua: string;
+  total: ConteoRaw;
+}
+
+/** Este endpoint no usa el envoltorio InclusionResponse<T>: lengua_indigena va junto a datos, no dentro. */
+export interface IdentidadPorPreguntaResponse {
+  umbral: number;
+  nota: string;
+  datos: PreguntaIdentidad[];
+  lengua_indigena: LenguaIndigena[];
+}
+
+// 6. /inclusion/consentimiento/:id (solo admin)
 // Solo indica si hubo consentimiento; NUNCA incluye las respuestas de discapacidad ni identidad.
 export interface ConsentimientoInclusion {
   id_egresado: number;
@@ -109,6 +157,10 @@ export class InclusionService {
     return this.http.get<InclusionResponse<InclusionAnio[]>>(`${this.apiUrl}/por-anio-egreso`);
   }
 
+  getIdentidadPorPregunta(): Observable<IdentidadPorPreguntaResponse> {
+    return this.http.get<IdentidadPorPreguntaResponse>(`${this.apiUrl}/identidad-por-pregunta`);
+  }
+
   getConsentimiento(id: number): Observable<ConsentimientoInclusion> {
     return this.http.get<ConsentimientoInclusion>(`${this.apiUrl}/consentimiento/${id}`);
   }
@@ -116,5 +168,15 @@ export class InclusionService {
   /** Elimina las respuestas de discapacidad e identidad cultural; el resto del registro no se toca. */
   retirarConsentimiento(id: number): Observable<RetiroConsentimientoResponse> {
     return this.http.delete<RetiroConsentimientoResponse>(`${this.apiUrl}/consentimiento/${id}`);
+  }
+
+  /** Solo admin. Documento imprimible con el resumen de inclusión. */
+  exportarPdf(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/export/pdf`, { responseType: 'blob' });
+  }
+
+  /** Solo admin. Hoja de cálculo .xlsx con el resumen de inclusión. */
+  exportarExcel(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/export/excel`, { responseType: 'blob' });
   }
 }
