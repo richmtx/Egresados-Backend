@@ -12,6 +12,7 @@ import {
   TitulacionService, TitulacionCarrera, TitulacionAnio,
   TitulacionCarreraAnio, PosgradoPorTipo, CarreraGrupo,
   TitulacionCohorte, CoberturaCohorte,
+  TitulacionCohorteSemestre, CohorteSemestreGrupo,
 } from './titulacion.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
 
@@ -57,6 +58,8 @@ export class TitulacionComponent implements OnInit {
   private rawCarrera: TitulacionCarrera[] = [];
   private rawAnio: TitulacionAnio[] = [];
   rawCohorte: TitulacionCohorte[] = [];
+  private rawCohorteSemestre: TitulacionCohorteSemestre[] = [];
+  gruposCohorteSemestre: CohorteSemestreGrupo[] = [];
   cobertura: CoberturaCohorte = { total: 0, con_cohorte: 0 };
   vistaTendencia: 'egreso' | 'cohorte' = 'egreso';
   private rawPosgrado: PosgradoPorTipo[] = [];
@@ -170,6 +173,14 @@ export class TitulacionComponent implements OnInit {
     return `Solo ${this.cobertura.con_cohorte} de ${this.cobertura.total} egresados tienen año de ingreso registrado.`;
   }
 
+  get mostrarAvisoCoberturaSemestre(): boolean {
+    return this.cobertura.con_cohorte < this.cobertura.total;
+  }
+
+  get hayPeriodoSinEspecificar(): boolean {
+    return this.rawCohorteSemestre.some(r => r.periodo_ingreso === 'Sin especificar');
+  }
+
   constructor(private titulacionService: TitulacionService) { }
 
   ngOnInit(): void {
@@ -236,10 +247,12 @@ export class TitulacionComponent implements OnInit {
         this.rawCarrera = data.titulacionCarrera;
         this.rawAnio = data.titulacionAnio;
         this.rawCohorte = data.titulacionCohorte ?? [];
+        this.rawCohorteSemestre = data.titulacionCohorteSemestre ?? [];
         this.cobertura = data.coberturaCohorte ?? { total: 0, con_cohorte: 0 };
         this.rawPosgrado = data.posgradoPorTipo;
         this.tablaDetalle = data.titulacionCarreraAnio;
         this.agruparPorCarrera();
+        this.agruparCohortePorSemestre();
 
         if (!this.filtroCarrera && !this.filtroAnio) {
           this.carrerasDisponibles = data.titulacionCarrera
@@ -527,4 +540,53 @@ export class TitulacionComponent implements OnInit {
 
   trackByCarrera = (_: number, g: CarreraGrupo) => g.nombre_carrera;
   trackByAnio = (_: number, r: TitulacionCarreraAnio) => r.anio_egreso;
+
+  private agruparCohortePorSemestre(): void {
+    const semestresPorAnio = new Map<number, TitulacionCohorteSemestre[]>();
+
+    for (const row of this.rawCohorteSemestre) {
+      const lista = semestresPorAnio.get(row.anio_ingreso) ?? [];
+      lista.push({
+        anio_ingreso: row.anio_ingreso,
+        periodo_ingreso: row.periodo_ingreso,
+        total: Number(row.total),
+        titulados: Number(row.titulados),
+        en_tramite: Number(row.en_tramite),
+        no_titulados: Number(row.no_titulados),
+        pct_titulados: Number(row.pct_titulados),
+      });
+      semestresPorAnio.set(row.anio_ingreso, lista);
+    }
+
+    this.gruposCohorteSemestre = this.rawCohorte
+      .map(c => ({
+        anio_ingreso: c.anio_ingreso,
+        total: Number(c.total),
+        titulados: Number(c.titulados),
+        en_tramite: Number(c.en_tramite),
+        no_titulados: Number(c.no_titulados),
+        pct_titulados: Number(c.pct_titulados),
+        semestres: semestresPorAnio.get(c.anio_ingreso) ?? [],
+        expandido: false,
+      }))
+      .sort((a, b) => b.anio_ingreso - a.anio_ingreso);
+  }
+
+  toggleGrupoCohorte(g: CohorteSemestreGrupo): void {
+    g.expandido = !g.expandido;
+    this.gruposCohorteSemestre = [...this.gruposCohorteSemestre]; // fuerza re-render
+  }
+
+  expandirTodoCohorteSemestre(): void {
+    this.gruposCohorteSemestre.forEach(g => g.expandido = true);
+    this.gruposCohorteSemestre = [...this.gruposCohorteSemestre];
+  }
+
+  colapsarTodoCohorteSemestre(): void {
+    this.gruposCohorteSemestre.forEach(g => g.expandido = false);
+    this.gruposCohorteSemestre = [...this.gruposCohorteSemestre];
+  }
+
+  trackByAnioCohorte = (_: number, g: CohorteSemestreGrupo) => g.anio_ingreso;
+  trackBySemestre = (_: number, r: TitulacionCohorteSemestre) => r.anio_ingreso + '-' + r.periodo_ingreso;
 }

@@ -62,10 +62,21 @@ export interface CoberturaCohorte {
   con_cohorte: number;
 }
 
+export interface TitulacionCohorteSemestre {
+  anio_ingreso: number;
+  periodo_ingreso: 'Enero - Junio' | 'Agosto - Diciembre' | 'Sin especificar';
+  total: number;
+  titulados: number;
+  en_tramite: number;
+  no_titulados: number;
+  pct_titulados: number;
+}
+
 export interface EstadisticasResponse {
   kpis: TitulacionKpis;
   titulacionAnio: TitulacionAnio[];
   titulacionCohorte: TitulacionCohorte[];
+  titulacionCohorteSemestre: TitulacionCohorteSemestre[];
   coberturaCohorte: CoberturaCohorte;
   titulacionCarrera: TitulacionCarrera[];
   posgradoPorTipo: PosgradoPorTipo[];
@@ -81,6 +92,17 @@ export interface CarreraGrupo {
   no_titulados: number;
   pct_titulados: number;
   anios: TitulacionCarreraAnio[];
+  expandido: boolean;
+}
+
+export interface CohorteSemestreGrupo {
+  anio_ingreso: number;
+  total: number;
+  titulados: number;
+  en_tramite: number;
+  no_titulados: number;
+  pct_titulados: number;
+  semestres: TitulacionCohorteSemestre[];
   expandido: boolean;
 }
 

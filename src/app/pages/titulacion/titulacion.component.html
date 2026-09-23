@@ -315,6 +315,96 @@
         </div>
       </div>
 
+      <!-- Sección: Cohorte por semestre -->
+      <div class="seccion-label">
+        <span class="seccion-dot dot-blue"></span>
+        Cohorte por Semestre
+      </div>
+
+      <div class="cohorte-aviso" *ngIf="mostrarAvisoCoberturaSemestre">
+        {{ textoCobertura }}
+      </div>
+
+      <div class="detalle-card">
+
+        <div class="detalle-toolbar">
+          <span class="detalle-count">{{ gruposCohorteSemestre.length }} año(s) de ingreso</span>
+          <div class="detalle-actions">
+            <button type="button" class="btn-detalle" (click)="expandirTodoCohorteSemestre()">Expandir todo</button>
+            <button type="button" class="btn-detalle" (click)="colapsarTodoCohorteSemestre()">Colapsar todo</button>
+          </div>
+        </div>
+
+        <div class="detalle-scroll">
+
+          <!-- Encabezado de columnas -->
+          <div class="detalle-head">
+            <span class="col-carrera">Año ingreso</span>
+            <span class="col-num">Semestre</span>
+            <span class="col-num">Total</span>
+            <span class="col-num">Titulados</span>
+            <span class="col-num">En trámite</span>
+            <span class="col-num">No titulados</span>
+            <span class="col-num">% Titulados</span>
+            <span class="col-estado">Estado</span>
+          </div>
+
+          <ng-container *ngFor="let g of gruposCohorteSemestre; trackBy: trackByAnioCohorte">
+
+            <!-- Fila resumen de año de ingreso -->
+            <div class="detalle-row row-grupo" (click)="toggleGrupoCohorte(g)">
+              <span class="col-carrera">
+                <span class="caret" [class.caret-open]="g.expandido">▸</span>
+                {{ g.anio_ingreso }}
+              </span>
+              <span class="col-num td-muted">Todos</span>
+              <span class="col-num"><strong>{{ g.total }}</strong></span>
+              <span class="col-num">{{ g.titulados }}</span>
+              <span class="col-num">{{ g.en_tramite }}</span>
+              <span class="col-num">{{ g.no_titulados }}</span>
+              <span class="col-num"><strong>{{ g.pct_titulados }}%</strong></span>
+              <span class="col-estado">
+                <span class="pct-badge" [class.pct-high]="g.pct_titulados >= 70"
+                  [class.pct-mid]="g.pct_titulados >= 50 && g.pct_titulados < 70"
+                  [class.pct-low]="g.pct_titulados < 50">
+                  {{ getBadgeTexto(g.pct_titulados) }}
+                </span>
+              </span>
+            </div>
+
+            <!-- Detalle por semestre -->
+            <ng-container *ngIf="g.expandido">
+              <div class="detalle-row row-detalle" *ngFor="let row of g.semestres; trackBy: trackBySemestre">
+                <span class="col-carrera td-sub"></span>
+                <span class="col-num">{{ row.periodo_ingreso }}</span>
+                <span class="col-num">{{ row.total }}</span>
+                <span class="col-num">{{ row.titulados }}</span>
+                <span class="col-num">{{ row.en_tramite }}</span>
+                <span class="col-num">{{ row.no_titulados }}</span>
+                <span class="col-num"><strong>{{ row.pct_titulados }}%</strong></span>
+                <span class="col-estado">
+                  <span class="pct-badge" [class.pct-high]="row.pct_titulados >= 70"
+                    [class.pct-mid]="row.pct_titulados >= 50 && row.pct_titulados < 70"
+                    [class.pct-low]="row.pct_titulados < 50">
+                    {{ getBadgeTexto(row.pct_titulados) }}
+                  </span>
+                </span>
+              </div>
+            </ng-container>
+
+          </ng-container>
+
+          <div class="detalle-empty" *ngIf="gruposCohorteSemestre.length === 0">
+            Sin resultados para el filtro aplicado.
+          </div>
+
+        </div>
+      </div>
+
+      <p class="cohorte-nota-semestre" *ngIf="hayPeriodoSinEspecificar">
+        Sin especificar: egresados que no recordaban su período de ingreso.
+      </p>
+
       <!-- Sección: Detalle -->
       <div class="seccion-label">
         <span class="seccion-dot dot-purple"></span>

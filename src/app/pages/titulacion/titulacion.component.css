@@ -420,6 +420,10 @@
     background: #a78bfa;
 }
 
+.dot-blue {
+    background: #3b82f6;
+}
+
 /* Chart rows */
 .charts-row {
     display: grid;
@@ -1078,4 +1082,10 @@
   border-radius: 4px;
   font-size: 0.82rem;
   color: #92400e;
+}
+
+.cohorte-nota-semestre {
+  margin: 8px 2px 0;
+  font-size: 11px;
+  color: #9ca3af;
 }
