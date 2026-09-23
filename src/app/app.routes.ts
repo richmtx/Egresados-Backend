@@ -11,6 +11,7 @@ export const routes: Routes = [
   { path: 'estadisticas', loadComponent: () => import('./pages/estadisticas/estadisticas.component').then(m => m.EstadisticasComponent), canActivate: [adminGuard] },  { path: 'empleabilidad', loadComponent: () => import('./pages/empleabilidad/empleabilidad.component').then(m => m.EmpleabilidadComponent), canActivate: [adminGuard] },
   { path: 'distribucion', loadComponent: () => import('./pages/distribucion/distribucion.component').then(m => m.DistribucionComponent), canActivate: [adminGuard] },
   { path: 'titulacion', loadComponent: () => import('./pages/titulacion/titulacion.component').then(m => m.TitulacionComponent), canActivate: [adminGuard] },
+  { path: 'trayectoria', loadComponent: () => import('./pages/trayectoria/trayectoria.component').then(m => m.TrayectoriaComponent), canActivate: [adminGuard] },
   { path: 'notificaciones', loadComponent: () => import('./pages/notificaciones/notificaciones.component').then(m => m.NotificacionesComponent), canActivate: [adminGuard] },  { path: 'vinculacion', loadComponent: () => import('./pages/vinculacion/vinculacion.component').then(m => m.VinculacionComponent), canActivate: [adminGuard] },
   { path: 'generos', loadComponent: () => import('./pages/generos/generos.component').then(m => m.GenerosComponent), canActivate: [adminGuard] },
   { path: 'inclusion', loadComponent: () => import('./pages/inclusion/inclusion.component').then(m => m.InclusionComponent), canActivate: [adminGuard] },

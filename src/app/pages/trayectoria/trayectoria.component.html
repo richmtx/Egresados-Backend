@@ -1,0 +1,625 @@
+<div class="tra-layout">
+  <app-sidebar></app-sidebar>
+
+  <main class="tra-main" #exportContent (click)="exportMenuVisible = false">
+
+    <!-- Header -->
+    <div class="tra-header">
+      <div class="header-left">
+        <h1 class="page-title">Trayectoria</h1>
+        <p class="page-subtitle" *ngIf="totalEgresados > 0">
+          Análisis de <strong>{{ totalEgresados }}</strong> egresados registrados
+        </p>
+        <p class="page-subtitle" *ngIf="totalEgresados === 0 && !cargando">Sin datos disponibles</p>
+      </div>
+      <div class="export-wrap" (click)="$event.stopPropagation()">
+        <button class="btn-export" [class.btn-export-loading]="exportando"
+          (click)="exportMenuVisible = !exportMenuVisible" [disabled]="exportando || cargando">
+          <svg *ngIf="exportando" class="export-spinner" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+            stroke-width="1.5">
+            <circle cx="8" cy="8" r="6" stroke-dasharray="28" stroke-dashoffset="10" />
+          </svg>
+          <svg *ngIf="!exportando" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round">
+            <path d="M3 12v2a1 1 0 001 1h8a1 1 0 001-1v-2M8 2v9M5 8l3 3 3-3" />
+          </svg>
+          {{ exportando ? 'Exportando...' : 'Exportar' }}
+          <svg *ngIf="!exportando" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" style="width:10px;height:10px;margin-left:2px">
+            <path d="M2 3.5l3 3 3-3" />
+          </svg>
+        </button>
+        <div class="export-dropdown" *ngIf="exportMenuVisible">
+          <button class="export-option" (click)="exportarPDF()">
+            <span class="export-option-icon pdf">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <rect x="2" y="1" width="12" height="14" rx="1.5" />
+                <path d="M5 6h4M5 9h6M5 12h3" />
+              </svg>
+            </span>
+            <span class="export-option-label">
+              <span class="export-option-name">Exportar como PDF</span>
+              <span class="export-option-sub">Documento imprimible</span>
+            </span>
+            <span class="export-option-count">{{ totalEgresados }} reg.</span>
+          </button>
+          <div class="export-option-divider"></div>
+          <button class="export-option" (click)="exportarExcel()">
+            <span class="export-option-icon excel">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <rect x="2" y="1" width="12" height="14" rx="1.5" />
+                <path d="M5 6l2 3 2-3M5 12h6M5 9h6" />
+              </svg>
+            </span>
+            <span class="export-option-label">
+              <span class="export-option-name">Exportar como Excel</span>
+              <span class="export-option-sub">Hoja de cálculo .xlsx</span>
+            </span>
+            <span class="export-option-count">{{ totalEgresados }} reg.</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filtros-bar">
+      <div class="filtro-item">
+        <select class="filtro-select" [(ngModel)]="filtroCarrera" (change)="onFiltroChange()">
+          <option value="">Todas las carreras</option>
+          <option *ngFor="let c of carrerasDisponibles" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+      <div class="filtro-item">
+        <select class="filtro-select" [(ngModel)]="filtroAnio" (change)="onFiltroChange()">
+          <option value="">Todos los años</option>
+          <option *ngFor="let a of aniosDisponibles" [value]="a">{{ a }}</option>
+        </select>
+      </div>
+      <button class="btn-limpiar" (click)="limpiarFiltros()" *ngIf="filtroCarrera || filtroAnio">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+        Limpiar filtros
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-state" *ngIf="cargando">
+      <div class="spinner"></div>
+      <p>Cargando estadísticas...</p>
+    </div>
+
+    <!-- Error -->
+    <div class="error-state" *ngIf="error && !cargando">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+      <p>No se pudieron cargar las estadísticas.</p>
+      <button class="btn-retry" (click)="cargarDatos()">Reintentar</button>
+    </div>
+
+    <!-- CONTENIDO -->
+    <ng-container *ngIf="!cargando && !error">
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+
+        <div class="kpi-card kpi-indigo">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Total egresados</span>
+            <span class="kpi-value">{{ totalEgresados | number }}</span>
+            <span class="kpi-sub">registros en BD</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-green">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+              <path d="M6 12v5c3 3 9 3 12 0v-5" />
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Con estudios posteriores</span>
+            <span class="kpi-value">{{ totalConEstudios | number }}<small> ({{ pctConEstudios }}%)</small></span>
+            <span class="kpi-sub">egresados</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-amber">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M2 20h20" />
+              <path d="M5 20V10l7-6 7 6v10" />
+              <path d="M9 20v-6h6v6" />
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Con emprendimiento</span>
+            <span class="kpi-value">{{ totalConEmprendimiento | number }}<small> ({{ pctConEmprendimiento
+                }}%)</small></span>
+            <span class="kpi-sub">egresados</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-red">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Emprendimientos activos</span>
+            <span class="kpi-value">{{ totalEmprendimientosActivos | number }}</span>
+            <span class="kpi-sub">en operación</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-cyan">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" />
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Con proyecto social</span>
+            <span class="kpi-value">{{ totalConProyecto | number }}<small> ({{ pctConProyecto }}%)</small></span>
+            <span class="kpi-sub">egresados</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-purple">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 15a4 4 0 004-4V5a4 4 0 00-8 0v6a4 4 0 004 4z" />
+              <path d="M19 11a7 7 0 01-14 0M12 18v4" />
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Con certificaciones</span>
+            <span class="kpi-value">{{ totalConCertificaciones | number }}<small> ({{ pctConCertificaciones
+                }}%)</small></span>
+            <span class="kpi-sub">egresados</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ SECCIÓN 1: ESTUDIOS POSTERIORES ══ -->
+      <div class="seccion-label">
+        <span class="seccion-dot dot-green"></span>
+        Estudios Posteriores
+      </div>
+
+      <div class="charts-row row-1-1">
+
+        <div class="chart-card"
+          (click)="abrirModal('donut', 'Estudios posteriores por nivel', 'Distribución por nivel de estudios', chartDonaNivelConfig)">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Estudios posteriores por nivel</h3>
+              <p class="chart-sub">Distribución por nivel de estudios</p>
+            </div>
+            <span class="chart-badge">Dona</span>
+          </div>
+          <ng-container *ngIf="rawNivel.length > 0; else sinNivel">
+            <apx-chart [series]="donaNivelSeries" [chart]="donaNivelChart" [labels]="donaNivelLabels"
+              [colors]="donaNivelColors" [legend]="donaNivelLegend" [dataLabels]="donaNivelDataLabels">
+            </apx-chart>
+          </ng-container>
+          <ng-template #sinNivel>
+            <div class="empty-chart"><p>Sin datos registrados</p></div>
+          </ng-template>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            <span>Clic para expandir</span>
+            <span class="hint-carrera">{{ etiquetaCarrera }}</span>
+          </div>
+        </div>
+
+        <div class="chart-card"
+          (click)="abrirModal('bar', 'Estudios posteriores por estado', 'Egresados por estado de estudio', chartBarEstadoConfig)">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Estudios posteriores por estado</h3>
+              <p class="chart-sub">Egresados por estado de estudio</p>
+            </div>
+            <span class="chart-badge badge-green">Barras</span>
+          </div>
+          <ng-container *ngIf="rawEstado.length > 0; else sinEstado">
+            <apx-chart [series]="barEstadoSeries" [chart]="barEstadoChart" [xaxis]="barEstadoXAxis"
+              [yaxis]="barEstadoYAxis" [colors]="barEstadoColors" [dataLabels]="barEstadoDataLabels"
+              [plotOptions]="barEstadoPlotOptions" [legend]="barEstadoLegend" [tooltip]="barEstadoTooltip">
+            </apx-chart>
+          </ng-container>
+          <ng-template #sinEstado>
+            <div class="empty-chart"><p>Sin datos registrados</p></div>
+          </ng-template>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            <span>Clic para expandir</span>
+            <span class="hint-carrera">{{ etiquetaCarrera }}</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="charts-row row-full">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Top instituciones</h3>
+              <p class="chart-sub">Instituciones de estudios posteriores · top 10</p>
+            </div>
+            <span class="chart-badge">Ranking</span>
+          </div>
+          <div class="ranking-lista" *ngIf="rankingInstituciones.length > 0; else sinInstituciones">
+            <div class="ranking-row" *ngFor="let r of rankingInstituciones; let i = index; trackBy: trackByLabel">
+              <span class="ranking-rank">{{ i + 1 }}</span>
+              <span class="ranking-nombre">{{ r.label }}</span>
+              <div class="ranking-bar-wrap">
+                <div class="ranking-bar" [style.width]="getBarWidth(r.total, getMaxRanking(rankingInstituciones))">
+                </div>
+              </div>
+              <span class="ranking-count">{{ r.total }}</span>
+            </div>
+          </div>
+          <ng-template #sinInstituciones>
+            <div class="empty-chart"><p>Sin datos registrados</p></div>
+          </ng-template>
+        </div>
+      </div>
+
+      <div class="charts-row row-full">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Detalle por carrera</h3>
+              <p class="chart-sub">Egresados con estudios posteriores por carrera</p>
+            </div>
+            <span class="chart-badge">Tabla</span>
+          </div>
+          <div class="table-wrap" *ngIf="tablaEstudios.length > 0; else sinTablaEstudios">
+            <table class="tra-table">
+              <thead>
+                <tr>
+                  <th>Carrera</th>
+                  <th>Egresados</th>
+                  <th>Con estudios</th>
+                  <th>%</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of tablaEstudios; trackBy: trackByCarrera">
+                  <td class="td-carrera">{{ row.nombre_carrera }}</td>
+                  <td class="td-center">{{ row.total_egresados }}</td>
+                  <td class="td-center">{{ row.con }}</td>
+                  <td class="td-center">
+                    <span class="pct-badge" [class.pct-high]="row.pct >= 70"
+                      [class.pct-mid]="row.pct >= 50 && row.pct < 70" [class.pct-low]="row.pct < 50">
+                      {{ getBadgeTexto(row.pct) }} · {{ row.pct }}%
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <ng-template #sinTablaEstudios>
+            <div class="empty-chart"><p>Sin datos registrados</p></div>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- ══ SECCIÓN 2: EMPRENDIMIENTO ══ -->
+      <div class="seccion-label">
+        <span class="seccion-dot dot-amber"></span>
+        Emprendimiento
+      </div>
+
+      <div class="charts-row row-1-1">
+
+        <div class="chart-card"
+          (click)="abrirModal('bar', 'Emprendimiento por tamaño de negocio', 'Distribución por rango de tamaño', chartBarRangoConfig)">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Emprendimiento por tamaño de negocio</h3>
+              <p class="chart-sub">Distribución por rango de tamaño</p>
+            </div>
+            <span class="chart-badge badge-green">Barras</span>
+          </div>
+          <ng-container *ngIf="rawRango.length > 0; else sinRango">
+            <apx-chart [series]="barRangoSeries" [chart]="barRangoChart" [xaxis]="barRangoXAxis"
+              [yaxis]="barRangoYAxis" [colors]="barRangoColors" [dataLabels]="barRangoDataLabels"
+              [plotOptions]="barRangoPlotOptions" [legend]="barRangoLegend" [tooltip]="barRangoTooltip">
+            </apx-chart>
+          </ng-container>
+          <ng-template #sinRango>
+            <div class="empty-chart"><p>Sin datos registrados</p></div>
+          </ng-template>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            <span>Clic para expandir</span>
+            <span class="hint-carrera">{{ etiquetaCarrera }}</span>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Top giros</h3>
+              <p class="chart-sub">Giros de negocio más frecuentes · top 10</p>
+            </div>
+            <span class="chart-badge">Ranking</span>
+          </div>
+          <div class="ranking-lista" *ngIf="rankingGiros.length > 0; else sinGiros">
+            <div class="ranking-row" *ngFor="let r of rankingGiros; let i = index; trackBy: trackByLabel">
+              <span class="ranking-rank">{{ i + 1 }}</span>
+              <span class="ranking-nombre">{{ r.label }}</span>
+              <div class="ranking-bar-wrap">
+                <div class="ranking-bar" [style.width]="getBarWidth(r.total, getMaxRanking(rankingGiros))"></div>
+              </div>
+              <span class="ranking-count">{{ r.total }}</span>
+            </div>
+          </div>
+          <ng-template #sinGiros>
+            <div class="empty-chart"><p>Sin datos registrados</p></div>
+          </ng-template>
+        </div>
+
+      </div>
+
+      <div class="charts-row row-full">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Detalle por carrera</h3>
+              <p class="chart-sub">Egresados con emprendimiento por carrera</p>
+            </div>
+            <span class="chart-badge">Tabla</span>
+          </div>
+          <div class="table-wrap" *ngIf="tablaEmprendimiento.length > 0; else sinTablaEmprendimiento">
+            <table class="tra-table">
+              <thead>
+                <tr>
+                  <th>Carrera</th>
+                  <th>Egresados</th>
+                  <th>Con emprendimiento</th>
+                  <th>%</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of tablaEmprendimiento; trackBy: trackByCarrera">
+                  <td class="td-carrera">{{ row.nombre_carrera }}</td>
+                  <td class="td-center">{{ row.total_egresados }}</td>
+                  <td class="td-center">{{ row.con }}</td>
+                  <td class="td-center">
+                    <span class="pct-badge" [class.pct-high]="row.pct >= 70"
+                      [class.pct-mid]="row.pct >= 50 && row.pct < 70" [class.pct-low]="row.pct < 50">
+                      {{ getBadgeTexto(row.pct) }} · {{ row.pct }}%
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <ng-template #sinTablaEmprendimiento>
+            <div class="empty-chart"><p>Sin datos registrados</p></div>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- ══ SECCIÓN 3: PROYECTOS SOCIALES ══ -->
+      <div class="seccion-label">
+        <span class="seccion-dot dot-purple"></span>
+        Proyectos Sociales
+      </div>
+
+      <div class="charts-row row-1-1">
+
+        <div class="chart-card"
+          (click)="abrirModal('bar', 'Proyectos sociales por tipo', 'Distribución por tipo de proyecto', chartBarTipoConfig)">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Proyectos sociales por tipo</h3>
+              <p class="chart-sub">Distribución por tipo de proyecto</p>
+            </div>
+            <span class="chart-badge badge-green">Barras</span>
+          </div>
+          <ng-container *ngIf="rawTipo.length > 0; else sinTipo">
+            <apx-chart [series]="barTipoSeries" [chart]="barTipoChart" [xaxis]="barTipoXAxis" [yaxis]="barTipoYAxis"
+              [colors]="barTipoColors" [dataLabels]="barTipoDataLabels" [plotOptions]="barTipoPlotOptions"
+              [legend]="barTipoLegend" [tooltip]="barTipoTooltip">
+            </apx-chart>
+          </ng-container>
+          <ng-template #sinTipo>
+            <div class="empty-chart"><p>Sin datos registrados</p></div>
+          </ng-template>
+          <div class="chart-card-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            <span>Clic para expandir</span>
+            <span class="hint-carrera">{{ etiquetaCarrera }}</span>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Top organizaciones</h3>
+              <p class="chart-sub">Organizaciones de proyectos sociales · top 10</p>
+            </div>
+            <span class="chart-badge">Ranking</span>
+          </div>
+          <div class="ranking-lista" *ngIf="rankingOrganizaciones.length > 0; else sinOrganizaciones">
+            <div class="ranking-row" *ngFor="let r of rankingOrganizaciones; let i = index; trackBy: trackByLabel">
+              <span class="ranking-rank">{{ i + 1 }}</span>
+              <span class="ranking-nombre">{{ r.label }}</span>
+              <div class="ranking-bar-wrap">
+                <div class="ranking-bar" [style.width]="getBarWidth(r.total, getMaxRanking(rankingOrganizaciones))">
+                </div>
+              </div>
+              <span class="ranking-count">{{ r.total }}</span>
+            </div>
+          </div>
+          <ng-template #sinOrganizaciones>
+            <div class="empty-chart"><p>Sin datos registrados</p></div>
+          </ng-template>
+        </div>
+
+      </div>
+
+      <div class="charts-row row-full">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Detalle por carrera</h3>
+              <p class="chart-sub">Egresados con proyecto social por carrera</p>
+            </div>
+            <span class="chart-badge">Tabla</span>
+          </div>
+          <div class="table-wrap" *ngIf="tablaProyectos.length > 0; else sinTablaProyectos">
+            <table class="tra-table">
+              <thead>
+                <tr>
+                  <th>Carrera</th>
+                  <th>Egresados</th>
+                  <th>Con proyecto</th>
+                  <th>%</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of tablaProyectos; trackBy: trackByCarrera">
+                  <td class="td-carrera">{{ row.nombre_carrera }}</td>
+                  <td class="td-center">{{ row.total_egresados }}</td>
+                  <td class="td-center">{{ row.con }}</td>
+                  <td class="td-center">
+                    <span class="pct-badge" [class.pct-high]="row.pct >= 70"
+                      [class.pct-mid]="row.pct >= 50 && row.pct < 70" [class.pct-low]="row.pct < 50">
+                      {{ getBadgeTexto(row.pct) }} · {{ row.pct }}%
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <ng-template #sinTablaProyectos>
+            <div class="empty-chart"><p>Sin datos registrados</p></div>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- ══ SECCIÓN 4: PRIMER EMPLEO ══ -->
+      <div class="seccion-label">
+        <span class="seccion-dot dot-blue"></span>
+        Primer Empleo
+      </div>
+
+      <div class="charts-row row-1-1">
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Top empresas</h3>
+              <p class="chart-sub">Empresas de primer empleo · top 10</p>
+            </div>
+            <span class="chart-badge">Ranking</span>
+          </div>
+          <div class="ranking-lista" *ngIf="rankingEmpresas.length > 0; else sinEmpresas">
+            <div class="ranking-row" *ngFor="let r of rankingEmpresas; let i = index; trackBy: trackByLabel">
+              <span class="ranking-rank">{{ i + 1 }}</span>
+              <span class="ranking-nombre">{{ r.label }}</span>
+              <div class="ranking-bar-wrap">
+                <div class="ranking-bar" [style.width]="getBarWidth(r.total, getMaxRanking(rankingEmpresas))"></div>
+              </div>
+              <span class="ranking-count">{{ r.total }}</span>
+            </div>
+          </div>
+          <ng-template #sinEmpresas>
+            <div class="empty-chart"><p>Sin datos registrados</p></div>
+          </ng-template>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Top puestos</h3>
+              <p class="chart-sub">Puestos de primer empleo · top 10</p>
+            </div>
+            <span class="chart-badge">Ranking</span>
+          </div>
+          <div class="ranking-lista" *ngIf="rankingPuestos.length > 0; else sinPuestos">
+            <div class="ranking-row" *ngFor="let r of rankingPuestos; let i = index; trackBy: trackByLabel">
+              <span class="ranking-rank">{{ i + 1 }}</span>
+              <span class="ranking-nombre">{{ r.label }}</span>
+              <div class="ranking-bar-wrap">
+                <div class="ranking-bar" [style.width]="getBarWidth(r.total, getMaxRanking(rankingPuestos))"></div>
+              </div>
+              <span class="ranking-count">{{ r.total }}</span>
+            </div>
+          </div>
+          <ng-template #sinPuestos>
+            <div class="empty-chart"><p>Sin datos registrados</p></div>
+          </ng-template>
+        </div>
+
+      </div>
+
+    </ng-container>
+
+    <!-- Modal gráfica expandida -->
+    <div class="chart-modal-overlay" *ngIf="modalAbierto" (click)="cerrarModal()">
+      <div class="chart-modal" (click)="$event.stopPropagation()">
+        <div class="chart-modal-head">
+          <div>
+            <h3 class="chart-modal-title">{{ modalTitulo }}</h3>
+            <p class="chart-modal-sub">{{ modalSubtitulo }}</p>
+          </div>
+          <span class="modal-carrera">{{ etiquetaCarrera }}</span>
+          <button class="chart-modal-close" (click)="cerrarModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div class="chart-modal-body">
+
+          <!-- Donut -->
+          <ng-container *ngIf="modalTipo === 'donut'">
+            <apx-chart [series]="modalChart.series" [chart]="modalChart.chart" [labels]="modalChart.labels"
+              [colors]="modalChart.colors" [legend]="modalChart.legend" [dataLabels]="modalChart.dataLabels">
+            </apx-chart>
+          </ng-container>
+
+          <!-- Bar (vertical u horizontal) -->
+          <ng-container *ngIf="modalTipo === 'bar'">
+            <apx-chart [series]="modalChart.series" [chart]="modalChart.chart" [xaxis]="modalChart.xaxis"
+              [yaxis]="modalChart.yaxis" [colors]="modalChart.colors" [plotOptions]="modalChart.plotOptions"
+              [dataLabels]="modalChart.dataLabels" [legend]="modalChart.legend" [tooltip]="modalChart.tooltip">
+            </apx-chart>
+          </ng-container>
+
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
