@@ -92,13 +92,9 @@ const CAMPOS_LEGIBLES: Record<string, string> = {
   'autorizaciones.autorizo_eventos': 'Autoriza invitaciones a eventos',
 };
 
-// MySQL guarda la hora local de Durango y la API (TypeORM con timezone 'Z') la
-// serializa como si fuera UTC: "08:48 local" llega como "08:48Z". Formatear en
-// UTC muestra la hora tal como quedó en la base. Si la API corrige su zona
-// horaria, quitar timeZone de estos dos formatos.
 // Fecha y hora van por separado: es-MX las une con "a las" y aquí se quiere "…de 2026, 12:30"
-const FMT_HORA = new Intl.DateTimeFormat('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' });
-const FMT_FECHA = new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+const FMT_HORA = new Intl.DateTimeFormat('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false });
+const FMT_FECHA = new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
 
 const vacio = (v: unknown): boolean =>
   v === null || v === undefined || (typeof v === 'string' && v.trim() === '');
