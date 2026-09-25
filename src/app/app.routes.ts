@@ -8,6 +8,7 @@ export const routes: Routes = [
   // Solo admins
   { path: 'dashboard', loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent), canActivate: [adminGuard] },  { path: 'egresados', loadComponent: () => import('./pages/egresados/egresados.component').then(m => m.EgresadosComponent), canActivate: [adminGuard] },
   { path: 'respuestas', loadComponent: () => import('./pages/respuestas/respuestas.component').then(m => m.RespuestasComponent), canActivate: [adminGuard] },
+  { path: 'duplicados', loadComponent: () => import('./pages/duplicados/duplicados.component').then(m => m.DuplicadosComponent), canActivate: [adminGuard] },
   { path: 'estadisticas', loadComponent: () => import('./pages/estadisticas/estadisticas.component').then(m => m.EstadisticasComponent), canActivate: [adminGuard] },  { path: 'empleabilidad', loadComponent: () => import('./pages/empleabilidad/empleabilidad.component').then(m => m.EmpleabilidadComponent), canActivate: [adminGuard] },
   { path: 'distribucion', loadComponent: () => import('./pages/distribucion/distribucion.component').then(m => m.DistribucionComponent), canActivate: [adminGuard] },
   { path: 'titulacion', loadComponent: () => import('./pages/titulacion/titulacion.component').then(m => m.TitulacionComponent), canActivate: [adminGuard] },

@@ -1,0 +1,612 @@
+<div class="dup-layout">
+  <app-sidebar></app-sidebar>
+
+  <main class="dup-main">
+
+    <!-- Header -->
+    <div class="dup-header">
+      <div class="header-left">
+        <h1 class="page-title">Duplicados</h1>
+        <p class="page-subtitle" *ngIf="resumen && !cargando">
+          <ng-container *ngIf="totalPendientes > 0; else sinPendientesSub">
+            <strong>{{ totalPendientes | number }}</strong> {{ totalPendientes === 1 ? 'caso pendiente' : 'casos pendientes' }} de revisar
+          </ng-container>
+          <ng-template #sinPendientesSub>Sin casos pendientes de revisar</ng-template>
+          <span class="sub-sep" aria-hidden="true">·</span>
+          <ng-container *ngIf="fechaHora(resumen.ultima_deteccion) as ultima; else nuncaBuscado">
+            Última búsqueda: {{ ultima }}
+          </ng-container>
+          <ng-template #nuncaBuscado>Todavía no se ha buscado</ng-template>
+        </p>
+      </div>
+
+      <button type="button" class="btn-export" [class.btn-export-loading]="detectando"
+        (click)="buscarDuplicados()" [disabled]="detectando || cargando" [attr.aria-busy]="detectando">
+        <svg *ngIf="detectando" class="export-spinner" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+          stroke-width="1.5" aria-hidden="true">
+          <circle cx="8" cy="8" r="6" stroke-dasharray="28" stroke-dashoffset="10" />
+        </svg>
+        <svg *ngIf="!detectando" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+          stroke-linecap="round" aria-hidden="true">
+          <circle cx="7" cy="7" r="4.5" />
+          <path d="M10.5 10.5L14 14" />
+        </svg>
+        {{ detectando ? 'Buscando...' : 'Buscar duplicados' }}
+      </button>
+    </div>
+
+    <!-- Aviso temporal: aria-live, no roba el foco -->
+    <div class="aviso-live" aria-live="polite" role="status">
+      <div class="aviso" *ngIf="aviso" [class.aviso-error]="aviso.tipo === 'error'">
+        <svg *ngIf="aviso.tipo === 'exito'" class="aviso-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+        <svg *ngIf="aviso.tipo === 'error'" class="aviso-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <span class="aviso-text">{{ aviso.texto }}</span>
+        <button type="button" class="aviso-close" (click)="cerrarAviso()" aria-label="Cerrar aviso">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-state" *ngIf="cargando" role="status">
+      <div class="spinner"></div>
+      <p>Cargando casos de duplicados...</p>
+    </div>
+
+    <!-- Error -->
+    <div class="error-state" *ngIf="error && !cargando" role="alert">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+      <p>No se pudieron cargar los casos de duplicados.</p>
+      <button class="btn-retry" (click)="cargarDatos()">Reintentar</button>
+    </div>
+
+    <!-- Valor de celda: vacío => "—" en gris, nunca en blanco ni "null" -->
+    <ng-template #valor let-v>
+      <ng-container *ngIf="v !== null; else valorVacio">{{ v }}</ng-container>
+      <ng-template #valorVacio>
+        <span class="celda-vacia" aria-hidden="true">—</span><span class="sr-only">Sin dato</span>
+      </ng-template>
+    </ng-template>
+
+    <!-- Estado de carga/error de una pestaña -->
+    <ng-template #estadoPestana let-cargandoP="cargando" let-errorP="error" let-reintentar="reintentar" let-texto="texto">
+      <div class="loading-state" *ngIf="cargandoP" role="status">
+        <div class="spinner"></div>
+        <p>{{ texto }}</p>
+      </div>
+      <div class="error-state" *ngIf="errorP && !cargandoP" role="alert">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <p>No se pudo cargar esta lista.</p>
+        <button class="btn-retry" (click)="reintentar()">Reintentar</button>
+      </div>
+    </ng-template>
+
+    <!-- Tarjeta de un caso -->
+    <ng-template #tarjetaCaso let-caso let-descartado="descartado">
+      <article class="caso-card" [attr.aria-labelledby]="'caso-' + caso.grupo.ids.join('-')">
+        <header class="caso-header">
+          <div class="caso-titulo-wrap">
+            <h3 class="caso-titulo" [id]="'caso-' + caso.grupo.ids.join('-')">
+              {{ caso.grupo.ids.length }} registros
+              <span class="caso-ids">ids {{ caso.grupo.ids.join(', ') }}</span>
+            </h3>
+            <span class="score-badge" [ngClass]="claseScore(caso.grupo.score_max)"
+              [title]="'Puntaje de ' + caso.grupo.score_max + ' de 100: ' + nivelScore(caso.grupo.score_max)">
+              <span class="score-num">{{ caso.grupo.score_max }}</span>
+              <span class="score-de">/100</span>
+              <span class="sr-only">puntos, {{ nivelScore(caso.grupo.score_max) }}</span>
+            </span>
+          </div>
+          <ul class="senales" aria-label="Coincidencias encontradas">
+            <li class="senal-chip" *ngFor="let s of senalesCaso(caso)">{{ s }}</li>
+          </ul>
+        </header>
+
+        <!-- Comparación lado a lado (pantallas medianas y grandes) -->
+        <div class="cmp-wrap">
+          <table class="cmp-table">
+            <caption class="sr-only">
+              Comparación de los registros {{ caso.grupo.ids.join(', ') }}. Las filas marcadas como distintas tienen valores que no coinciden.
+            </caption>
+            <colgroup>
+              <col class="cmp-col-label">
+            </colgroup>
+            <thead>
+              <tr>
+                <th scope="col" class="cmp-corner"><span class="sr-only">Campo</span></th>
+                <th scope="col" *ngFor="let e of caso.grupo.egresados; trackBy: trackByEgresado" class="cmp-reg">
+                  Registro <span class="cmp-reg-id">id {{ e.id_egresado }}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let f of caso.filas" [class.fila-difiere]="f.difiere">
+                <th scope="row" class="cmp-label">
+                  {{ f.etiqueta }}
+                  <span class="difiere-tag" *ngIf="f.difiere">Distinto</span>
+                </th>
+                <td *ngFor="let v of f.valores" class="cmp-val">
+                  <ng-container *ngTemplateOutlet="valor; context: { $implicit: v }"></ng-container>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Comparación apilada (pantallas angostas): un bloque por registro -->
+        <div class="cmp-stack">
+          <section class="stack-reg" *ngFor="let e of caso.grupo.egresados; let i = index; trackBy: trackByEgresado"
+            [attr.aria-label]="'Registro id ' + e.id_egresado">
+            <h4 class="stack-titulo">Registro <span class="cmp-reg-id">id {{ e.id_egresado }}</span></h4>
+            <dl class="stack-lista">
+              <div class="stack-fila" *ngFor="let f of caso.filas" [class.fila-difiere]="f.difiere">
+                <dt>
+                  {{ f.etiqueta }}
+                  <span class="difiere-tag" *ngIf="f.difiere">Distinto</span>
+                </dt>
+                <dd class="cmp-val">
+                  <ng-container *ngTemplateOutlet="valor; context: { $implicit: f.valores[i] }"></ng-container>
+                </dd>
+              </div>
+            </dl>
+          </section>
+        </div>
+
+        <!-- Acciones (solo pendientes) -->
+        <footer class="caso-acciones" *ngIf="!descartado">
+          <button type="button" class="btn-secundario" (click)="abrirDescartar(caso, $event)">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              aria-hidden="true">
+              <path d="M4 4l8 8M12 4l-8 8" />
+            </svg>
+            Descartar
+          </button>
+          <button type="button" class="btn-primario" (click)="abrirFusionar(caso, $event)">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 2l5 5M13 2L8 7v7M5.5 11.5L8 14l2.5-2.5" />
+            </svg>
+            Fusionar
+          </button>
+        </footer>
+
+        <!-- Decisión (pestaña Descartados) -->
+        <footer class="caso-decision" *ngIf="descartado">
+          <div class="decision" *ngFor="let d of caso.decisiones">
+            <p class="decision-meta">
+              <span class="decision-estado">Descartado</span>
+              por <strong>{{ d.revisado_por || 'usuario desconocido' }}</strong>
+              <ng-container *ngIf="fechaHora(d.revisado_en) as cuando"> el {{ cuando }}</ng-container>
+              <span class="decision-par" *ngIf="caso.decisiones.length > 1">(ids {{ d.id_egresado_a }} y {{ d.id_egresado_b }})</span>
+            </p>
+            <p class="decision-notas" *ngIf="d.notas; else sinNotas">{{ d.notas }}</p>
+            <ng-template #sinNotas><p class="decision-notas decision-sin-notas">Sin notas.</p></ng-template>
+          </div>
+        </footer>
+      </article>
+    </ng-template>
+
+    <!-- Paginación -->
+    <ng-template #paginador let-offset="offset" let-limit="limit" let-total="total" let-mover="mover" let-unidad="unidad">
+      <nav class="paginador" *ngIf="total > limit" [attr.aria-label]="'Páginas de ' + unidad">
+        <button type="button" class="btn-retry" (click)="mover(-1)" [disabled]="offset === 0">Anterior</button>
+        <span class="paginador-info">{{ offset + 1 }}–{{ (offset + limit) > total ? total : offset + limit }} de {{ total }} {{ unidad }}</span>
+        <button type="button" class="btn-retry" (click)="mover(1)" [disabled]="offset + limit >= total">Siguiente</button>
+      </nav>
+    </ng-template>
+
+    <!-- CONTENIDO -->
+    <ng-container *ngIf="!cargando && !error && resumen">
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+
+        <div class="kpi-card kpi-amber">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Pendientes de revisar</span>
+            <span class="kpi-value">{{ totalPendientes | number }}</span>
+            <span class="kpi-sub">{{ totalPendientes === 1 ? 'caso' : 'casos' }} · {{ resumen.pendientes | number }} {{ resumen.pendientes === 1 ? 'coincidencia' : 'coincidencias' }}</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-indigo">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M15 9l-6 6M9 9l6 6" />
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Descartados</span>
+            <span class="kpi-value">{{ resumen.descartados | number }}</span>
+            <span class="kpi-sub">no eran la misma persona</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-rose">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="6" cy="6" r="2.5" />
+              <circle cx="6" cy="18" r="2.5" />
+              <circle cx="18" cy="12" r="2.5" />
+              <path d="M8.5 6h2a4 4 0 014 4v0M8.5 18h2a4 4 0 004-4" />
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Fusiones realizadas</span>
+            <span class="kpi-value">{{ totalFusiones | number }}</span>
+            <span class="kpi-sub">registros borrados al fusionar</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-cyan">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Egresados involucrados</span>
+            <span class="kpi-value">{{ resumen.egresados_involucrados | number }}</span>
+            <span class="kpi-sub">en casos pendientes</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Pestañas -->
+      <div class="tabs" role="tablist" aria-label="Casos de duplicados">
+        <button type="button" role="tab" class="tab" *ngFor="let p of pestanas; let i = index"
+          [id]="'tab-' + p.id" [attr.aria-controls]="'panel-' + p.id"
+          [attr.aria-selected]="pestana === p.id" [attr.tabindex]="pestana === p.id ? 0 : -1"
+          [class.tab-activa]="pestana === p.id"
+          (click)="seleccionarPestana(p.id)" (keydown)="teclaPestana($event, i)">
+          {{ p.etiqueta }}
+          <span class="tab-count" *ngIf="p.id === 'pendientes'">{{ totalPendientes }}</span>
+          <span class="tab-count" *ngIf="p.id === 'descartados' && descartadosCargados">{{ totalDescartados }}</span>
+          <span class="tab-count" *ngIf="p.id === 'fusiones'">{{ totalFusiones }}</span>
+        </button>
+      </div>
+
+      <!-- Panel: Pendientes -->
+      <div class="tab-panel" role="tabpanel" id="panel-pendientes" aria-labelledby="tab-pendientes"
+        *ngIf="pestana === 'pendientes'">
+        <ng-container *ngTemplateOutlet="estadoPestana; context: { cargando: cargandoPendientes, error: errorPendientes, reintentar: cargarPendientes.bind(this), texto: 'Cargando casos pendientes...' }"></ng-container>
+
+        <ng-container *ngIf="!cargandoPendientes && !errorPendientes">
+          <div class="seccion-label">
+            <span class="seccion-dot dot-amber"></span>
+            Casos por revisar, del puntaje más alto al más bajo
+          </div>
+
+          <div class="vacio-card" *ngIf="pendientes.length === 0">
+            <svg class="vacio-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            <p class="vacio-titulo">No hay duplicados pendientes de revisar</p>
+            <p class="vacio-texto">Usa el botón <strong>Buscar duplicados</strong> para revisar de nuevo todos los registros. Las coincidencias que ya descartaste no volverán a aparecer.</p>
+          </div>
+
+          <ng-container *ngFor="let caso of pendientes; trackBy: trackByCaso">
+            <ng-container *ngTemplateOutlet="tarjetaCaso; context: { $implicit: caso, descartado: false }"></ng-container>
+          </ng-container>
+
+          <ng-container *ngTemplateOutlet="paginador; context: { offset: offsetPendientes, limit: limiteCasos, total: totalPendientes, mover: paginaCasos.bind(this), unidad: 'casos' }"></ng-container>
+        </ng-container>
+      </div>
+
+      <!-- Panel: Descartados -->
+      <div class="tab-panel" role="tabpanel" id="panel-descartados" aria-labelledby="tab-descartados"
+        *ngIf="pestana === 'descartados'">
+        <ng-container *ngTemplateOutlet="estadoPestana; context: { cargando: cargandoDescartados, error: errorDescartados, reintentar: cargarDescartados.bind(this), texto: 'Cargando casos descartados...' }"></ng-container>
+
+        <ng-container *ngIf="!cargandoDescartados && !errorDescartados && descartadosCargados">
+          <div class="seccion-label">
+            <span class="seccion-dot dot-indigo"></span>
+            Casos marcados como personas distintas
+          </div>
+
+          <div class="vacio-card" *ngIf="descartados.length === 0">
+            <p class="vacio-titulo">Todavía no hay casos descartados</p>
+            <p class="vacio-texto">Cuando descartes un caso desde la pestaña Pendientes aparecerá aquí, con quién lo decidió, cuándo y sus notas.</p>
+          </div>
+
+          <ng-container *ngFor="let caso of descartados; trackBy: trackByCaso">
+            <ng-container *ngTemplateOutlet="tarjetaCaso; context: { $implicit: caso, descartado: true }"></ng-container>
+          </ng-container>
+
+          <ng-container *ngTemplateOutlet="paginador; context: { offset: offsetDescartados, limit: limiteCasos, total: totalDescartados, mover: paginaCasos.bind(this), unidad: 'casos' }"></ng-container>
+        </ng-container>
+      </div>
+
+      <!-- Panel: Historial de fusiones -->
+      <div class="tab-panel" role="tabpanel" id="panel-fusiones" aria-labelledby="tab-fusiones"
+        *ngIf="pestana === 'fusiones'">
+        <ng-container *ngTemplateOutlet="estadoPestana; context: { cargando: cargandoFusiones, error: errorFusiones, reintentar: cargarFusiones.bind(this), texto: 'Cargando historial de fusiones...' }"></ng-container>
+
+        <ng-container *ngIf="!cargandoFusiones && !errorFusiones">
+          <div class="seccion-label">
+            <span class="seccion-dot dot-purple"></span>
+            Fusiones realizadas, de la más reciente a la más antigua
+          </div>
+
+          <div class="detalle-card">
+            <div class="detalle-toolbar">
+              <span class="detalle-count">{{ totalFusiones }} {{ totalFusiones === 1 ? 'fusión' : 'fusiones' }}</span>
+              <span class="leyenda">Selecciona una fila para ver qué datos se movieron.</span>
+            </div>
+            <div class="table-wrap">
+              <table class="tit-table fus-table" *ngIf="fusiones.length > 0">
+                <thead>
+                  <tr>
+                    <th scope="col">Fecha</th>
+                    <th scope="col">Registro conservado</th>
+                    <th scope="col">Registro eliminado</th>
+                    <th scope="col">Hecha por</th>
+                    <th scope="col">Notas</th>
+                    <th scope="col"><span class="sr-only">Detalle</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let f of fusiones; trackBy: trackByFusion" class="fila-click" (click)="abrirDetalle(f, $event)">
+                    <td class="td-fecha">{{ fechaHora(f.fusionado_en) || '—' }}</td>
+                    <td>
+                      <span class="td-nombre">
+                        <ng-container *ngTemplateOutlet="valor; context: { $implicit: f.nombre_conservado }"></ng-container>
+                      </span>
+                      <span class="td-sub" *ngIf="f.id_egresado_conservado !== null">id {{ f.id_egresado_conservado }}</span>
+                    </td>
+                    <td>
+                      <span class="td-nombre">{{ f.nombre_eliminado || '—' }}</span>
+                      <span class="td-sub">{{ f.correo_eliminado || '—' }}</span>
+                      <span class="td-sub">No. control {{ f.numero_control_eliminado || '—' }} · id {{ f.id_egresado_eliminado }}</span>
+                    </td>
+                    <td>
+                      <ng-container *ngTemplateOutlet="valor; context: { $implicit: f.fusionado_por }"></ng-container>
+                    </td>
+                    <td class="td-notas">
+                      <ng-container *ngTemplateOutlet="valor; context: { $implicit: f.notas }"></ng-container>
+                    </td>
+                    <td>
+                      <button type="button" class="btn-link" (click)="$event.stopPropagation(); abrirDetalle(f, $event)"
+                        [attr.aria-label]="'Ver detalle de la fusión del registro ' + f.id_egresado_eliminado">
+                        Ver detalle
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="detalle-empty" *ngIf="fusiones.length === 0">
+                Todavía no se ha fusionado ningún registro. Las fusiones que hagas desde la pestaña Pendientes quedarán registradas aquí.
+              </div>
+            </div>
+          </div>
+
+          <ng-container *ngTemplateOutlet="paginador; context: { offset: offsetFusiones, limit: limiteFusiones, total: totalFusiones, mover: paginaFusiones.bind(this), unidad: 'fusiones' }"></ng-container>
+        </ng-container>
+      </div>
+
+    </ng-container>
+
+  </main>
+</div>
+
+<!-- MODAL — Descartar -->
+<div class="modal-overlay" *ngIf="casoDescartar as caso" (click)="cerrarDescartar()">
+  <div class="modal" #modalRef role="dialog" aria-modal="true" aria-labelledby="descartar-titulo"
+    aria-describedby="descartar-desc" tabindex="-1"
+    (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title" id="descartar-titulo">Descartar caso</h2>
+      <button type="button" class="modal-close" (click)="cerrarDescartar()" [disabled]="descartando" aria-label="Cerrar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-desc" id="descartar-desc">
+        Descartar significa que <strong>no son la misma persona</strong>. No se borra nada y este caso
+        ya no volverá a aparecer en las búsquedas.
+      </p>
+      <p class="modal-regs">
+        Registros: <span *ngFor="let e of caso.grupo.egresados; let last = last">{{ e.nombre_completo || 'Sin nombre' }} (id {{ e.id_egresado }}){{ last ? '' : ', ' }}</span>
+      </p>
+      <div class="field">
+        <label class="field-label" for="notas-descartar">Notas (opcional)</label>
+        <textarea id="notas-descartar" class="field-input" rows="3" [maxlength]="maxNotas" data-autofocus
+          [(ngModel)]="notasDescartar" [disabled]="descartando" aria-describedby="contador-descartar"
+          placeholder="Por qué son personas distintas"></textarea>
+        <span class="field-contador" id="contador-descartar">{{ notasDescartar.length }}/{{ maxNotas }}</span>
+      </div>
+      <div class="error-msg" *ngIf="errorDescartar" role="alert">{{ errorDescartar }}</div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secundario" (click)="cerrarDescartar()" [disabled]="descartando">Cancelar</button>
+      <button type="button" class="btn-primario" (click)="confirmarDescartar()" [disabled]="descartando" [attr.aria-busy]="descartando">
+        <span class="spinner-sm" *ngIf="descartando" aria-hidden="true"></span>
+        {{ descartando ? 'Descartando...' : 'Descartar' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL — Fusionar -->
+<div class="modal-overlay" *ngIf="casoFusionar as caso" (click)="cerrarFusionar()">
+  <div class="modal modal-lg" #modalRef role="dialog" aria-modal="true" aria-labelledby="fusionar-titulo"
+    aria-describedby="fusionar-advertencia" tabindex="-1"
+    (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title modal-title-danger" id="fusionar-titulo">Fusionar {{ caso.grupo.ids.length }} registros</h2>
+      <button type="button" class="modal-close" (click)="cerrarFusionar()" [disabled]="fusionando" aria-label="Cerrar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="advertencia" id="fusionar-advertencia">
+        <svg class="aviso-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+        <span><strong>Esta acción borra registros y no se puede deshacer desde el sistema.</strong></span>
+      </div>
+
+      <fieldset class="conservar-grupo" [disabled]="fusionando">
+        <legend class="field-label">¿Cuál registro se conserva?</legend>
+        <label class="conservar-opcion" *ngFor="let e of caso.grupo.egresados; trackBy: trackByEgresado"
+          [class.conservar-activa]="idConservar === e.id_egresado">
+          <input type="radio" name="conservar" [value]="e.id_egresado" [(ngModel)]="idConservar"
+            [attr.data-autofocus]="idConservar === e.id_egresado ? '' : null"
+            [attr.aria-describedby]="e.id_egresado === idSugerido ? 'motivo-sugerido' : null">
+          <span class="conservar-info">
+            <span class="conservar-nombre">
+              {{ e.nombre_completo || 'Sin nombre' }} <span class="cmp-reg-id">id {{ e.id_egresado }}</span>
+              <span class="tag-sugerido" *ngIf="e.id_egresado === idSugerido">Sugerido</span>
+            </span>
+            <span class="conservar-dato">{{ e.correo || 'Sin correo' }}</span>
+            <span class="conservar-dato">
+              No. control {{ e.numero_control || '—' }} ·
+              <span [class.txt-completo]="e.registro_completo">{{ e.registro_completo ? 'Registro completo' : 'Solo etapa 1' }}</span>
+            </span>
+            <span class="conservar-motivo" id="motivo-sugerido" *ngIf="e.id_egresado === idSugerido">{{ motivoSugerido }}</span>
+          </span>
+        </label>
+      </fieldset>
+
+      <div class="resumen-fusion" *ngIf="egresadoConservado as cons" aria-live="polite">
+        <p>
+          Se conservará a <strong>{{ cons.nombre_completo || 'Sin nombre' }}</strong> (id {{ cons.id_egresado }}).
+        </p>
+        <p class="resumen-borra">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+            <path d="M2 4h12M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4" />
+          </svg>
+          <span>Se borrarán: <strong>{{ nombresEliminados() }}</strong> ({{ egresadosEliminados.length === 1 ? 'id' : 'ids' }} {{ idsEliminadosTexto() }}).</span>
+        </p>
+        <p class="resumen-nota">Los datos que le falten al registro conservado se completarán con los de los borrados.</p>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="notas-fusionar">Notas (opcional)</label>
+        <textarea id="notas-fusionar" class="field-input" rows="2" [maxlength]="maxNotas"
+          [(ngModel)]="notasFusionar" [disabled]="fusionando" aria-describedby="contador-fusionar"
+          placeholder="Por qué se conserva este registro"></textarea>
+        <span class="field-contador" id="contador-fusionar">{{ notasFusionar.length }}/{{ maxNotas }}</span>
+      </div>
+
+      <div class="error-msg" *ngIf="errorFusionar" role="alert">{{ errorFusionar }}</div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secundario" (click)="cerrarFusionar()" [disabled]="fusionando">Cancelar</button>
+      <button type="button" class="btn-peligro" (click)="confirmarFusionar()"
+        [disabled]="fusionando || !egresadoConservado || egresadosEliminados.length === 0" [attr.aria-busy]="fusionando">
+        <span class="spinner-sm" *ngIf="fusionando" aria-hidden="true"></span>
+        <svg *ngIf="!fusionando" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+          stroke-linecap="round" aria-hidden="true">
+          <path d="M2 4h12M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4" />
+        </svg>
+        {{ fusionando ? 'Fusionando...' : 'Fusionar y borrar ' + egresadosEliminados.length + (egresadosEliminados.length === 1 ? ' registro' : ' registros') }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL — Detalle de una fusión -->
+<div class="modal-overlay" *ngIf="fusionDetalle as f" (click)="cerrarDetalle()">
+  <div class="modal modal-lg" #modalRef role="dialog" aria-modal="true" aria-labelledby="detalle-titulo" tabindex="-1"
+    (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title" id="detalle-titulo">Detalle de la fusión</h2>
+      <button type="button" class="modal-close" (click)="cerrarDetalle()" aria-label="Cerrar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-desc">
+        <strong>{{ f.nombre_eliminado || 'Sin nombre' }}</strong> (id {{ f.id_egresado_eliminado }}) se fusionó en
+        <strong>{{ f.nombre_conservado || 'un registro que ya no existe' }}</strong><ng-container *ngIf="f.id_egresado_conservado !== null"> (id {{ f.id_egresado_conservado }})</ng-container>
+        <ng-container *ngIf="fechaHora(f.fusionado_en) as cuando"> el {{ cuando }}</ng-container>
+        <ng-container *ngIf="f.fusionado_por"> por {{ f.fusionado_por }}</ng-container>.
+      </p>
+      <p class="modal-desc" *ngIf="f.notas"><span class="field-label">Notas:</span> {{ f.notas }}</p>
+
+      <div class="loading-state loading-sm" *ngIf="cargandoDetalle" role="status">
+        <div class="spinner"></div>
+        <p>Cargando detalle...</p>
+      </div>
+      <div class="error-state error-sm" *ngIf="errorDetalle && !cargandoDetalle" role="alert">
+        <p>No se pudo cargar el detalle de esta fusión.</p>
+        <button class="btn-retry" (click)="cargarDetalle()">Reintentar</button>
+      </div>
+
+      <ng-container *ngIf="!cargandoDetalle && !errorDetalle">
+        <div class="detalle-bloque">
+          <h3 class="detalle-subtitulo">Datos que se movieron al registro conservado</h3>
+          <ul class="detalle-lista" *ngIf="hijosLegibles(f).length > 0; else nadaMovido">
+            <li *ngFor="let h of hijosLegibles(f)">{{ h }}</li>
+          </ul>
+          <ng-template #nadaMovido><p class="detalle-nada">No había datos adicionales que mover.</p></ng-template>
+        </div>
+
+        <div class="detalle-bloque">
+          <h3 class="detalle-subtitulo">Campos que se completaron</h3>
+          <dl class="detalle-campos" *ngIf="camposLegibles(f).length > 0; else nadaCompletado">
+            <div class="detalle-campo" *ngFor="let c of camposLegibles(f)">
+              <dt>{{ c.campo }}</dt>
+              <dd>{{ c.valor }}</dd>
+            </div>
+          </dl>
+          <ng-template #nadaCompletado><p class="detalle-nada">El registro conservado ya tenía todos sus datos; no se completó ningún campo.</p></ng-template>
+        </div>
+      </ng-container>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secundario" (click)="cerrarDetalle()" data-autofocus>Cerrar</button>
+    </div>
+  </div>
+</div>
