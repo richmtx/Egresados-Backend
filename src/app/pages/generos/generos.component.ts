@@ -8,6 +8,15 @@ import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { GenerosService, EstadisticasGeneroResponse } from './generos.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
 
+// Orden fijo del eje en la gráfica de nivel de posgrado: siempre se muestran
+// los tres niveles, aunque alguno venga en cero, para que las vistas sean comparables.
+const NIVELES_POSGRADO = ['Especialidad', 'Maestría', 'Doctorado'];
+
+// Mínimo de egresados que debe tener una carrera para competir en los destacados
+// "Mayor proporción femenina/masculina". Evita que una carrera de una sola persona
+// gane con 100 %. El ranking completo NO se filtra con este valor.
+const MIN_EGRESADOS_DESTACADO = 10;
+
 @Component({
   selector: 'app-generos',
   standalone: true,
@@ -35,11 +44,12 @@ export class GenerosComponent implements OnInit, OnDestroy {
   pctHombres = 0;
   pctMujeres = 0;
   ratioHM = '0';
-  carreraMasFemenina: { nombre: string; pct: number } | null = null;
-  carreraMasMasculina: { nombre: string; pct: number } | null = null;
+  carreraMasFemenina: { nombre: string; pct: number; total: number } | null = null;
+  carreraMasMasculina: { nombre: string; pct: number; total: number } | null = null;
+  readonly minEgresadosDestacado = MIN_EGRESADOS_DESTACADO;
 
   // Resúmenes para secciones sin gráfica
-  rankingCarreras: { nombre: string; pctMujeres: number; pctHombres: number }[] = [];
+  rankingCarreras: { nombre: string; pctMujeres: number; pctHombres: number; total: number }[] = [];
   coincidenciaResumen: { genero: string; pct: number }[] = [];
   tiempoEmpleoResumen: { genero: string; tiempo: number }[] = [];
   maxTiempoEmpleo = 1;
@@ -257,26 +267,33 @@ export class GenerosComponent implements OnInit, OnDestroy {
       : '—';
 
     const porCarrera = this.agruparPorCarrera(res.composicionCarreraGenero);
-    let maxF = 0, maxM = 0, nombreF = '—', nombreM = '—';
+    const totales = this.totalesPorCarrera(res.composicionCarreraGenero);
+    let fem: { nombre: string; pct: number; total: number } | null = null;
+    let masc: { nombre: string; pct: number; total: number } | null = null;
 
-    Object.entries(porCarrera).forEach(([carrera, datos]) => {
+    // Solo compiten carreras con muestra suficiente; si ninguna llega, quedan en null
+    for (const [carrera, datos] of Object.entries(porCarrera)) {
+      const total = totales[carrera] ?? 0;
+      if (total < MIN_EGRESADOS_DESTACADO) continue;
       const pctM = datos['Mujer'] ?? 0;
       const pctH = datos['Hombre'] ?? 0;
-      if (pctM > maxF) { maxF = pctM; nombreF = carrera; }
-      if (pctH > maxM) { maxM = pctH; nombreM = carrera; }
-    });
+      if (!fem || pctM > fem.pct) fem = { nombre: carrera, pct: pctM, total };
+      if (!masc || pctH > masc.pct) masc = { nombre: carrera, pct: pctH, total };
+    }
 
-    this.carreraMasFemenina = { nombre: nombreF, pct: maxF };
-    this.carreraMasMasculina = { nombre: nombreM, pct: maxM };
+    this.carreraMasFemenina = fem;
+    this.carreraMasMasculina = masc;
   }
 
   private calcularRankingCarreras(res: EstadisticasGeneroResponse): void {
     const map = this.agruparPorCarrera(res.composicionCarreraGenero);
+    const totales = this.totalesPorCarrera(res.composicionCarreraGenero);
     this.rankingCarreras = Object.entries(map)
       .map(([nombre, datos]) => ({
         nombre,
         pctMujeres: +(datos['Mujer'] ?? 0),
         pctHombres: +(datos['Hombre'] ?? 0),
+        total: totales[nombre] ?? 0,
       }))
       .sort((a, b) => b.pctMujeres - a.pctMujeres);
   }
@@ -701,7 +718,10 @@ export class GenerosComponent implements OnInit, OnDestroy {
   }
 
   private buildChartPosgradoGenero(res: EstadisticasGeneroResponse): void {
-    const tipos = [...new Set(res.posgradoTipoGenero.map(p => p.tipo_posgrado))];
+    // Niveles fijos primero; cualquier nivel nuevo que mande la API se agrega al final
+    const extras = [...new Set(res.posgradoTipoGenero.map(p => p.tipo_posgrado))]
+      .filter(t => !NIVELES_POSGRADO.includes(t));
+    const tipos = [...NIVELES_POSGRADO, ...extras];
     const series = ['Hombre', 'Mujer'].map(genero => ({
       name: genero === 'Hombre' ? 'Hombres' : 'Mujeres',
       data: tipos.map(tipo => +(res.posgradoTipoGenero.find(p => p.genero === genero && p.tipo_posgrado === tipo)?.total ?? 0)),
@@ -870,6 +890,16 @@ export class GenerosComponent implements OnInit, OnDestroy {
     datos.forEach(d => {
       if (!map[d.nombre_carrera]) map[d.nombre_carrera] = {};
       map[d.nombre_carrera][d.genero] = +(d.porcentaje ?? 0);
+    });
+    return map;
+  }
+
+  private totalesPorCarrera(
+    datos: { nombre_carrera: string; total: number }[]
+  ): Record<string, number> {
+    const map: Record<string, number> = {};
+    datos.forEach(d => {
+      map[d.nombre_carrera] = (map[d.nombre_carrera] ?? 0) + +(d.total ?? 0);
     });
     return map;
   }

@@ -106,7 +106,7 @@
         <ng-container *ngIf="datos && !cargando">
 
             <!-- ── KPI Cards ── -->
-            <div class="kpi-grid-genero">
+            <div class="kpi-grid-genero" [class.kpi-grid-filtrada]="filtroCarrera">
 
                 <!-- Total hombres -->
                 <div class="kpi-card kpi-blue">
@@ -165,6 +165,9 @@
                     </div>
                 </div>
 
+                <!-- Comparan carreras entre sí: sin sentido con una sola carrera filtrada -->
+                <ng-container *ngIf="!filtroCarrera">
+
                 <!-- Carrera más femenina -->
                 <div class="kpi-card kpi-pink">
                     <div class="kpi-icon">
@@ -176,8 +179,14 @@
                     </div>
                     <div class="kpi-body">
                         <span class="kpi-label">Mayor proporción femenina</span>
-                        <span class="kpi-value kpi-value-sm">{{ carreraMasFemenina?.nombre }}</span>
-                        <span class="kpi-sub">{{ carreraMasFemenina?.pct }} % mujeres</span>
+                        <span class="kpi-value kpi-value-sm">{{ carreraMasFemenina?.nombre ?? '—' }}</span>
+                        <ng-container *ngIf="carreraMasFemenina">
+                            <span class="kpi-sub">{{ carreraMasFemenina.pct }} % mujeres</span>
+                            <span class="kpi-meta">{{ carreraMasFemenina.total }} egresados · entre carreras con {{
+                                minEgresadosDestacado }} o más</span>
+                        </ng-container>
+                        <span class="kpi-meta" *ngIf="!carreraMasFemenina">Ninguna carrera con {{
+                            minEgresadosDestacado }} o más egresados</span>
                     </div>
                 </div>
 
@@ -192,10 +201,18 @@
                     </div>
                     <div class="kpi-body">
                         <span class="kpi-label">Mayor proporción masculina</span>
-                        <span class="kpi-value kpi-value-sm">{{ carreraMasMasculina?.nombre }}</span>
-                        <span class="kpi-sub">{{ carreraMasMasculina?.pct }} % hombres</span>
+                        <span class="kpi-value kpi-value-sm">{{ carreraMasMasculina?.nombre ?? '—' }}</span>
+                        <ng-container *ngIf="carreraMasMasculina">
+                            <span class="kpi-sub">{{ carreraMasMasculina.pct }} % hombres</span>
+                            <span class="kpi-meta">{{ carreraMasMasculina.total }} egresados · entre carreras con {{
+                                minEgresadosDestacado }} o más</span>
+                        </ng-container>
+                        <span class="kpi-meta" *ngIf="!carreraMasMasculina">Ninguna carrera con {{
+                            minEgresadosDestacado }} o más egresados</span>
                     </div>
                 </div>
+
+                </ng-container>
 
                 <!-- Distribución visual H/M -->
                 <div class="kpi-card kpi-green">
@@ -294,6 +311,13 @@
             <!-- ══════════════════════════════════════════════════════
            SECCIÓN 2: POR CARRERA
       ══════════════════════════════════════════════════════ -->
+            <div class="cohorte-aviso" *ngIf="filtroCarrera">
+                Las comparaciones entre carreras no se muestran al filtrar por una
+                sola carrera. Quita el filtro para ver el ranking de feminización y
+                la composición de todas.
+            </div>
+
+            <ng-container *ngIf="!filtroCarrera">
             <div class="seccion-label">
                 <span class="seccion-dot dot-indigo"></span>
                 Distribución por carrera
@@ -310,7 +334,11 @@
                     </div>
                     <div class="ranking-list" *ngIf="rankingCarreras.length > 0; else sinRanking">
                         <div class="ranking-item" *ngFor="let item of rankingCarreras">
-                            <div class="ranking-nombre">{{ item.nombre }}</div>
+                            <div class="ranking-nombre" [title]="item.nombre">
+                                <span class="ranking-nombre-txt">{{ item.nombre }}</span>
+                                <span class="ranking-n">{{ item.total }} {{ item.total === 1 ? 'egresado' : 'egresados'
+                                    }}</span>
+                            </div>
                             <div class="ranking-barra-wrap">
                                 <div class="ranking-barra">
                                     <div class="ranking-fill-rose" [style.width]="item.pctMujeres + '%'"></div>
@@ -370,6 +398,7 @@
                 </div>
 
             </div>
+            </ng-container>
 
             <!-- ══════════════════════════════════════════════════════
            SECCIÓN 3: EMPLEABILIDAD
@@ -652,7 +681,7 @@
             </div>
 
             <!-- SECCIÓN 6: POSGRADO — solo visible sin filtro de carrera -->
-            <ng-container *ngIf="!filtroCarrera">
+            <ng-container>
 
                 <div class="seccion-label">
                     <span class="seccion-dot dot-teal"></span>
@@ -707,11 +736,11 @@
 
                     <!-- Distribución tipo posgrado H/M -->
                     <div class="chart-card"
-                        (click)="abrirModal('bar', 'Tipo de Posgrado por Género', 'Maestría · Posgrado por género', chartPosgradoGenero)">
+                        (click)="abrirModal('bar', 'Nivel de Posgrado por Género', 'Especialidad · Maestría · Doctorado', chartPosgradoGenero)">
                         <div class="chart-header">
                             <div>
-                                <h3 class="chart-title">Tipo de posgrado</h3>
-                                <p class="chart-sub">Maestría · Posgrado por género</p>
+                                <h3 class="chart-title">Nivel de posgrado</h3>
+                                <p class="chart-sub">Especialidad · Maestría · Doctorado</p>
                             </div>
                             <span class="chart-badge">Agrupadas</span>
                         </div>
@@ -918,7 +947,11 @@
                     <ng-container *ngIf="modalTipo === 'ranking'">
                         <div class="ranking-list ranking-list-modal">
                             <div class="ranking-item" *ngFor="let item of rankingCarreras">
-                                <div class="ranking-nombre ranking-nombre-modal">{{ item.nombre }}</div>
+                                <div class="ranking-nombre ranking-nombre-modal">
+                                    <span class="ranking-nombre-txt">{{ item.nombre }}</span>
+                                    <span class="ranking-n">{{ item.total }} {{ item.total === 1 ? 'egresado' :
+                                        'egresados' }}</span>
+                                </div>
                                 <div class="ranking-barra-wrap">
                                     <div class="ranking-barra">
                                         <div class="ranking-fill-rose" [style.width]="item.pctMujeres + '%'"></div>

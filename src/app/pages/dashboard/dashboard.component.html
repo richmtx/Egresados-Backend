@@ -319,6 +319,12 @@
                         <div class="card-header">
                             <h3 class="card-title">Top destacados</h3>
                         </div>
+                        <div class="top-empty" *ngIf="!datos.topDestacados.carrera_top_empleo
+                            && !datos.topDestacados.ciudad_top_trabajo
+                            && !datos.topDestacados.empresa_top
+                            && !datos.topDestacados.anio_top_titulacion">
+                            <p>Aún no hay datos suficientes para destacar.</p>
+                        </div>
                         <div class="top-list">
                             <div class="top-item" *ngIf="datos.topDestacados.carrera_top_empleo">
                                 <div class="top-icon-wrap top-icon-green">
@@ -335,6 +341,10 @@
                                         {{ datos.topDestacados.carrera_top_empleo!.nombre_carrera.replace('Ingeniería
                                         ','Ing. ') }}
                                         — {{ datos.topDestacados.carrera_top_empleo!.pct_empleados }}%
+                                    </span>
+                                    <span class="top-meta">
+                                        {{ datos.topDestacados.carrera_top_empleo!.total_egresados }} egresados · entre
+                                        carreras con {{ datos.topDestacados.carrera_top_empleo!.minimo_aplicado }} o más
                                     </span>
                                 </div>
                             </div>
@@ -379,6 +389,10 @@
                                     <span class="top-val">Generación {{
                                         datos.topDestacados.anio_top_titulacion!.anio_egreso }} — {{
                                         datos.topDestacados.anio_top_titulacion!.pct_titulados }}%</span>
+                                    <span class="top-meta">
+                                        {{ datos.topDestacados.anio_top_titulacion!.total_egresados }} egresados · entre
+                                        años con {{ datos.topDestacados.anio_top_titulacion!.minimo_aplicado }} o más
+                                    </span>
                                 </div>
                             </div>
                         </div>

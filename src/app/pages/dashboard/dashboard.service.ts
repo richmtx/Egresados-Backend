@@ -62,10 +62,20 @@ export interface DashboardResumen {
         nombre_carrera: string;
     }[];
     topDestacados: {
-        carrera_top_empleo: { nombre_carrera: string; pct_empleados: string } | null;
+        carrera_top_empleo: {
+            nombre_carrera: string;
+            pct_empleados: string;
+            total_egresados: number;
+            minimo_aplicado: number;
+        } | null;
         ciudad_top_trabajo: { ciudad_trabajo: string; total: string } | null;
         empresa_top: { empresa: string; total: string } | null;
-        anio_top_titulacion: { anio_egreso: number; pct_titulados: string } | null;
+        anio_top_titulacion: {
+            anio_egreso: number;
+            pct_titulados: string;
+            total_egresados: number;
+            minimo_aplicado: number;
+        } | null;
     };
     resumenCarrera: {
         nombre_carrera: string;
