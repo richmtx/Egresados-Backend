@@ -47,10 +47,6 @@ interface GrupoVista {
 interface TextoVista {
   t: TextoEmpresa;
   crudo: TextoCrudo;
-  /** Texto sin acentos ni mayúsculas, para el buscador */
-  busqueda: string;
-  /** Empresa del catálogo a la que ya está ligado, si se fusionó antes */
-  ligadaA: string | null;
 }
 
 interface TextoFusion {
@@ -90,9 +86,6 @@ const MARCA_ESPACIO = '·';
 const FMT_FECHA = new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
 
 const plural = (n: number, uno: string, varios: string): string => `${n} ${n === 1 ? uno : varios}`;
-
-const sinAcentos = (s: string): string =>
-  s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLocaleLowerCase('es');
 
 // Dos o más espacios seguidos, o cualquier blanco que no sea un espacio normal (tabulador, salto)
 const ESPACIOS_INTERNOS = /(\s{2,}|[^\S ])/;
@@ -173,14 +166,20 @@ export class EmpresasComponent implements OnInit {
   detectando = false;
   deteccion: ResumenDeteccion | null = null;
 
-  // Fusión manual (se carga al abrir la pestaña)
+  // Fusión manual (se carga al abrir la pestaña; la búsqueda la resuelve el servidor)
   textos: TextoVista[] = [];
-  textosVisibles: TextoVista[] = [];
+  /** Textos que coinciden con la búsqueda aplicada; `textos` trae a lo más MAX_TEXTOS_VISIBLES */
   totalCoinciden = 0;
+  /** Textos que existen sin filtrar: distingue "no hay ninguno" de "nada coincide" */
+  totalTextos = 0;
   busquedaManual = '';
+  /** Búsqueda con la que se pidió la lista que está a la vista */
+  busquedaManualAplicada = '';
   cargandoTextos = false;
   errorTextos = false;
   textosCargados = false;
+  private busquedaManual$ = new Subject<string>();
+  private pedidoTextos = 0;
   seleccion: TextoVista[] = [];
   canonicoManual: TextoVista | 'otro' = 'otro';
   canonicoManualOtro = '';
@@ -212,6 +211,11 @@ export class EmpresasComponent implements OnInit {
   descartando = false;
   errorDescartar = '';
 
+  // Modal de regresar a pendientes una variante descartada
+  varianteReactivar: VarianteVista | null = null;
+  reactivando = false;
+  errorReactivar = '';
+
   // Modal de eliminar del catálogo
   empresaEliminar: EmpresaCatalogo | null = null;
   eliminando = false;
@@ -229,6 +233,9 @@ export class EmpresasComponent implements OnInit {
     this.busquedaCatalogo$
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed())
       .subscribe(() => this.cargarCatalogo());
+    this.busquedaManual$
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed())
+      .subscribe(() => this.cargarTextos());
   }
 
   ngOnInit(): void {
@@ -337,41 +344,35 @@ export class EmpresasComponent implements OnInit {
   }
 
   cargarTextos(): void {
+    const busqueda = this.busquedaManual.trim();
+    const pedido = ++this.pedidoTextos;
     this.cargandoTextos = true;
     this.errorTextos = false;
-    forkJoin({
-      textos: this.empresasService.listarTextos(),
-      fusionados: this.empresasService.listarCandidatos('fusionado'),
-    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: ({ textos, fusionados }) => {
-        const ligadas = new Map<string, string>();
-        for (const v of fusionados.flatMap(g => g.variantes)) {
-          if (v.empresa_nombre) ligadas.set(v.nombre_variante, v.empresa_nombre);
-        }
-        this.textos = textos.map(t => ({
-          t,
-          crudo: analizarTexto(t.texto),
-          busqueda: sinAcentos(t.texto),
-          ligadaA: ligadas.get(t.texto) ?? null,
-        }));
-        // La selección apunta a objetos de la lista anterior: se reengancha por texto
-        const porTexto = new Map(this.textos.map(x => [x.t.texto, x]));
-        const canonicoTexto = this.canonicoManual === 'otro' ? null : this.canonicoManual.t.texto;
-        this.seleccion = this.seleccion.map(x => porTexto.get(x.t.texto)).filter((x): x is TextoVista => !!x);
-        this.canonicoManual = (canonicoTexto !== null && this.seleccion.find(x => x.t.texto === canonicoTexto)) || 'otro';
-        this.textosCargados = true;
-        this.cargandoTextos = false;
-        this.filtrarTextos();
-      },
-      error: () => { this.errorTextos = true; this.cargandoTextos = false; },
-    });
+    this.empresasService.listarTextos(busqueda || undefined, MAX_TEXTOS_VISIBLES)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: r => {
+          // Llegó una respuesta de una búsqueda que ya no es la actual
+          if (pedido !== this.pedidoTextos) return;
+          this.textos = r.textos.map(t => ({ t, crudo: analizarTexto(t.texto) }));
+          // Los elegidos conservan su objeto (el radio del canónico apunta a él); solo se les refrescan los datos
+          const porTexto = new Map(r.textos.map(t => [t.texto, t]));
+          for (const s of this.seleccion) s.t = porTexto.get(s.t.texto) ?? s.t;
+          this.totalCoinciden = r.total;
+          this.busquedaManualAplicada = busqueda;
+          if (!busqueda) this.totalTextos = r.total;
+          this.textosCargados = true;
+          this.cargandoTextos = false;
+        },
+        error: () => {
+          if (pedido !== this.pedidoTextos) return;
+          this.errorTextos = true;
+          this.cargandoTextos = false;
+        },
+      });
   }
 
-  filtrarTextos(): void {
-    const q = sinAcentos(this.busquedaManual.trim());
-    const coinciden = q ? this.textos.filter(x => x.busqueda.includes(q)) : this.textos;
-    this.totalCoinciden = coinciden.length;
-    this.textosVisibles = coinciden.slice(0, MAX_TEXTOS_VISIBLES);
+  buscarTextos(): void {
+    this.busquedaManual$.next(this.busquedaManual.trim());
   }
 
   cargarCatalogo(): void {
@@ -544,13 +545,19 @@ export class EmpresasComponent implements OnInit {
 
   // Fusión manual: selección y nombre canónico
 
+  /** Por texto y no por objeto: cada búsqueda trae del servidor una lista nueva */
+  private elegido(x: TextoVista): TextoVista | undefined {
+    return this.seleccion.find(s => s.t.texto === x.t.texto);
+  }
+
   estaSeleccionado(x: TextoVista): boolean {
-    return this.seleccion.includes(x);
+    return !!this.elegido(x);
   }
 
   alternarTexto(x: TextoVista): void {
-    if (this.estaSeleccionado(x)) {
-      this.quitarTexto(x);
+    const ya = this.elegido(x);
+    if (ya) {
+      this.quitarTexto(ya);
       return;
     }
     if (this.seleccion.length >= MAX_VARIANTES) {
@@ -655,7 +662,7 @@ export class EmpresasComponent implements OnInit {
       && (r.egresados_ligados.empresa !== p.totalEmpresa || r.egresados_ligados.primer_empleo !== p.totalPrimer);
   }
 
-  /** Tras fusionar, descartar o eliminar: refresca todo lo que pudo cambiar */
+  /** Tras fusionar, descartar, reactivar o eliminar: refresca todo lo que pudo cambiar */
   private despuesDeCambiar(): void {
     this.cargarGrupos('pendiente');
     if (this.filtro !== 'pendiente') this.cargarGrupos();
@@ -697,6 +704,45 @@ export class EmpresasComponent implements OnInit {
           this.errorDescartar = this.mensajeError(err, 'No se pudo descartar la variante.');
           this.enfocarEnModal('.modal-footer .btn-primario');
           // 409 o 404: alguien más ya la resolvió y la lista quedó vieja
+          if (err?.status === 409 || err?.status === 404) this.cargarGrupos();
+        },
+      });
+  }
+
+  // Modal de regresar a pendientes
+
+  abrirReactivar(x: VarianteVista, event: Event): void {
+    this.origenFoco = event.currentTarget as HTMLElement;
+    this.varianteReactivar = x;
+    this.errorReactivar = '';
+    this.enfocarModal();
+  }
+
+  cerrarReactivar(): void {
+    if (this.reactivando) return;
+    this.varianteReactivar = null;
+    this.devolverFoco();
+  }
+
+  confirmarReactivar(): void {
+    const x = this.varianteReactivar;
+    if (!x || this.reactivando) return;
+    this.reactivando = true;
+    this.errorReactivar = '';
+    this.empresasService.reactivar(x.v.id_empresa_candidato)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: () => {
+          this.reactivando = false;
+          this.varianteReactivar = null;
+          this.devolverFoco();
+          this.mostrarAviso('exito', `«${x.v.nombre_variante.trim()}» regresó a pendientes.`);
+          this.despuesDeCambiar();
+        },
+        error: (err: HttpErrorResponse) => {
+          this.reactivando = false;
+          this.errorReactivar = this.mensajeError(err, 'No se pudo regresar la variante a pendientes.');
+          this.enfocarEnModal('.modal-footer .btn-secundario');
+          // 409 o 404: ya está fusionada o ya no existe, y la lista quedó vieja
           if (err?.status === 409 || err?.status === 404) this.cargarGrupos();
         },
       });
@@ -777,6 +823,7 @@ export class EmpresasComponent implements OnInit {
   teclaModal(event: KeyboardEvent): void {
     const cerrar = this.planFusion ? () => this.cerrarFusion()
       : this.varianteDescartar ? () => this.cerrarDescartar()
+        : this.varianteReactivar ? () => this.cerrarReactivar()
         : this.empresaEliminar ? () => this.cerrarEliminar()
           : null;
     if (!cerrar) return;

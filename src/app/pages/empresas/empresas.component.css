@@ -1189,6 +1189,15 @@ textarea:focus-visible {
     overflow-y: auto;
 }
 
+/* Mientras llega la respuesta de una búsqueda, la lista anterior sigue a la vista */
+.manual-scroll {
+    transition: opacity .15s ease;
+}
+
+.manual-buscando {
+    opacity: .55;
+}
+
 .manual-scroll thead th {
     position: sticky;
     top: 0;

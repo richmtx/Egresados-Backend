@@ -309,7 +309,7 @@
             <p class="vacio-texto">
               {{ filtro === 'fusionado'
                 ? 'Las variantes que fusiones aparecerán aquí, con la empresa del catálogo a la que quedaron ligadas.'
-                : 'Las variantes que descartes aparecerán aquí, con quién lo decidió y cuándo.' }}
+                : 'Las variantes que descartes aparecerán aquí, con quién lo decidió y cuándo. Desde aquí puedes regresarlas a pendientes.' }}
             </p>
           </div>
 
@@ -422,7 +422,7 @@
                   </footer>
                 </ng-container>
 
-                <!-- Fusionadas / descartadas: solo lectura -->
+                <!-- Fusionadas: solo lectura. Descartadas: se pueden regresar a pendientes -->
                 <div class="table-wrap" *ngIf="filtro !== 'pendiente'">
                   <table class="tit-table var-table">
                     <caption class="sr-only">Variantes de {{ g.titulo }}</caption>
@@ -433,6 +433,7 @@
                         <th scope="col" class="col-num">Primer empleo</th>
                         <th scope="col">{{ filtro === 'fusionado' ? 'Ligada a' : 'Decisión' }}</th>
                         <th scope="col">Revisó</th>
+                        <th scope="col" *ngIf="filtro === 'descartado'"><span class="sr-only">Regresar a pendientes</span></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -449,6 +450,16 @@
                         <td>
                           <span class="td-nombre">{{ x.v.revisado_por || '—' }}</span>
                           <span class="td-sub" *ngIf="fecha(x.v.revisado_en) as cuando">{{ cuando }}</span>
+                        </td>
+                        <td class="col-accion" *ngIf="filtro === 'descartado'">
+                          <button type="button" class="btn-fila" (click)="abrirReactivar(x, $event)"
+                            [attr.aria-label]="'Regresar a pendientes la variante ' + x.v.nombre_variante">
+                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+                              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                              <path d="M3 6h6.5a3.5 3.5 0 0 1 0 7H6M3 6l3-3M3 6l3 3" />
+                            </svg>
+                            Regresar a pendientes
+                          </button>
                         </td>
                       </tr>
                     </tbody>
@@ -473,12 +484,12 @@
 
         <ng-container *ngIf="textosCargados && !errorTextos">
 
-          <div class="vacio-card" *ngIf="textos.length === 0">
+          <div class="vacio-card" *ngIf="totalTextos === 0 && !busquedaManualAplicada">
             <p class="vacio-titulo">Ningún egresado ha registrado una empresa</p>
             <p class="vacio-texto">Cuando los egresados capturen su empresa actual o la de su primer empleo, sus textos aparecerán aquí.</p>
           </div>
 
-          <div class="manual-grid" *ngIf="textos.length > 0">
+          <div class="manual-grid" *ngIf="totalTextos > 0 || busquedaManualAplicada">
 
             <!-- Buscador y lista de textos -->
             <section class="detalle-card" aria-labelledby="manual-lista-titulo">
@@ -490,13 +501,13 @@
                     <path d="M10.5 10.5L14 14" />
                   </svg>
                   <label class="sr-only" for="buscar-texto">Buscar entre los textos de empresa</label>
-                  <input id="buscar-texto" type="search" class="buscador-input" autocomplete="off"
-                    [(ngModel)]="busquedaManual" (ngModelChange)="filtrarTextos()"
+                  <input id="buscar-texto" type="search" class="buscador-input" autocomplete="off" [maxlength]="maxNombre"
+                    [(ngModel)]="busquedaManual" (ngModelChange)="buscarTextos()"
                     placeholder="Buscar un texto de empresa">
                 </div>
                 <span class="detalle-count" id="manual-lista-titulo" aria-live="polite">
-                  <ng-container *ngIf="totalCoinciden > textosVisibles.length; else todosVisibles">
-                    Se muestran {{ textosVisibles.length }} de {{ totalCoinciden | number }} textos. Afina la búsqueda para ver el resto.
+                  <ng-container *ngIf="totalCoinciden > textos.length; else todosVisibles">
+                    Se muestran {{ textos.length | number }} de {{ totalCoinciden | number }} textos. Afina la búsqueda para ver el resto.
                   </ng-container>
                   <ng-template #todosVisibles>{{ totalCoinciden | number }} {{ totalCoinciden === 1 ? 'texto distinto' : 'textos distintos' }}</ng-template>
                 </span>
@@ -506,8 +517,8 @@
                 <ng-container *ngTemplateOutlet="leyendaEspacios"></ng-container>
               </div>
 
-              <div class="table-wrap manual-scroll">
-                <table class="tit-table var-table" *ngIf="textosVisibles.length > 0">
+              <div class="table-wrap manual-scroll" [class.manual-buscando]="cargandoTextos" [attr.aria-busy]="cargandoTextos">
+                <table class="tit-table var-table" *ngIf="textos.length > 0">
                   <caption class="sr-only">Textos de empresa que existen en los registros</caption>
                   <thead>
                     <tr>
@@ -518,7 +529,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr *ngFor="let x of textosVisibles; trackBy: trackByTexto" class="fila-click"
+                    <tr *ngFor="let x of textos; trackBy: trackByTexto" class="fila-click"
                       [class.fila-elegida]="estaSeleccionado(x)" (click)="alternarTexto(x)">
                       <td class="col-check">
                         <input type="checkbox" class="check" [checked]="estaSeleccionado(x)"
@@ -528,15 +539,15 @@
                       </td>
                       <td>
                         <ng-container *ngTemplateOutlet="crudo; context: { $implicit: x.crudo }"></ng-container>
-                        <span class="td-sub ligada" *ngIf="x.ligadaA">Ya ligado a «{{ x.ligadaA }}»</span>
+                        <span class="td-sub ligada" *ngIf="x.t.empresa_id !== null">Ya ligado a «{{ x.t.empresa_nombre }}»</span>
                       </td>
                       <td class="col-num">{{ x.t.ocurrencias_empresa | number }}</td>
                       <td class="col-num">{{ x.t.ocurrencias_primer_empleo | number }}</td>
                     </tr>
                   </tbody>
                 </table>
-                <div class="detalle-empty" *ngIf="textosVisibles.length === 0">
-                  Ningún texto coincide con «{{ busquedaManual.trim() }}».
+                <div class="detalle-empty" *ngIf="textos.length === 0">
+                  Ningún texto coincide con «{{ busquedaManualAplicada }}».
                 </div>
               </div>
             </section>
@@ -568,7 +579,7 @@
                         <span class="td-sub">
                           {{ x.t.ocurrencias_empresa | number }} en empresa actual · {{ x.t.ocurrencias_primer_empleo | number }} en primer empleo
                         </span>
-                        <span class="td-sub ligada" *ngIf="x.ligadaA">Ya ligado a «{{ x.ligadaA }}»: se moverá a la empresa que elijas</span>
+                        <span class="td-sub ligada" *ngIf="x.t.empresa_id !== null">Ya ligado a «{{ x.t.empresa_nombre }}»: se moverá a la empresa que elijas</span>
                       </span>
                     </label>
                     <button type="button" class="btn-quitar" (click)="quitarTexto(x)"
@@ -848,7 +859,7 @@
         No se borra nada y el detector ya no lo volverá a proponer.
       </p>
       <p class="resumen-nota">
-        Si después resulta que sí era la misma, puedes ligarlo desde Fusión manual.
+        Si te equivocas, puedes regresarlo a pendientes desde el filtro Descartadas.
       </p>
       <div class="error-msg" *ngIf="errorDescartar" role="alert">{{ errorDescartar }}</div>
     </div>
@@ -858,6 +869,42 @@
         [attr.aria-busy]="descartando" data-autofocus>
         <span class="spinner-sm" *ngIf="descartando" aria-hidden="true"></span>
         {{ descartando ? 'Descartando...' : 'Descartar' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL — Regresar a pendientes una variante descartada -->
+<div class="modal-overlay" *ngIf="varianteReactivar as x" (click)="cerrarReactivar()">
+  <div class="modal" #modalRef role="dialog" aria-modal="true" aria-labelledby="reactivar-titulo"
+    aria-describedby="reactivar-desc" tabindex="-1" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title" id="reactivar-titulo">Regresar a pendientes</h2>
+      <button type="button" class="modal-close" (click)="cerrarReactivar()" [disabled]="reactivando" aria-label="Cerrar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="paso-canonico">
+        <ng-container *ngTemplateOutlet="crudo; context: { $implicit: x.crudo }"></ng-container>
+      </p>
+      <p class="modal-desc" id="reactivar-desc">
+        Se deshace el descarte: este texto <strong>vuelve a Pendientes</strong> dentro de su grupo, para que
+        decidas de nuevo si se fusiona o se descarta.
+      </p>
+      <p class="resumen-nota">No se liga ni se modifica ningún egresado.</p>
+      <!-- El mensaje de la API va tal cual: 409 si ya está fusionada, 404 si ya no existe -->
+      <div class="error-msg" *ngIf="errorReactivar" role="alert">{{ errorReactivar }}</div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secundario" (click)="cerrarReactivar()" [disabled]="reactivando">Cancelar</button>
+      <button type="button" class="btn-primario" (click)="confirmarReactivar()" [disabled]="reactivando"
+        [attr.aria-busy]="reactivando" data-autofocus>
+        <span class="spinner-sm" *ngIf="reactivando" aria-hidden="true"></span>
+        {{ reactivando ? 'Regresando...' : 'Regresar a pendientes' }}
       </button>
     </div>
   </div>

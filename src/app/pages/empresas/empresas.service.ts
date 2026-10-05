@@ -63,16 +63,22 @@ export interface EmpresaCatalogo {
   egresados_primer_empleo: number;
 }
 
-// 5. Textos de empresa que existen en los datos (fusión manual)
+// 5. GET /admin/empresas/textos (fusión manual)
 export interface TextoEmpresa {
+  /** Texto crudo exacto, sin recortar */
   texto: string;
   ocurrencias_empresa: number;
   ocurrencias_primer_empleo: number;
+  /** Lleno si el texto ya está ligado al catálogo */
+  empresa_id: number | null;
+  empresa_nombre: string | null;
 }
 
-interface EgresadoEmpresas {
-  empresa: string | null;
-  primer_empleo_empresa: string | null;
+export interface TextosEmpresa {
+  textos: TextoEmpresa[];
+  /** Textos que coinciden con la búsqueda, no solo los que vienen en `textos` */
+  total: number;
+  limite: number;
 }
 
 @Injectable({
@@ -117,33 +123,18 @@ export class EmpresasService {
     return this.http.delete(`${this.apiUrl}/${idEmpresa}`);
   }
 
+  /** Regresa a pendientes una variante descartada. 409 si ya está fusionada, 404 si no existe. */
+  reactivar(idCandidato: number): Observable<unknown> {
+    return this.http.post(`${this.apiUrl}/candidatos/${idCandidato}/reactivar`, {});
+  }
+
   /**
-   * Todos los textos de empresa de las dos columnas, con sus conteos.
-   * /admin/empresas no tiene una ruta para esto (candidatos solo trae los
-   * grupos detectados), así que se arma desde /egresados, que devuelve los
-   * textos sin recortar: justo lo que /fusionar compara de forma exacta.
+   * Textos de empresa de las dos columnas, con sus conteos. La búsqueda la
+   * resuelve el servidor. La API rechaza con 400 un `limite` mayor a 500.
    */
-  listarTextos(): Observable<TextoEmpresa[]> {
-    return this.http.get<EgresadoEmpresas[]>(`${environment.apiUrl}/egresados`).pipe(
-      map(egresados => {
-        const porTexto = new Map<string, TextoEmpresa>();
-        const sumar = (texto: string | null, columna: 'ocurrencias_empresa' | 'ocurrencias_primer_empleo') => {
-          if (typeof texto !== 'string' || texto.trim() === '') return;
-          let t = porTexto.get(texto);
-          if (!t) {
-            t = { texto, ocurrencias_empresa: 0, ocurrencias_primer_empleo: 0 };
-            porTexto.set(texto, t);
-          }
-          t[columna]++;
-        };
-        for (const e of egresados ?? []) {
-          sumar(e.empresa, 'ocurrencias_empresa');
-          sumar(e.primer_empleo_empresa, 'ocurrencias_primer_empleo');
-        }
-        return [...porTexto.values()].sort((a, b) =>
-          (b.ocurrencias_empresa + b.ocurrencias_primer_empleo) - (a.ocurrencias_empresa + a.ocurrencias_primer_empleo)
-          || a.texto.trim().localeCompare(b.texto.trim(), 'es'));
-      }),
-    );
+  listarTextos(busqueda: string | undefined, limite: number): Observable<TextosEmpresa> {
+    let params = new HttpParams().set('limite', limite);
+    if (busqueda) params = params.set('busqueda', busqueda);
+    return this.http.get<TextosEmpresa>(`${this.apiUrl}/textos`, { params });
   }
 }
