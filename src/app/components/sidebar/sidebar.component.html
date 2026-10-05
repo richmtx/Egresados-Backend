@@ -75,6 +75,18 @@
                 <span class="nav-label">Duplicados</span>
             </a>
 
+            <a class="nav-item" [class.active]="activeRoute === 'empresas'" (click)="setRoute('empresas')">
+                <span class="nav-icon">
+                    <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="3" y="2" width="8" height="14" rx="1" />
+                        <path d="M11 7h4v9h-4" />
+                        <path d="M6 5.5h2M6 8.5h2M6 11.5h2" />
+                    </svg>
+                </span>
+                <span class="nav-label">Empresas</span>
+            </a>
+
             <a class="nav-item" [class.active]="activeRoute === 'notificaciones'" (click)="setRoute('notificaciones')">
                 <span class="nav-icon">
                     <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"

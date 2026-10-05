@@ -1,0 +1,900 @@
+<div class="emp-layout">
+  <app-sidebar></app-sidebar>
+
+  <main class="emp-main">
+
+    <!-- Header -->
+    <div class="emp-header">
+      <div class="header-left">
+        <h1 class="page-title">Empresas</h1>
+        <p class="page-subtitle" *ngIf="!cargando && !error">
+          <ng-container *ngIf="pendientes.grupos > 0; else sinPendientesSub">
+            <strong>{{ pendientes.grupos | number }}</strong> {{ pendientes.grupos === 1 ? 'grupo' : 'grupos' }} de variantes por revisar
+          </ng-container>
+          <ng-template #sinPendientesSub>Sin variantes por revisar</ng-template>
+          <span class="sub-sep" aria-hidden="true">·</span>
+          {{ totalCatalogo | number }} {{ totalCatalogo === 1 ? 'empresa' : 'empresas' }} en el catálogo
+        </p>
+      </div>
+
+      <button type="button" class="btn-export" [class.btn-export-loading]="detectando"
+        (click)="detectarVariantes()" [disabled]="detectando || cargando" [attr.aria-busy]="detectando">
+        <svg *ngIf="detectando" class="export-spinner" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+          stroke-width="1.5" aria-hidden="true">
+          <circle cx="8" cy="8" r="6" stroke-dasharray="28" stroke-dashoffset="10" />
+        </svg>
+        <svg *ngIf="!detectando" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+          stroke-linecap="round" aria-hidden="true">
+          <circle cx="7" cy="7" r="4.5" />
+          <path d="M10.5 10.5L14 14" />
+        </svg>
+        {{ detectando ? 'Detectando...' : 'Detectar variantes' }}
+      </button>
+    </div>
+
+    <!-- Aviso temporal: aria-live, no roba el foco -->
+    <div class="aviso-live" aria-live="polite" role="status">
+      <div class="aviso" *ngIf="aviso" [class.aviso-error]="aviso.tipo === 'error'">
+        <svg *ngIf="aviso.tipo === 'exito'" class="aviso-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+        <svg *ngIf="aviso.tipo === 'error'" class="aviso-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <span class="aviso-text">{{ aviso.texto }}</span>
+        <button type="button" class="aviso-close" (click)="cerrarAviso()" aria-label="Cerrar aviso">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-state" *ngIf="cargando" role="status">
+      <div class="spinner"></div>
+      <p>Cargando empresas...</p>
+    </div>
+
+    <!-- Error -->
+    <div class="error-state" *ngIf="error && !cargando" role="alert">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+      <p>No se pudieron cargar las empresas.</p>
+      <button class="btn-retry" (click)="cargarDatos()">Reintentar</button>
+    </div>
+
+    <!-- Texto crudo: monoespaciado, con un punto por cada espacio que el navegador colapsaría -->
+    <ng-template #crudo let-c>
+      <span class="crudo-wrap">
+        <code class="crudo"><span *ngFor="let s of c.segmentos" [class.esp]="s.espacio"
+            [attr.title]="s.espacio ? tooltipEspacio : null">{{ s.texto }}</span></code>
+        <span class="crudo-nota" *ngIf="c.nota" [title]="tooltipEspacio">{{ c.nota }}</span>
+      </span>
+    </ng-template>
+
+    <!-- Leyenda del marcador de espacios -->
+    <ng-template #leyendaEspacios>
+      <p class="leyenda-esp">
+        <span class="esp esp-muestra" aria-hidden="true">·</span>
+        Cada punto es un espacio que la persona escribió al inicio, al final o repetido en medio.
+        Es lo único que distingue a algunas variantes.
+      </p>
+    </ng-template>
+
+    <!-- Estado de carga/error de una pestaña -->
+    <ng-template #estadoPestana let-cargandoP="cargando" let-errorP="error" let-reintentar="reintentar" let-texto="texto">
+      <div class="loading-state" *ngIf="cargandoP" role="status">
+        <div class="spinner"></div>
+        <p>{{ texto }}</p>
+      </div>
+      <div class="error-state" *ngIf="errorP && !cargandoP" role="alert">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <p>No se pudo cargar esta lista.</p>
+        <button class="btn-retry" (click)="reintentar()">Reintentar</button>
+      </div>
+    </ng-template>
+
+    <!-- CONTENIDO -->
+    <ng-container *ngIf="!cargando && !error">
+
+      <!-- La regla de la pantalla -->
+      <div class="regla">
+        <svg class="aviso-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          <polyline points="9 12 11 14 15 10" />
+        </svg>
+        <p>
+          <strong>El texto que escribió cada persona nunca se borra ni se modifica.</strong>
+          Fusionar solo agrega un vínculo entre ese texto y una empresa del catálogo. Si te equivocas,
+          vuelve a fusionar el texto con el nombre correcto.
+        </p>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+
+        <div class="kpi-card kpi-amber">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Grupos por revisar</span>
+            <span class="kpi-value">{{ pendientes.grupos | number }}</span>
+            <span class="kpi-sub">posibles empresas repetidas</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-indigo">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 7h16M4 12h10M4 17h13" />
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Variantes pendientes</span>
+            <span class="kpi-value">{{ pendientes.variantes | number }}</span>
+            <span class="kpi-sub">formas distintas de escribirlas</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-cyan">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Menciones afectadas</span>
+            <span class="kpi-value">{{ pendientes.menciones | number }}</span>
+            <span class="kpi-sub">empresa actual + primer empleo</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-rose">
+          <div class="kpi-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="4" y="3" width="10" height="18" rx="1" />
+              <path d="M14 9h6v12h-6M8 7h2M8 11h2M8 15h2" />
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">Empresas en el catálogo</span>
+            <span class="kpi-value">{{ totalCatalogo | number }}</span>
+            <span class="kpi-sub">nombres canónicos</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Pestañas -->
+      <div class="tabs" role="tablist" aria-label="Normalización de empresas">
+        <button type="button" role="tab" class="tab" *ngFor="let p of pestanas; let i = index"
+          [id]="'tab-' + p.id" [attr.aria-controls]="'panel-' + p.id"
+          [attr.aria-selected]="pestana === p.id" [attr.tabindex]="pestana === p.id ? 0 : -1"
+          [class.tab-activa]="pestana === p.id"
+          (click)="seleccionarPestana(p.id)" (keydown)="teclaPestana($event, i)">
+          {{ p.etiqueta }}
+          <span class="tab-count" *ngIf="p.id === 'variantes'">{{ pendientes.grupos }}</span>
+          <span class="tab-count" *ngIf="p.id === 'catalogo'">{{ totalCatalogo }}</span>
+        </button>
+      </div>
+
+      <!-- Panel: Variantes detectadas -->
+      <div class="tab-panel" role="tabpanel" id="panel-variantes" aria-labelledby="tab-variantes"
+        *ngIf="pestana === 'variantes'">
+
+        <!-- Resultado de la última detección -->
+        <section class="deteccion" *ngIf="deteccion as d" aria-labelledby="deteccion-titulo" aria-live="polite">
+          <header class="deteccion-header">
+            <h2 class="deteccion-titulo" id="deteccion-titulo">
+              <svg class="aviso-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+              Detección terminada
+            </h2>
+            <button type="button" class="aviso-close" (click)="cerrarDeteccion()" aria-label="Cerrar resumen de la detección">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </header>
+          <dl class="deteccion-cifras">
+            <div class="deteccion-cifra">
+              <dt>Grupos nuevos</dt>
+              <dd class="deteccion-num">
+                <ng-container *ngIf="d.gruposNuevos !== null; else sinGruposNuevos">{{ d.gruposNuevos | number }}</ng-container>
+                <ng-template #sinGruposNuevos>—</ng-template>
+              </dd>
+              <dd class="deteccion-sub">de {{ d.r.grupos | number }} {{ d.r.grupos === 1 ? 'grupo detectado' : 'grupos detectados' }}</dd>
+            </div>
+            <div class="deteccion-cifra">
+              <dt>Variantes nuevas</dt>
+              <dd class="deteccion-num">{{ d.r.variantes_nuevas | number }}</dd>
+              <dd class="deteccion-sub">de {{ d.r.variantes | number }} {{ d.r.variantes === 1 ? 'variante detectada' : 'variantes detectadas' }}</dd>
+            </div>
+            <div class="deteccion-cifra">
+              <dt>Quedan pendientes</dt>
+              <dd class="deteccion-num">{{ d.r.total_pendientes | number }}</dd>
+              <dd class="deteccion-sub">{{ d.r.total_pendientes === 1 ? 'variante por revisar' : 'variantes por revisar' }}</dd>
+            </div>
+          </dl>
+          <ul class="deteccion-detalle">
+            <li *ngIf="d.r.variantes_actualizadas > 0">
+              {{ d.r.variantes_actualizadas | number }}
+              {{ d.r.variantes_actualizadas === 1 ? 'variante ya estaba pendiente y se actualizó su conteo' : 'variantes ya estaban pendientes y se actualizaron sus conteos' }}.
+            </li>
+            <li *ngIf="d.r.variantes_respetadas > 0">
+              {{ d.r.variantes_respetadas | number }}
+              {{ d.r.variantes_respetadas === 1 ? 'variante ya revisada no se tocó' : 'variantes ya revisadas no se tocaron' }}: tus decisiones se respetan.
+            </li>
+            <li *ngIf="d.r.variantes_eliminadas > 0">
+              {{ d.r.variantes_eliminadas | number }}
+              {{ d.r.variantes_eliminadas === 1 ? 'variante pendiente dejó de aplicar y se quitó' : 'variantes pendientes dejaron de aplicar y se quitaron' }}.
+            </li>
+            <li>
+              Por columna: {{ d.r.grupos_empresa | number }} {{ d.r.grupos_empresa === 1 ? 'grupo' : 'grupos' }} en empresa actual y
+              {{ d.r.grupos_primer_empleo | number }} en primer empleo.
+            </li>
+          </ul>
+        </section>
+
+        <!-- Filtro por estado -->
+        <div class="filtros">
+          <span class="field-label" id="filtro-estado">Estado</span>
+          <div class="segmentado" role="group" aria-labelledby="filtro-estado">
+            <button type="button" class="segmento" *ngFor="let e of estados"
+              [class.segmento-activo]="filtro === e.id" [attr.aria-pressed]="filtro === e.id"
+              (click)="cambiarFiltro(e.id)">
+              {{ e.etiqueta }}
+            </button>
+          </div>
+        </div>
+
+        <ng-container *ngTemplateOutlet="estadoPestana; context: { cargando: cargandoGrupos, error: errorGrupos, reintentar: recargarGrupos, texto: 'Cargando variantes...' }"></ng-container>
+
+        <ng-container *ngIf="!cargandoGrupos && !errorGrupos">
+
+          <!-- Estado vacío -->
+          <div class="vacio-card" *ngIf="grupos.length === 0 && filtro === 'pendiente'">
+            <svg class="vacio-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            <p class="vacio-titulo">No hay variantes por revisar</p>
+            <p class="vacio-texto">
+              Corre la detección para buscar empresas escritas de más de una forma en los registros actuales.
+              Las variantes que ya fusionaste o descartaste no volverán a aparecer.
+            </p>
+            <button type="button" class="btn-primario vacio-accion" (click)="detectarVariantes()" [disabled]="detectando">
+              <span class="spinner-sm" *ngIf="detectando" aria-hidden="true"></span>
+              {{ detectando ? 'Detectando...' : 'Detectar variantes' }}
+            </button>
+          </div>
+
+          <div class="vacio-card" *ngIf="grupos.length === 0 && filtro !== 'pendiente'">
+            <p class="vacio-titulo">
+              {{ filtro === 'fusionado' ? 'Todavía no hay variantes fusionadas' : 'Todavía no hay variantes descartadas' }}
+            </p>
+            <p class="vacio-texto">
+              {{ filtro === 'fusionado'
+                ? 'Las variantes que fusiones aparecerán aquí, con la empresa del catálogo a la que quedaron ligadas.'
+                : 'Las variantes que descartes aparecerán aquí, con quién lo decidió y cuándo.' }}
+            </p>
+          </div>
+
+          <ng-container *ngIf="grupos.length > 0">
+            <div class="seccion-label">
+              <span class="seccion-dot" [ngClass]="filtro === 'pendiente' ? 'dot-amber' : filtro === 'fusionado' ? 'dot-green' : 'dot-indigo'"></span>
+              {{ filtro === 'pendiente' ? 'Grupos por revisar, del que afecta a más egresados al que afecta a menos'
+                : filtro === 'fusionado' ? 'Variantes ya ligadas al catálogo' : 'Variantes marcadas como otra empresa' }}
+            </div>
+
+            <article class="grupo-card" *ngFor="let g of grupos; let i = index; trackBy: trackByGrupo"
+              [class.grupo-abierto]="g.expandido">
+              <h3 class="grupo-h">
+                <button type="button" class="grupo-toggle" [attr.aria-expanded]="g.expandido"
+                  [attr.aria-controls]="'grupo-panel-' + i" (click)="g.expandido = !g.expandido">
+                  <svg class="grupo-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M6 4l4 4-4 4" />
+                  </svg>
+                  <span class="grupo-titulo">{{ g.titulo }}</span>
+                  <span class="grupo-meta">
+                    <span class="grupo-chip">{{ g.variantes.length }} {{ g.variantes.length === 1 ? 'variante' : 'variantes' }}</span>
+                    <span class="grupo-total">
+                      <strong>{{ g.totalEmpresa + g.totalPrimer | number }}</strong>
+                      {{ g.totalEmpresa + g.totalPrimer === 1 ? 'mención' : 'menciones' }} de egresados
+                    </span>
+                  </span>
+                </button>
+              </h3>
+
+              <div class="grupo-panel" [id]="'grupo-panel-' + i" *ngIf="g.expandido">
+                <ng-container *ngTemplateOutlet="leyendaEspacios"></ng-container>
+
+                <!-- Pendientes: se decide -->
+                <ng-container *ngIf="filtro === 'pendiente'">
+                  <div class="table-wrap">
+                    <table class="tit-table var-table">
+                      <caption class="sr-only">
+                        Variantes de {{ g.titulo }}. Marca las que son la misma empresa y elige cuál nombre queda en el catálogo.
+                      </caption>
+                      <thead>
+                        <tr>
+                          <th scope="col" class="col-check">Incluir</th>
+                          <th scope="col">Texto tal como se escribió</th>
+                          <th scope="col" class="col-num">Empresa actual</th>
+                          <th scope="col" class="col-num">Primer empleo</th>
+                          <th scope="col" class="col-canon">Nombre canónico</th>
+                          <th scope="col"><span class="sr-only">Descartar</span></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let x of g.variantes; trackBy: trackByVariante" [class.fila-excluida]="!x.incluida">
+                          <td class="col-check">
+                            <input type="checkbox" class="check" [(ngModel)]="x.incluida"
+                              [attr.aria-label]="'Incluir en la fusión: ' + x.v.nombre_variante">
+                          </td>
+                          <td>
+                            <ng-container *ngTemplateOutlet="crudo; context: { $implicit: x.crudo }"></ng-container>
+                          </td>
+                          <td class="col-num">{{ x.v.ocurrencias_empresa | number }}</td>
+                          <td class="col-num">{{ x.v.ocurrencias_primer_empleo | number }}</td>
+                          <td class="col-canon">
+                            <label class="radio-canon">
+                              <input type="radio" [name]="'canon-' + i" [value]="x.v.id_empresa_candidato" [(ngModel)]="g.canonico">
+                              Usar este nombre
+                            </label>
+                          </td>
+                          <td class="col-accion">
+                            <button type="button" class="btn-fila" (click)="abrirDescartar(x, $event)"
+                              [attr.aria-label]="'Descartar la variante ' + x.v.nombre_variante">
+                              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" aria-hidden="true">
+                                <path d="M4 4l8 8M12 4l-8 8" />
+                              </svg>
+                              Descartar
+                            </button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="canon-otro" [class.canon-otro-activo]="g.canonico === 'otro'">
+                    <label class="radio-canon">
+                      <input type="radio" [name]="'canon-' + i" value="otro" [(ngModel)]="g.canonico">
+                      Escribir otro nombre
+                    </label>
+                    <input type="text" class="field-input canon-input" [maxlength]="maxNombre"
+                      [(ngModel)]="g.canonicoOtro" (focus)="g.canonico = 'otro'"
+                      [attr.aria-label]="'Otro nombre canónico para ' + g.titulo"
+                      placeholder="Cuando ninguna variante está bien escrita">
+                  </div>
+
+                  <footer class="grupo-acciones">
+                    <p class="grupo-resumen" aria-live="polite">
+                      <ng-container *ngIf="puedeFusionar(g); else faltaGrupo">
+                        Se vincularán <strong>{{ incluidas(g).length }}</strong>
+                        {{ incluidas(g).length === 1 ? 'texto' : 'textos' }} a
+                        <ng-container *ngTemplateOutlet="crudo; context: { $implicit: crudoDe(canonicoDe(g)) }"></ng-container>
+                      </ng-container>
+                      <ng-template #faltaGrupo>{{ faltaParaFusionar(g) }}</ng-template>
+                    </p>
+                    <button type="button" class="btn-primario" (click)="abrirFusionGrupo(g, $event)" [disabled]="!puedeFusionar(g)">
+                      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 2l5 5M13 2L8 7v7M5.5 11.5L8 14l2.5-2.5" />
+                      </svg>
+                      Fusionar
+                    </button>
+                  </footer>
+                </ng-container>
+
+                <!-- Fusionadas / descartadas: solo lectura -->
+                <div class="table-wrap" *ngIf="filtro !== 'pendiente'">
+                  <table class="tit-table var-table">
+                    <caption class="sr-only">Variantes de {{ g.titulo }}</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">Texto tal como se escribió</th>
+                        <th scope="col" class="col-num">Empresa actual</th>
+                        <th scope="col" class="col-num">Primer empleo</th>
+                        <th scope="col">{{ filtro === 'fusionado' ? 'Ligada a' : 'Decisión' }}</th>
+                        <th scope="col">Revisó</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let x of g.variantes; trackBy: trackByVariante">
+                        <td>
+                          <ng-container *ngTemplateOutlet="crudo; context: { $implicit: x.crudo }"></ng-container>
+                        </td>
+                        <td class="col-num">{{ x.v.ocurrencias_empresa | number }}</td>
+                        <td class="col-num">{{ x.v.ocurrencias_primer_empleo | number }}</td>
+                        <td>
+                          <span class="td-nombre" *ngIf="filtro === 'fusionado'">{{ x.v.empresa_nombre || '—' }}</span>
+                          <span class="estado-chip" *ngIf="filtro === 'descartado'">No es la misma empresa</span>
+                        </td>
+                        <td>
+                          <span class="td-nombre">{{ x.v.revisado_por || '—' }}</span>
+                          <span class="td-sub" *ngIf="fecha(x.v.revisado_en) as cuando">{{ cuando }}</span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </article>
+          </ng-container>
+        </ng-container>
+      </div>
+
+      <!-- Panel: Fusión manual -->
+      <div class="tab-panel" role="tabpanel" id="panel-manual" aria-labelledby="tab-manual"
+        *ngIf="pestana === 'manual'">
+        <p class="panel-intro">
+          Para las empresas que el detector no puede agrupar porque no se parecen como texto: «CFE» y
+          «Comisión Federal de Electricidad», «Grupo Lala» y «Lala», o un nombre con una letra de menos.
+          Selecciona todos los textos que sean la misma empresa, aunque no compartan nada.
+        </p>
+
+        <ng-container *ngTemplateOutlet="estadoPestana; context: { cargando: cargandoTextos && !textosCargados, error: errorTextos, reintentar: recargarTextos, texto: 'Cargando los textos de empresa...' }"></ng-container>
+
+        <ng-container *ngIf="textosCargados && !errorTextos">
+
+          <div class="vacio-card" *ngIf="textos.length === 0">
+            <p class="vacio-titulo">Ningún egresado ha registrado una empresa</p>
+            <p class="vacio-texto">Cuando los egresados capturen su empresa actual o la de su primer empleo, sus textos aparecerán aquí.</p>
+          </div>
+
+          <div class="manual-grid" *ngIf="textos.length > 0">
+
+            <!-- Buscador y lista de textos -->
+            <section class="detalle-card" aria-labelledby="manual-lista-titulo">
+              <div class="detalle-toolbar">
+                <div class="buscador">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                    aria-hidden="true">
+                    <circle cx="7" cy="7" r="4.5" />
+                    <path d="M10.5 10.5L14 14" />
+                  </svg>
+                  <label class="sr-only" for="buscar-texto">Buscar entre los textos de empresa</label>
+                  <input id="buscar-texto" type="search" class="buscador-input" autocomplete="off"
+                    [(ngModel)]="busquedaManual" (ngModelChange)="filtrarTextos()"
+                    placeholder="Buscar un texto de empresa">
+                </div>
+                <span class="detalle-count" id="manual-lista-titulo" aria-live="polite">
+                  <ng-container *ngIf="totalCoinciden > textosVisibles.length; else todosVisibles">
+                    Se muestran {{ textosVisibles.length }} de {{ totalCoinciden | number }} textos. Afina la búsqueda para ver el resto.
+                  </ng-container>
+                  <ng-template #todosVisibles>{{ totalCoinciden | number }} {{ totalCoinciden === 1 ? 'texto distinto' : 'textos distintos' }}</ng-template>
+                </span>
+              </div>
+
+              <div class="manual-leyenda">
+                <ng-container *ngTemplateOutlet="leyendaEspacios"></ng-container>
+              </div>
+
+              <div class="table-wrap manual-scroll">
+                <table class="tit-table var-table" *ngIf="textosVisibles.length > 0">
+                  <caption class="sr-only">Textos de empresa que existen en los registros</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col" class="col-check">Elegir</th>
+                      <th scope="col">Texto tal como se escribió</th>
+                      <th scope="col" class="col-num">Empresa actual</th>
+                      <th scope="col" class="col-num">Primer empleo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let x of textosVisibles; trackBy: trackByTexto" class="fila-click"
+                      [class.fila-elegida]="estaSeleccionado(x)" (click)="alternarTexto(x)">
+                      <td class="col-check">
+                        <input type="checkbox" class="check" [checked]="estaSeleccionado(x)"
+                          (click)="$event.stopPropagation()"
+                          (change)="alternarTexto(x); $any($event.target).checked = estaSeleccionado(x)"
+                          [attr.aria-label]="'Elegir el texto ' + x.t.texto">
+                      </td>
+                      <td>
+                        <ng-container *ngTemplateOutlet="crudo; context: { $implicit: x.crudo }"></ng-container>
+                        <span class="td-sub ligada" *ngIf="x.ligadaA">Ya ligado a «{{ x.ligadaA }}»</span>
+                      </td>
+                      <td class="col-num">{{ x.t.ocurrencias_empresa | number }}</td>
+                      <td class="col-num">{{ x.t.ocurrencias_primer_empleo | number }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div class="detalle-empty" *ngIf="textosVisibles.length === 0">
+                  Ningún texto coincide con «{{ busquedaManual.trim() }}».
+                </div>
+              </div>
+            </section>
+
+            <!-- Grupo que se está armando -->
+            <section class="detalle-card manual-grupo" aria-labelledby="manual-grupo-titulo">
+              <div class="detalle-toolbar">
+                <h2 class="manual-titulo" id="manual-grupo-titulo">
+                  Grupo a fusionar
+                  <span class="tab-count">{{ seleccion.length }}</span>
+                </h2>
+                <button type="button" class="btn-link" *ngIf="seleccion.length > 0" (click)="limpiarSeleccion()">Quitar todos</button>
+              </div>
+
+              <div class="manual-cuerpo">
+                <p class="detalle-nada" *ngIf="seleccion.length === 0">
+                  Todavía no eliges ningún texto. Búscalos en la lista y márcalos; puedes cambiar la búsqueda
+                  sin perder los que ya elegiste.
+                </p>
+
+                <fieldset class="canon-grupo" *ngIf="seleccion.length > 0">
+                  <legend class="field-label">Textos elegidos · marca el que quede como nombre canónico</legend>
+                  <div class="canon-opcion" *ngFor="let x of seleccion; trackBy: trackByTexto"
+                    [class.canon-activa]="canonicoManual === x">
+                    <label class="canon-etiqueta">
+                      <input type="radio" name="canon-manual" [value]="x" [(ngModel)]="canonicoManual">
+                      <span class="canon-info">
+                        <ng-container *ngTemplateOutlet="crudo; context: { $implicit: x.crudo }"></ng-container>
+                        <span class="td-sub">
+                          {{ x.t.ocurrencias_empresa | number }} en empresa actual · {{ x.t.ocurrencias_primer_empleo | number }} en primer empleo
+                        </span>
+                        <span class="td-sub ligada" *ngIf="x.ligadaA">Ya ligado a «{{ x.ligadaA }}»: se moverá a la empresa que elijas</span>
+                      </span>
+                    </label>
+                    <button type="button" class="btn-quitar" (click)="quitarTexto(x)"
+                      [attr.aria-label]="'Quitar del grupo el texto ' + x.t.texto">
+                      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                        aria-hidden="true">
+                        <path d="M4 4l8 8M12 4l-8 8" />
+                      </svg>
+                    </button>
+                  </div>
+                </fieldset>
+
+                <div class="canon-otro canon-otro-manual" [class.canon-otro-activo]="canonicoManual === 'otro'">
+                  <label class="radio-canon">
+                    <input type="radio" name="canon-manual" value="otro" [(ngModel)]="canonicoManual">
+                    Escribir otro nombre
+                  </label>
+                  <input type="text" class="field-input canon-input" [maxlength]="maxNombre"
+                    [(ngModel)]="canonicoManualOtro" (focus)="canonicoManual = 'otro'"
+                    aria-label="Otro nombre canónico" placeholder="Por ejemplo: Comisión Federal de Electricidad">
+                </div>
+              </div>
+
+              <footer class="grupo-acciones manual-acciones">
+                <p class="grupo-resumen" aria-live="polite">
+                  <ng-container *ngIf="puedeFusionarManual; else faltaManual">
+                    Se vincularán <strong>{{ seleccion.length }}</strong> {{ seleccion.length === 1 ? 'texto' : 'textos' }} a
+                    <ng-container *ngTemplateOutlet="crudo; context: { $implicit: crudoDe(canonicoManualTexto) }"></ng-container>
+                  </ng-container>
+                  <ng-template #faltaManual>{{ faltaParaFusionarManual }}</ng-template>
+                </p>
+                <button type="button" class="btn-primario" (click)="abrirFusionManual($event)" [disabled]="!puedeFusionarManual">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                    stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 2l5 5M13 2L8 7v7M5.5 11.5L8 14l2.5-2.5" />
+                  </svg>
+                  Fusionar
+                </button>
+              </footer>
+            </section>
+
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- Panel: Catálogo -->
+      <div class="tab-panel" role="tabpanel" id="panel-catalogo" aria-labelledby="tab-catalogo"
+        *ngIf="pestana === 'catalogo'">
+
+        <!-- Catálogo vacío -->
+        <div class="vacio-card" *ngIf="totalCatalogo === 0 && !busquedaCatalogoAplicada && !cargandoCatalogo && !errorCatalogo">
+          <svg class="vacio-icon vacio-icon-neutro" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="4" y="3" width="10" height="18" rx="1" />
+            <path d="M14 9h6v12h-6M8 7h2M8 11h2M8 15h2" />
+          </svg>
+          <p class="vacio-titulo">El catálogo todavía no tiene empresas</p>
+          <p class="vacio-texto">
+            Una empresa entra al catálogo cuando fusionas sus variantes. Corre la detección y revisa los grupos
+            que encuentre, o arma un grupo a mano en Fusión manual.
+          </p>
+          <button type="button" class="btn-primario vacio-accion" (click)="detectarVariantes()" [disabled]="detectando">
+            <span class="spinner-sm" *ngIf="detectando" aria-hidden="true"></span>
+            {{ detectando ? 'Detectando...' : 'Detectar variantes' }}
+          </button>
+        </div>
+
+        <div class="detalle-card" *ngIf="totalCatalogo > 0 || busquedaCatalogoAplicada || cargandoCatalogo || errorCatalogo">
+          <div class="detalle-toolbar">
+            <div class="buscador">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                aria-hidden="true">
+                <circle cx="7" cy="7" r="4.5" />
+                <path d="M10.5 10.5L14 14" />
+              </svg>
+              <label class="sr-only" for="buscar-catalogo">Buscar una empresa del catálogo</label>
+              <input id="buscar-catalogo" type="search" class="buscador-input" autocomplete="off" [maxlength]="maxNombre"
+                [(ngModel)]="busquedaCatalogo" (ngModelChange)="buscarEnCatalogo()"
+                placeholder="Buscar una empresa del catálogo">
+            </div>
+            <span class="detalle-count" aria-live="polite" *ngIf="!cargandoCatalogo && !errorCatalogo">
+              {{ catalogo.length | number }} {{ catalogo.length === 1 ? 'empresa' : 'empresas' }}
+              <ng-container *ngIf="busquedaCatalogoAplicada"> de {{ totalCatalogo | number }}</ng-container>
+            </span>
+          </div>
+
+          <ng-container *ngTemplateOutlet="estadoPestana; context: { cargando: cargandoCatalogo, error: errorCatalogo, reintentar: recargarCatalogo, texto: 'Cargando el catálogo...' }"></ng-container>
+
+          <div class="table-wrap" *ngIf="!cargandoCatalogo && !errorCatalogo">
+            <table class="tit-table" *ngIf="catalogo.length > 0">
+              <caption class="sr-only">Empresas canónicas y egresados ligados a cada una</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Empresa</th>
+                  <th scope="col" class="col-num">Ligados por empresa actual</th>
+                  <th scope="col" class="col-num">Ligados por primer empleo</th>
+                  <th scope="col">Creada</th>
+                  <th scope="col"><span class="sr-only">Eliminar</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let e of catalogo; trackBy: trackByEmpresa">
+                  <td><span class="td-nombre">{{ e.nombre }}</span></td>
+                  <td class="col-num">{{ e.egresados_empresa | number }}</td>
+                  <td class="col-num">{{ e.egresados_primer_empleo | number }}</td>
+                  <td class="td-fecha">{{ fecha(e.creado_en) || '—' }}</td>
+                  <td class="col-accion">
+                    <button type="button" class="btn-fila btn-fila-peligro" (click)="abrirEliminar(e, $event)"
+                      [attr.aria-label]="'Eliminar del catálogo la empresa ' + e.nombre">
+                      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                        aria-hidden="true">
+                        <path d="M2 4h12M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4" />
+                      </svg>
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="detalle-empty" *ngIf="catalogo.length === 0">
+              Ninguna empresa del catálogo coincide con «{{ busquedaCatalogoAplicada }}».
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </ng-container>
+
+  </main>
+</div>
+
+<!-- MODAL — Fusionar (confirmación y, después, el resultado real) -->
+<div class="modal-overlay" *ngIf="planFusion as plan" (click)="cerrarFusion()">
+  <div class="modal modal-lg" #modalRef role="dialog" aria-modal="true" aria-labelledby="fusion-titulo"
+    aria-describedby="fusion-desc" tabindex="-1" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title" id="fusion-titulo">{{ resultadoFusion ? 'Fusión completada' : 'Confirmar fusión' }}</h2>
+      <button type="button" class="modal-close" (click)="cerrarFusion()" [disabled]="fusionando" aria-label="Cerrar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Antes de confirmar: qué va a pasar -->
+    <div class="modal-body" *ngIf="!resultadoFusion">
+      <div class="paso">
+        <h3 class="paso-titulo">1. Nombre que quedará en el catálogo</h3>
+        <p class="paso-canonico" id="fusion-desc">
+          <ng-container *ngTemplateOutlet="crudo; context: { $implicit: plan.canonicoCrudo }"></ng-container>
+        </p>
+        <p class="resumen-nota">Si el catálogo ya tiene una empresa con ese nombre, se usa esa en lugar de crear otra.</p>
+      </div>
+
+      <div class="paso">
+        <h3 class="paso-titulo">
+          2. {{ plan.textos.length === 1 ? 'Texto que se vinculará' : plan.textos.length + ' textos que se vincularán' }} a ese nombre
+        </h3>
+        <div class="table-wrap paso-tabla">
+          <table class="tit-table var-table">
+            <thead>
+              <tr>
+                <th scope="col">Texto tal como se escribió</th>
+                <th scope="col" class="col-num">Empresa actual</th>
+                <th scope="col" class="col-num">Primer empleo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let t of plan.textos">
+                <td><ng-container *ngTemplateOutlet="crudo; context: { $implicit: t.crudo }"></ng-container></td>
+                <td class="col-num">{{ t.empresa | number }}</td>
+                <td class="col-num">{{ t.primer | number }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="paso">
+        <h3 class="paso-titulo">3. Egresados que quedarán ligados</h3>
+        <div class="resumen-fusion">
+          <p>
+            <strong>{{ plan.totalEmpresa | number }}</strong>
+            {{ plan.totalEmpresa === 1 ? 'egresado' : 'egresados' }} por su <strong>empresa actual</strong> y
+            <strong>{{ plan.totalPrimer | number }}</strong> por su <strong>primer empleo</strong>.
+          </p>
+          <p class="resumen-nota">Es un estimado con los conteos de la lista. Al confirmar verás la cifra real.</p>
+        </div>
+      </div>
+
+      <div class="conserva">
+        <svg class="aviso-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          <polyline points="9 12 11 14 15 10" />
+        </svg>
+        <span>
+          <strong>El texto original se conserva.</strong> Lo que escribió cada persona no se borra ni se modifica:
+          solo se agrega el vínculo al catálogo. Si te equivocas, vuelve a fusionar estos textos con el nombre correcto.
+        </span>
+      </div>
+
+      <div class="error-msg" *ngIf="errorFusion" role="alert">{{ errorFusion }}</div>
+    </div>
+
+    <!-- Después de confirmar: lo que devolvió la API -->
+    <div class="modal-body" *ngIf="resultadoFusion as r" aria-live="polite">
+      <div class="resultado">
+        <svg class="resultado-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+        <p id="fusion-desc">
+          {{ plan.textos.length === 1 ? 'El texto quedó ligado' : 'Los ' + plan.textos.length + ' textos quedaron ligados' }} a
+          <strong>{{ r.empresa.nombre }}</strong>.
+          <span class="resultado-tag" [class.resultado-tag-nueva]="r.empresa.creada">
+            {{ r.empresa.creada ? 'Empresa nueva en el catálogo' : 'Ya existía en el catálogo' }}
+          </span>
+        </p>
+      </div>
+
+      <dl class="deteccion-cifras resultado-cifras">
+        <div class="deteccion-cifra">
+          <dt>Ligados por empresa actual</dt>
+          <dd class="deteccion-num">{{ r.egresados_ligados.empresa | number }}</dd>
+          <dd class="deteccion-sub">{{ r.egresados_ligados.empresa === 1 ? 'egresado' : 'egresados' }}</dd>
+        </div>
+        <div class="deteccion-cifra">
+          <dt>Ligados por primer empleo</dt>
+          <dd class="deteccion-num">{{ r.egresados_ligados.primer_empleo | number }}</dd>
+          <dd class="deteccion-sub">{{ r.egresados_ligados.primer_empleo === 1 ? 'egresado' : 'egresados' }}</dd>
+        </div>
+      </dl>
+
+      <p class="resumen-nota" *ngIf="fusionDifiereDelEstimado">
+        El estimado era de {{ plan.totalEmpresa | number }} y {{ plan.totalPrimer | number }}. La diferencia viene de
+        registros que cambiaron después de la última detección.
+      </p>
+      <p class="resumen-nota">Los textos originales de los egresados siguen igual.</p>
+    </div>
+
+    <div class="modal-footer" *ngIf="!resultadoFusion">
+      <button type="button" class="btn-secundario" (click)="cerrarFusion()" [disabled]="fusionando">Cancelar</button>
+      <button type="button" class="btn-primario" (click)="confirmarFusion()" [disabled]="fusionando"
+        [attr.aria-busy]="fusionando" data-autofocus>
+        <span class="spinner-sm" *ngIf="fusionando" aria-hidden="true"></span>
+        {{ fusionando ? 'Fusionando...' : 'Fusionar ' + plan.textos.length + (plan.textos.length === 1 ? ' texto' : ' textos') }}
+      </button>
+    </div>
+    <div class="modal-footer" *ngIf="resultadoFusion">
+      <button type="button" class="btn-primario" (click)="cerrarFusion()" data-autofocus>Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL — Descartar una variante -->
+<div class="modal-overlay" *ngIf="varianteDescartar as x" (click)="cerrarDescartar()">
+  <div class="modal" #modalRef role="dialog" aria-modal="true" aria-labelledby="descartar-titulo"
+    aria-describedby="descartar-desc" tabindex="-1" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title" id="descartar-titulo">Descartar variante</h2>
+      <button type="button" class="modal-close" (click)="cerrarDescartar()" [disabled]="descartando" aria-label="Cerrar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="paso-canonico">
+        <ng-container *ngTemplateOutlet="crudo; context: { $implicit: x.crudo }"></ng-container>
+      </p>
+      <p class="modal-desc" id="descartar-desc">
+        Descartar significa que este texto <strong>no es la misma empresa</strong> que las demás variantes del grupo.
+        No se borra nada y el detector ya no lo volverá a proponer.
+      </p>
+      <p class="resumen-nota">
+        Si después resulta que sí era la misma, puedes ligarlo desde Fusión manual.
+      </p>
+      <div class="error-msg" *ngIf="errorDescartar" role="alert">{{ errorDescartar }}</div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secundario" (click)="cerrarDescartar()" [disabled]="descartando">Cancelar</button>
+      <button type="button" class="btn-primario" (click)="confirmarDescartar()" [disabled]="descartando"
+        [attr.aria-busy]="descartando" data-autofocus>
+        <span class="spinner-sm" *ngIf="descartando" aria-hidden="true"></span>
+        {{ descartando ? 'Descartando...' : 'Descartar' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL — Eliminar del catálogo -->
+<div class="modal-overlay" *ngIf="empresaEliminar as e" (click)="cerrarEliminar()">
+  <div class="modal" #modalRef role="dialog" aria-modal="true" aria-labelledby="eliminar-titulo"
+    aria-describedby="eliminar-desc" tabindex="-1" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title modal-title-danger" id="eliminar-titulo">Eliminar del catálogo</h2>
+      <button type="button" class="modal-close" (click)="cerrarEliminar()" [disabled]="eliminando" aria-label="Cerrar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-desc" id="eliminar-desc">
+        Se eliminará <strong>{{ e.nombre }}</strong> del catálogo de empresas. Los textos que escribieron los
+        egresados no se tocan.
+      </p>
+      <p class="resumen-nota">Solo se puede eliminar una empresa que no tenga egresados ligados.</p>
+      <!-- El mensaje de la API va tal cual: dice cuántos egresados están ligados -->
+      <div class="error-msg" *ngIf="errorEliminar" role="alert">{{ errorEliminar }}</div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secundario" (click)="cerrarEliminar()" [disabled]="eliminando" data-autofocus>Cancelar</button>
+      <button type="button" class="btn-peligro" (click)="confirmarEliminar()" [disabled]="eliminando" [attr.aria-busy]="eliminando">
+        <span class="spinner-sm" *ngIf="eliminando" aria-hidden="true"></span>
+        <svg *ngIf="!eliminando" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+          stroke-linecap="round" aria-hidden="true">
+          <path d="M2 4h12M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4" />
+        </svg>
+        {{ eliminando ? 'Eliminando...' : 'Eliminar' }}
+      </button>
+    </div>
+  </div>
+</div>
