@@ -12,7 +12,11 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './sidebar.component.css'
 })
 export class SidebarComponent implements OnInit, OnDestroy {
-  isCollapsed = false;
+  private static readonly COLLAPSED_KEY = 'sidebar_colapsado';
+
+  // Se lee al construir, no en ngOnInit: así el primer pintado ya sale en el
+  // estado guardado y no hay salto de expandido a colapsado al cargar.
+  isCollapsed = SidebarComponent.leerColapsado();
   activeRoute = '';
   esAdmin = false;
   nombreUsuario = '';
@@ -50,6 +54,20 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   toggleSidebar(): void {
     this.isCollapsed = !this.isCollapsed;
+    try {
+      localStorage.setItem(SidebarComponent.COLLAPSED_KEY, this.isCollapsed ? '1' : '0');
+    } catch {
+      // Sin almacenamiento (modo privado, cuota llena): la preferencia dura solo esta sesión
+    }
+  }
+
+  /** Solo '1' cuenta como colapsado: sin valor, valor corrupto o almacenamiento bloqueado → expandido */
+  private static leerColapsado(): boolean {
+    try {
+      return localStorage.getItem(SidebarComponent.COLLAPSED_KEY) === '1';
+    } catch {
+      return false;
+    }
   }
 
   setRoute(route: string): void {
