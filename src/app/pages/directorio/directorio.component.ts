@@ -3,14 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
-import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { DirectorioService, EgresadoDirectorio } from './directorio.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-directorio',
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './directorio.component.html',
   styleUrl: './directorio.component.css',
 })

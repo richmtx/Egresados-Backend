@@ -5,7 +5,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgxApexchartsModule } from 'ngx-apexcharts';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { EstadisticasService } from './estadisticas.service';
 import { EstadisticasResponse, FiltrosEstadisticas } from './models/estadisticas.model';
 import { UsuariosService } from '../usuarios/usuarios.service';
@@ -13,7 +12,7 @@ import { UsuariosService } from '../usuarios/usuarios.service';
 @Component({
   selector: 'app-estadisticas',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgxApexchartsModule, SidebarComponent],
+  imports: [CommonModule, FormsModule, NgxApexchartsModule],
   templateUrl: './estadisticas.component.html',
   styleUrl: './estadisticas.component.css'
 })

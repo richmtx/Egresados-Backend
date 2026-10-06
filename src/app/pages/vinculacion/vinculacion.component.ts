@@ -3,7 +3,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
-import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { VinculacionService, EgresadoContacto, } from './vinculacion.service';
 import { EstadisticasService } from '../estadisticas/estadisticas.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
@@ -43,7 +42,7 @@ export const SAT_COLORES: Record<number, string> = {
 @Component({
   selector: 'app-vinculacion',
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './vinculacion.component.html',
   styleUrl: './vinculacion.component.css',
 })

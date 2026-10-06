@@ -1,6 +1,5 @@
 import { Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { SidebarComponent } from "../../components/sidebar/sidebar.component";
 import { CommonModule } from '@angular/common';
 import { NotificacionesService, Notificacion } from './notificaciones.service';
 
@@ -9,7 +8,7 @@ type ModalModoEliminar = 'una' | 'leidas' | 'todas';
 @Component({
   selector: 'app-notificaciones',
   standalone: true,
-  imports: [CommonModule, SidebarComponent],
+  imports: [CommonModule],
   templateUrl: './notificaciones.component.html',
   styleUrls: ['./notificaciones.component.css'],
 })

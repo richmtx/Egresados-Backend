@@ -3,7 +3,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { RespuestasService, Respuesta } from './respuestas.service';
 import { EstudioPosterior, Emprendimiento, ProyectoSocial } from '../egresados/egresados.service';
 import { AuthService } from '../../services/auth.service';
@@ -39,7 +38,7 @@ export interface RespuestaPerfil extends Respuesta {
 @Component({
   selector: 'app-respuestas',
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './respuestas.component.html',
   styleUrl: './respuestas.component.css',
 })

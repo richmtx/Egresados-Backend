@@ -6,13 +6,12 @@ import {
   DistribucionService, DistribucionGeoResponse, KpisGeo, CiudadTrabajo, PaisTrabajo, MovilidadAnio,
   MovilidadCarrera,
 } from './distribucion.service';
-import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { UsuariosService } from '../usuarios/usuarios.service';
 
 @Component({
   selector: 'app-distribucion',
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './distribucion.component.html',
   styleUrls: ['./distribucion.component.css'],
 })

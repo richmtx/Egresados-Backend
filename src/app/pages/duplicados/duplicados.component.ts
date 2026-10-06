@@ -5,7 +5,6 @@ import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { concat, forkJoin } from 'rxjs';
 import { toArray } from 'rxjs/operators';
-import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import {
   DuplicadosService, DuplicadosResumen, DeteccionResultado, EgresadoDuplicado,
   GrupoDuplicado, CandidatoDuplicado, Fusion,
@@ -104,7 +103,7 @@ const plural = (n: number, uno: string, varios: string): string => `${n} ${n ===
 @Component({
   selector: 'app-duplicados',
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './duplicados.component.html',
   styleUrl: './duplicados.component.css'
 })

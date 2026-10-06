@@ -2,7 +2,6 @@ import { Component, OnInit, DestroyRef, HostListener, inject } from '@angular/co
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { SidebarComponent } from "../../components/sidebar/sidebar.component";
 import { EgresadosService, EgresadoDetalle, EgresadoPerfil, ResumenEliminacion } from './egresados.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
 import { InclusionService } from '../inclusion/inclusion.service';
@@ -11,7 +10,7 @@ import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-egresados',
-  imports: [SidebarComponent, CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './egresados.component.html',
   styleUrl: './egresados.component.css'
 })

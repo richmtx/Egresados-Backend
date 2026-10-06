@@ -2,14 +2,13 @@ import { Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { AuthService } from '../../services/auth.service';
 import { UsuariosService, Usuario, HistorialItem } from './usuarios.service';
 import { UsuarioToken } from '../../models/auth.models';
 
 @Component({
   selector: 'app-usuarios',
-  imports: [CommonModule, FormsModule, SidebarComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './usuarios.component.html',
   styleUrl: './usuarios.component.css'
 })

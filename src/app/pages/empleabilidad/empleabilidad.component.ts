@@ -3,14 +3,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgxApexchartsModule } from 'ngx-apexcharts';
-import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { EgresadosService, EstadisticasEmpleabilidad } from '../../services/egresados.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
 
 @Component({
   selector: 'app-empleabilidad',
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent, NgxApexchartsModule],
+  imports: [CommonModule, FormsModule, NgxApexchartsModule],
   templateUrl: './empleabilidad.component.html',
   styleUrl: './empleabilidad.component.css',
 })

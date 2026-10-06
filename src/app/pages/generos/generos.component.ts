@@ -4,7 +4,6 @@ import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgxApexchartsModule } from 'ngx-apexcharts';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { GenerosService, EstadisticasGeneroResponse } from './generos.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
 
@@ -20,7 +19,7 @@ const MIN_EGRESADOS_DESTACADO = 10;
 @Component({
   selector: 'app-generos',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgxApexchartsModule, SidebarComponent],
+  imports: [CommonModule, FormsModule, NgxApexchartsModule],
   templateUrl: './generos.component.html',
   styleUrl: './generos.component.css'
 })

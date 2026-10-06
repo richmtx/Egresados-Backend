@@ -5,7 +5,6 @@ import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Subject, forkJoin, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, switchMap } from 'rxjs/operators';
-import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import {
   EmpresasService, DeteccionEmpresas, EstadoVariante, GrupoEmpresa, VarianteEmpresa,
   FusionEmpresasResultado, EmpresaCatalogo, TextoEmpresa,
@@ -126,7 +125,7 @@ function analizarTexto(texto: string): TextoCrudo {
 @Component({
   selector: 'app-empresas',
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './empresas.component.html',
   styleUrl: './empresas.component.css'
 })

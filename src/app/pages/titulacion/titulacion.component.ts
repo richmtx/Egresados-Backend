@@ -7,7 +7,6 @@ import {
   ApexAxisChartSeries, ApexChart, ApexXAxis, ApexYAxis, ApexPlotOptions, ApexDataLabels,
   ApexTooltip, ApexLegend, ApexStroke, ApexNonAxisChartSeries,
 } from 'ngx-apexcharts';
-import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import {
   TitulacionService, TitulacionCarrera, TitulacionAnio,
   TitulacionCarreraAnio, PosgradoPorTipo, CarreraGrupo,
@@ -19,7 +18,7 @@ import { UsuariosService } from '../usuarios/usuarios.service';
 @Component({
   selector: 'app-titulacion',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgxApexchartsModule, SidebarComponent],
+  imports: [CommonModule, FormsModule, NgxApexchartsModule],
   templateUrl: './titulacion.component.html',
   styleUrl: './titulacion.component.css'
 })

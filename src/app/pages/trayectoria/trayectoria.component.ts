@@ -7,7 +7,6 @@ import {
   ApexAxisChartSeries, ApexChart, ApexXAxis, ApexYAxis, ApexPlotOptions, ApexDataLabels,
   ApexTooltip, ApexLegend, ApexNonAxisChartSeries,
 } from 'ngx-apexcharts';
-import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import {
   TrayectoriaService, TrayectoriaKpis, EstudiosPorNivel, EstudiosPorEstado, TopInstitucion,
   EstudiosPorCarrera, EmprendimientoPorRango, TopGiro, EmprendimientoPorCarrera,
@@ -31,7 +30,7 @@ interface CarreraPct {
 @Component({
   selector: 'app-trayectoria',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgxApexchartsModule, SidebarComponent],
+  imports: [CommonModule, FormsModule, NgxApexchartsModule],
   templateUrl: './trayectoria.component.html',
   styleUrl: './trayectoria.component.css'
 })

@@ -4,14 +4,13 @@ import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { NgxApexchartsModule } from 'ngx-apexcharts';
-import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { AuthService } from '../../services/auth.service';
 import { DashboardService, DashboardResumen } from './dashboard.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, NgxApexchartsModule, SidebarComponent],
+  imports: [CommonModule, NgxApexchartsModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })

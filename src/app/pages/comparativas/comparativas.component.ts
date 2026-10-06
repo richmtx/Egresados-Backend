@@ -4,7 +4,6 @@ import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgxApexchartsModule } from 'ngx-apexcharts';
-import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import {
   ComparativasService,
   ComparativasResponse,
@@ -18,7 +17,7 @@ const COLORES_LIGHT = ['#ede9fe', '#dcfce7', '#fef3c7'];
 @Component({
   selector: 'app-comparativas',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgxApexchartsModule, SidebarComponent],
+  imports: [CommonModule, FormsModule, NgxApexchartsModule],
   templateUrl: './comparativas.component.html',
   styleUrl: './comparativas.component.css',
 })

@@ -1,11 +1,4 @@
 /* Layout */
-.tit-layout {
-    display: flex;
-    height: 100vh;
-    overflow: hidden;
-    background: #f0f2f5;
-}
-
 .tit-main {
     flex: 1;
     overflow-y: auto;

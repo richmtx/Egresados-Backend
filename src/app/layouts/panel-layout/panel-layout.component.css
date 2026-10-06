@@ -1,0 +1,16 @@
+/* Contenedor del panel: sidebar a la izquierda, página a la derecha */
+.panel-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: #f0f2f5;
+}
+
+/* Host de la página enrutada (hermano siguiente del router-outlet): ocupa el
+   espacio que deja el sidebar y es a su vez un flex en fila, para que el
+   <main> de cada página se estire igual que cuando era hijo directo. */
+.panel-layout > router-outlet + * {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+}

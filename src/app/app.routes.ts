@@ -3,25 +3,37 @@ import { LoginComponent } from './pages/login/login.component';
 import { authGuard, adminGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', component: LoginComponent },
+  { path: '', pathMatch: 'full', component: LoginComponent },
 
-  // Solo admins
-  { path: 'dashboard', loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent), canActivate: [adminGuard] },  { path: 'egresados', loadComponent: () => import('./pages/egresados/egresados.component').then(m => m.EgresadosComponent), canActivate: [adminGuard] },
-  { path: 'respuestas', loadComponent: () => import('./pages/respuestas/respuestas.component').then(m => m.RespuestasComponent), canActivate: [adminGuard] },
-  { path: 'duplicados', loadComponent: () => import('./pages/duplicados/duplicados.component').then(m => m.DuplicadosComponent), canActivate: [adminGuard] },
-  { path: 'empresas', loadComponent: () => import('./pages/empresas/empresas.component').then(m => m.EmpresasComponent), canActivate: [adminGuard] },
-  { path: 'estadisticas', loadComponent: () => import('./pages/estadisticas/estadisticas.component').then(m => m.EstadisticasComponent), canActivate: [adminGuard] },  { path: 'empleabilidad', loadComponent: () => import('./pages/empleabilidad/empleabilidad.component').then(m => m.EmpleabilidadComponent), canActivate: [adminGuard] },
-  { path: 'distribucion', loadComponent: () => import('./pages/distribucion/distribucion.component').then(m => m.DistribucionComponent), canActivate: [adminGuard] },
-  { path: 'titulacion', loadComponent: () => import('./pages/titulacion/titulacion.component').then(m => m.TitulacionComponent), canActivate: [adminGuard] },
-  { path: 'trayectoria', loadComponent: () => import('./pages/trayectoria/trayectoria.component').then(m => m.TrayectoriaComponent), canActivate: [adminGuard] },
-  { path: 'notificaciones', loadComponent: () => import('./pages/notificaciones/notificaciones.component').then(m => m.NotificacionesComponent), canActivate: [adminGuard] },  { path: 'vinculacion', loadComponent: () => import('./pages/vinculacion/vinculacion.component').then(m => m.VinculacionComponent), canActivate: [adminGuard] },
-  { path: 'generos', loadComponent: () => import('./pages/generos/generos.component').then(m => m.GenerosComponent), canActivate: [adminGuard] },
-  { path: 'inclusion', loadComponent: () => import('./pages/inclusion/inclusion.component').then(m => m.InclusionComponent), canActivate: [adminGuard] },
-  { path: 'comparativas', loadComponent: () => import('./pages/comparativas/comparativas.component').then(m => m.ComparativasComponent), canActivate: [adminGuard] },
-  { path: 'usuarios', loadComponent: () => import('./pages/usuarios/usuarios.component').then(m => m.UsuariosComponent), canActivate: [adminGuard] },
+  // Panel: el layout pone el sidebar una sola vez. El padre no tiene segmento
+  // propio, así que las URLs de las hijas no cambian (/egresados, no /panel/egresados).
+  // Cada hija conserva su guard.
+  {
+    path: '',
+    loadComponent: () => import('./layouts/panel-layout/panel-layout.component').then(m => m.PanelLayoutComponent),
+    children: [
+      // Solo admins
+      { path: 'dashboard', loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent), canActivate: [adminGuard] },
+      { path: 'egresados', loadComponent: () => import('./pages/egresados/egresados.component').then(m => m.EgresadosComponent), canActivate: [adminGuard] },
+      { path: 'respuestas', loadComponent: () => import('./pages/respuestas/respuestas.component').then(m => m.RespuestasComponent), canActivate: [adminGuard] },
+      { path: 'duplicados', loadComponent: () => import('./pages/duplicados/duplicados.component').then(m => m.DuplicadosComponent), canActivate: [adminGuard] },
+      { path: 'empresas', loadComponent: () => import('./pages/empresas/empresas.component').then(m => m.EmpresasComponent), canActivate: [adminGuard] },
+      { path: 'estadisticas', loadComponent: () => import('./pages/estadisticas/estadisticas.component').then(m => m.EstadisticasComponent), canActivate: [adminGuard] },
+      { path: 'empleabilidad', loadComponent: () => import('./pages/empleabilidad/empleabilidad.component').then(m => m.EmpleabilidadComponent), canActivate: [adminGuard] },
+      { path: 'distribucion', loadComponent: () => import('./pages/distribucion/distribucion.component').then(m => m.DistribucionComponent), canActivate: [adminGuard] },
+      { path: 'titulacion', loadComponent: () => import('./pages/titulacion/titulacion.component').then(m => m.TitulacionComponent), canActivate: [adminGuard] },
+      { path: 'trayectoria', loadComponent: () => import('./pages/trayectoria/trayectoria.component').then(m => m.TrayectoriaComponent), canActivate: [adminGuard] },
+      { path: 'notificaciones', loadComponent: () => import('./pages/notificaciones/notificaciones.component').then(m => m.NotificacionesComponent), canActivate: [adminGuard] },
+      { path: 'vinculacion', loadComponent: () => import('./pages/vinculacion/vinculacion.component').then(m => m.VinculacionComponent), canActivate: [adminGuard] },
+      { path: 'generos', loadComponent: () => import('./pages/generos/generos.component').then(m => m.GenerosComponent), canActivate: [adminGuard] },
+      { path: 'inclusion', loadComponent: () => import('./pages/inclusion/inclusion.component').then(m => m.InclusionComponent), canActivate: [adminGuard] },
+      { path: 'comparativas', loadComponent: () => import('./pages/comparativas/comparativas.component').then(m => m.ComparativasComponent), canActivate: [adminGuard] },
+      { path: 'usuarios', loadComponent: () => import('./pages/usuarios/usuarios.component').then(m => m.UsuariosComponent), canActivate: [adminGuard] },
 
-  // Accesible para admin e invitado (solo requiere login)
-  { path: 'directorio', loadComponent: () => import('./pages/directorio/directorio.component').then(m => m.DirectorioComponent), canActivate: [authGuard] },
+      // Accesible para admin e invitado (solo requiere login)
+      { path: 'directorio', loadComponent: () => import('./pages/directorio/directorio.component').then(m => m.DirectorioComponent), canActivate: [authGuard] },
+    ]
+  },
 
   // Cualquier ruta no encontrada → login
   { path: '**', redirectTo: '' }

@@ -7,7 +7,6 @@ import {
   ApexAxisChartSeries, ApexChart, ApexXAxis, ApexYAxis, ApexPlotOptions, ApexDataLabels,
   ApexTooltip, ApexLegend, ApexGrid,
 } from 'ngx-apexcharts';
-import { SidebarComponent } from '../../components/sidebar/sidebar.component';
 import { UsuariosService } from '../usuarios/usuarios.service';
 import {
   InclusionService, Conteo, aConteo,
@@ -108,7 +107,7 @@ const esc = (s: string): string =>
 @Component({
   selector: 'app-inclusion',
   standalone: true,
-  imports: [CommonModule, NgxApexchartsModule, SidebarComponent],
+  imports: [CommonModule, NgxApexchartsModule],
   templateUrl: './inclusion.component.html',
   styleUrl: './inclusion.component.css'
 })
