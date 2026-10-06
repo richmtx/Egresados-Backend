@@ -361,5 +361,116 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ══ SECCIÓN: PAÍS DE NACIMIENTO (solo admin) ══ -->
+            <ng-container *ngIf="esAdmin">
+                <div class="seccion-label">
+                    <span class="seccion-dot dot-amber"></span>
+                    País de nacimiento
+                </div>
+
+                <!-- Cargando -->
+                <div class="chart-card" *ngIf="paisNacimientoCargando && !paisNacimiento">
+                    <div class="empty-geo" role="status">
+                        <div class="spinner"></div>
+                        <p>Cargando país de nacimiento...</p>
+                    </div>
+                </div>
+
+                <!-- Error -->
+                <div class="chart-card" *ngIf="paisNacimientoError">
+                    <div class="empty-geo" role="alert">
+                        <p>No se pudo cargar el país de nacimiento.</p>
+                        <button class="btn-retry" (click)="cargarPaisNacimiento()">Reintentar</button>
+                    </div>
+                </div>
+
+                <ng-container *ngIf="paisNacimiento as pn">
+
+                    <!-- Vacío -->
+                    <div class="chart-card" *ngIf="pn.total_con_dato === 0">
+                        <div class="empty-geo">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8"
+                                stroke-width="1.5" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="2" y1="12" x2="22" y2="12" />
+                                <path
+                                    d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                            </svg>
+                            <p>
+                                {{ filtroCarrera || filtroAnio
+                                ? 'Ningún egresado con país de nacimiento registrado para los filtros seleccionados'
+                                : 'Ningún egresado tiene país de nacimiento registrado' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="geo-row-nacimiento" *ngIf="pn.total_con_dato > 0"
+                        [class.nac-actualizando]="paisNacimientoCargando">
+
+                        <!-- Cifras principales -->
+                        <div class="chart-card nac-cifras">
+                            <div class="nac-cifra">
+                                <span class="nac-cifra-label">
+                                    Nacidos en México
+                                </span>
+                                <span class="nac-cifra-valor">{{ pn.nacidos_en_mexico }}</span>
+                                <span class="nac-cifra-pct">
+                                    {{ getPctDecimal(pn.nacidos_en_mexico, pn.total_con_dato) }}%
+                                </span>
+                            </div>
+                            <div class="nac-cifra">
+                                <span class="nac-cifra-label">
+                                    Nacidos en el extranjero
+                                </span>
+                                <span class="nac-cifra-valor">{{ pn.nacidos_en_extranjero }}</span>
+                                <span class="nac-cifra-pct">
+                                    {{ getPctDecimal(pn.nacidos_en_extranjero, pn.total_con_dato) }}%
+                                </span>
+                            </div>
+                            <p class="nac-nota">
+                                De {{ pn.total_con_dato }} egresados con país de nacimiento registrado
+                            </p>
+                        </div>
+
+                        <!-- Desglose por país -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <div>
+                                    <h3 class="chart-title">Desglose por país</h3>
+                                    <p class="chart-sub">
+                                        {{ pn.paises.length }} {{ pn.paises.length === 1 ? 'país' : 'países' }} ·
+                                        lugar donde nació el egresado
+                                    </p>
+                                </div>
+                            </div>
+
+                            <table class="nac-tabla">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">País</th>
+                                        <th scope="col" class="nac-col-barra"><span class="nac-sr">Proporción</span></th>
+                                        <th scope="col" class="nac-num">Egresados</th>
+                                        <th scope="col" class="nac-num">%</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let p of pn.paises">
+                                        <th scope="row" class="nac-pais">{{ p.pais }}</th>
+                                        <td class="nac-col-barra" aria-hidden="true">
+                                            <div class="nac-bar-wrap">
+                                                <div class="nac-bar" [style.width.%]="p.porcentaje"></div>
+                                            </div>
+                                        </td>
+                                        <td class="nac-num nac-conteo">{{ p.egresados }}</td>
+                                        <td class="nac-num nac-pct">{{ p.porcentaje }}%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </ng-container>
+            </ng-container>
         </ng-container>
     </main>

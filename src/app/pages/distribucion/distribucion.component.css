@@ -677,6 +677,165 @@
     color: #9ca3af;
 }
 
+/* País de nacimiento */
+.geo-row-nacimiento {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: 12px;
+    transition: opacity 0.15s;
+}
+
+.geo-row-nacimiento.nac-actualizando {
+    opacity: 0.55;
+}
+
+.nac-cifras {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 20px;
+    align-content: center;
+}
+
+.nac-cifra {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.nac-cifra + .nac-cifra {
+    padding-left: 20px;
+    border-left: 0.5px solid #e5e7eb;
+}
+
+.nac-cifra-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.nac-cifra-valor {
+    font-size: 34px;
+    font-weight: 600;
+    color: #003366;
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+}
+
+.nac-cifra-pct {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    font-variant-numeric: tabular-nums;
+}
+
+.nac-nota {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding-top: 12px;
+    border-top: 0.5px solid #f3f4f6;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.nac-tabla {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.nac-tabla thead th {
+    font-size: 11px;
+    font-weight: 500;
+    color: #6b7280;
+    text-align: left;
+    padding: 0 0 8px;
+    border-bottom: 0.5px solid #e5e7eb;
+}
+
+.nac-tabla tbody th,
+.nac-tabla tbody td {
+    padding: 9px 0;
+    border-bottom: 0.5px solid #f3f4f6;
+    vertical-align: middle;
+}
+
+.nac-tabla tbody tr:last-child th,
+.nac-tabla tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.nac-pais {
+    font-size: 13px;
+    font-weight: 400;
+    color: #374151;
+    text-align: left;
+    padding-right: 12px;
+}
+
+.nac-col-barra {
+    width: 45%;
+    padding-right: 12px;
+}
+
+.nac-bar-wrap {
+    width: 100%;
+    height: 6px;
+    background: #f3f4f6;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+/* min-width: que un país con 0.5% no desaparezca */
+.nac-bar {
+    height: 100%;
+    min-width: 3px;
+    border-radius: 3px;
+    background: #003366;
+    transition: width 0.4s ease;
+}
+
+.nac-tabla .nac-num {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.nac-conteo {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111827;
+    width: 72px;
+}
+
+.nac-pct {
+    font-size: 12px;
+    color: #6b7280;
+    width: 56px;
+}
+
+.nac-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+@media (max-width: 1024px) {
+    .geo-row-nacimiento {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .nac-col-barra {
+        display: none;
+    }
+}
+
 /* Estado vacío */
 .empty-geo {
     display: flex;

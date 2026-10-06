@@ -52,6 +52,20 @@ export interface DistribucionGeoResponse {
     movilidadPorCarrera: MovilidadCarrera[];
 }
 
+export interface PaisNacimiento {
+    pais: string;
+    egresados: number;
+    porcentaje: number;
+}
+
+// Dónde nació la persona; no equivale a su nacionalidad
+export interface PaisNacimientoResponse {
+    total_con_dato: number;
+    nacidos_en_mexico: number;
+    nacidos_en_extranjero: number;
+    paises: PaisNacimiento[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class DistribucionService {
 
@@ -68,6 +82,20 @@ export class DistribucionService {
         if (anio) params = params.set('anio', String(anio));
         return this.http.get<DistribucionGeoResponse>(
             `${this.base}/distribucion-geografica`,
+            { params },
+        );
+    }
+
+    // Solo admin: a un invitado le responde 403
+    getPaisNacimiento(
+        carrera?: string,
+        anio?: number,
+    ): Observable<PaisNacimientoResponse> {
+        let params = new HttpParams();
+        if (carrera) params = params.set('carrera', carrera);
+        if (anio) params = params.set('anio', String(anio));
+        return this.http.get<PaisNacimientoResponse>(
+            `${this.base}/distribucion-geografica/pais-nacimiento`,
             { params },
         );
     }

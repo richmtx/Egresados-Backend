@@ -4,8 +4,10 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   DistribucionService, DistribucionGeoResponse, KpisGeo, CiudadTrabajo, PaisTrabajo, MovilidadAnio,
-  MovilidadCarrera,
+  MovilidadCarrera, PaisNacimientoResponse,
 } from './distribucion.service';
+import { Subscription } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
 
 @Component({
@@ -762,6 +764,15 @@ export class DistribucionComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private destroyRef = inject(DestroyRef);
   private usuariosService = inject(UsuariosService);
+  private authService = inject(AuthService);
+
+  // País de nacimiento: el endpoint es solo admin, así que al invitado
+  // ni se le pinta la sección ni se le hace la petición
+  readonly esAdmin = this.authService.getUsuario()?.rol === 'admin';
+  paisNacimiento: PaisNacimientoResponse | null = null;
+  paisNacimientoCargando = false;
+  paisNacimientoError = false;
+  private paisNacimientoSub: Subscription | null = null;
 
   constructor(
     private svc: DistribucionService,
@@ -830,6 +841,36 @@ export class DistribucionComponent implements OnInit, OnDestroy, AfterViewInit {
         this.error = true;
       },
     });
+
+    this.cargarPaisNacimiento();
+  }
+
+  cargarPaisNacimiento(): void {
+    if (!this.esAdmin) return;
+
+    const carrera = this.filtroCarrera || undefined;
+    const anio = this.filtroAnio ? Number(this.filtroAnio) : undefined;
+
+    // Si el filtro cambia antes de que llegue la respuesta, la anterior ya no sirve
+    this.paisNacimientoSub?.unsubscribe();
+    this.paisNacimientoCargando = true;
+    this.paisNacimientoError = false;
+
+    this.paisNacimientoSub = this.svc.getPaisNacimiento(carrera, anio)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (resp) => {
+          this.paisNacimiento = resp;
+          this.paisNacimientoCargando = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.paisNacimiento = null;
+          this.paisNacimientoCargando = false;
+          this.paisNacimientoError = true;
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   // Filtros
@@ -847,6 +888,12 @@ export class DistribucionComponent implements OnInit, OnDestroy, AfterViewInit {
   getPct(parte: number, total: number): string {
     if (!total) return '0';
     return Math.round((parte / total) * 100).toString();
+  }
+
+  // Un decimal, como el porcentaje por país que manda la API
+  getPctDecimal(parte: number, total: number): string {
+    if (!total) return '0';
+    return (Math.round((parte / total) * 1000) / 10).toString();
   }
 
   getBarWidth(valor: number, maximo: number): string {
