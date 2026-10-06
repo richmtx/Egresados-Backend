@@ -341,10 +341,11 @@
 
             <!-- MODAL CONFIRMACIÓN ELIMINAR -->
             <div class="modal-overlay" *ngIf="modalVisible" (click)="cancelarEliminar()">
-                <div class="modal-card" (click)="$event.stopPropagation()">
+                <div class="del-modal" role="alertdialog" aria-modal="true" aria-labelledby="del-titulo"
+                    (click)="$event.stopPropagation()">
 
-                    <div class="modal-icon-wrap">
-                        <div class="modal-icon">
+                    <div class="del-head">
+                        <div class="del-head-icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
                                 stroke-linecap="round">
                                 <path
@@ -352,27 +353,167 @@
                                 <path d="M10 11v6M14 11v6" />
                             </svg>
                         </div>
+                        <h2 class="del-title" id="del-titulo">Eliminar egresado</h2>
+                        <button type="button" class="del-close" aria-label="Cerrar" [disabled]="eliminando"
+                            (click)="cancelarEliminar()">
+                            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" aria-hidden="true">
+                                <path d="M1 1l10 10M11 1L1 11" />
+                            </svg>
+                        </button>
                     </div>
 
-                    <div class="modal-body">
-                        <h2 class="modal-title">¿Eliminar egresado?</h2>
-                        <p class="modal-desc">
-                            Estás a punto de eliminar a
-                            <strong>{{ egresadoPendiente?.nombre_completo }}</strong>.
-                            Esta acción no se puede deshacer.
-                        </p>
+                    <div class="del-body">
+
+                        <!-- Cargando el resumen -->
+                        <div class="del-state" *ngIf="resumenCargando" role="status">
+                            <div class="spinner"></div>
+                            <p>Cargando los datos de {{ egresadoPendiente?.nombre_completo }}…</p>
+                        </div>
+
+                        <!-- El resumen falló: sin él no se habilita el borrado -->
+                        <div class="del-alert del-alert-error" *ngIf="resumenError" role="alert">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M12 8v4M12 16h.01" />
+                            </svg>
+                            <div>
+                                <p>{{ resumenError }}</p>
+                                <button type="button" class="del-link" (click)="cargarResumen()">Reintentar</button>
+                            </div>
+                        </div>
+
+                        <ng-container *ngIf="resumen as r">
+
+                            <div class="del-cols">
+
+                            <!-- Quién es -->
+                            <section class="del-section del-col">
+                                <span class="del-label">Quién es</span>
+                                <div class="del-nombre">{{ r.egresado.nombre_completo }}</div>
+                                <dl class="del-datos">
+                                    <div class="del-dato">
+                                        <dt>Número de control</dt>
+                                        <dd>{{ r.egresado.numero_control || 'Sin número de control' }}</dd>
+                                    </div>
+                                    <div class="del-dato">
+                                        <dt>Año de egreso</dt>
+                                        <dd>{{ r.egresado.anio_egreso ?? '—' }}</dd>
+                                    </div>
+                                    <div class="del-dato del-dato-full">
+                                        <dt>Carrera</dt>
+                                        <dd>{{ r.egresado.carrera || '—' }}</dd>
+                                    </div>
+                                    <div class="del-dato del-dato-full" *ngIf="r.egresado.empresa; else sinEmpresa">
+                                        <dt>Empresa donde trabaja</dt>
+                                        <dd>{{ r.egresado.empresa }}</dd>
+                                    </div>
+                                    <ng-template #sinEmpresa>
+                                        <div class="del-dato del-dato-full">
+                                            <dt>Situación laboral</dt>
+                                            <dd>{{ r.egresado.situacion_laboral || 'Sin empleo registrado' }}</dd>
+                                        </div>
+                                    </ng-template>
+                                </dl>
+                            </section>
+
+                            <div class="del-col">
+
+                            <!-- Qué se pierde -->
+                            <section class="del-section">
+                                <span class="del-label">Qué se pierde</span>
+                                <p class="del-texto" *ngIf="perdidasLista.length > 0">
+                                    Su registro completo, y con él:
+                                </p>
+                                <p class="del-texto" *ngIf="perdidasLista.length === 0">
+                                    Su registro completo. No tiene otros datos asociados.
+                                </p>
+                                <ul class="del-perdidas" *ngIf="perdidasLista.length > 0">
+                                    <li *ngFor="let p of perdidasLista">{{ p }}</li>
+                                </ul>
+                                <p class="del-nota" *ngIf="incluyeTextoLibre">
+                                    Habilidades y colaboraciones incluyen sus respuestas de texto libre.
+                                </p>
+                                <p class="del-texto del-sensibles" *ngIf="r.perdidas.datos_sensibles">
+                                    Este egresado registró datos de discapacidad o identidad. También se borran.
+                                </p>
+                            </section>
+
+                            <!-- Avisos (solo si aplican) -->
+                            <section class="del-section"
+                                *ngIf="r.avisos.en_par_duplicado_pendiente || empresaCatalogo">
+                                <span class="del-label">Avisos</span>
+                                <div class="del-alert del-alert-warn" *ngIf="r.avisos.en_par_duplicado_pendiente">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M12 3l10 18H2L12 3zM12 10v5M12 18h.01" />
+                                    </svg>
+                                    <p>
+                                        Forma parte de un par de duplicados que todavía no se revisa. Borrarlo a
+                                        ciegas rompe esa revisión: conviene resolver el par primero.
+                                    </p>
+                                </div>
+                                <div class="del-alert del-alert-info" *ngIf="empresaCatalogo">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                        stroke-linecap="round" aria-hidden="true">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <path d="M12 11v5M12 8h.01" />
+                                    </svg>
+                                    <p>
+                                        Está ligado a la empresa del catálogo
+                                        <strong>{{ empresaCatalogo }}</strong>.
+                                    </p>
+                                </div>
+                            </section>
+
+                            </div>
+
+                            </div>
+
+                            <!-- Confirmación escrita -->
+                            <section class="del-section del-confirm">
+                                <p class="del-permanente">
+                                    Esta acción es permanente: no hay forma de recuperar este registro. Queda
+                                    anotada en la bitácora con tu usuario y la fecha.
+                                </p>
+                                <div class="del-confirm-row">
+                                    <label class="del-confirm-label" for="del-confirmacion">
+                                        Para confirmar, escribe <strong>{{ PALABRA_CONFIRMACION }}</strong>
+                                    </label>
+                                    <input id="del-confirmacion" class="del-input" type="text" autocomplete="off"
+                                        autocapitalize="characters" spellcheck="false"
+                                        [(ngModel)]="confirmacionTexto" [disabled]="eliminando"
+                                        (keydown.enter)="confirmarEliminar()" />
+                                </div>
+                            </section>
+
+                        </ng-container>
+
+                        <!-- Error del borrado -->
+                        <div class="del-alert del-alert-error" *ngIf="errorEliminar" role="alert">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M12 8v4M12 16h.01" />
+                            </svg>
+                            <p>{{ errorEliminar }}</p>
+                        </div>
+
                     </div>
 
-                    <div class="modal-actions">
-                        <button class="btn-modal-cancel" (click)="cancelarEliminar()">
+                    <div class="del-foot">
+                        <button type="button" class="btn-modal-cancel" [disabled]="eliminando"
+                            (click)="cancelarEliminar()">
                             Cancelar
                         </button>
-                        <button class="btn-modal-confirm" (click)="confirmarEliminar()">
-                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
-                                stroke-linecap="round">
-                                <path d="M3 4h10M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" />
+                        <button type="button" class="btn-modal-confirm" [disabled]="!puedeEliminar"
+                            (click)="confirmarEliminar()">
+                            <svg *ngIf="eliminando" class="export-spinner" viewBox="0 0 16 16" fill="none"
+                                stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                                <circle cx="8" cy="8" r="6" stroke-dasharray="28" stroke-dashoffset="10" />
                             </svg>
-                            Sí, eliminar
+                            {{ eliminando ? 'Eliminando…' : 'Eliminar definitivamente' }}
                         </button>
                     </div>
 
@@ -418,8 +559,8 @@
                 </div>
             </div>
 
-            <!-- TOAST DESHACER -->
-            <div class="toast" [class.toast-visible]="toastVisible" [class.toast-error]="toastError">
+            <!-- TOAST -->
+            <div class="toast" role="status" aria-live="polite" [class.toast-visible]="toastVisible" [class.toast-error]="toastError">
                 <div class="toast-left">
 
                     <!-- Ícono éxito: palomita verde -->
@@ -440,9 +581,6 @@
 
                     <span class="toast-msg">{{ toastMensaje }}</span>
                 </div>
-                <button class="toast-btn" *ngIf="!toastError && egresadoEliminadoTemporal" (click)="deshacerEliminar()">
-                    Deshacer
-                </button>
             </div>
 
             <!-- OVERLAY DRAWER -->

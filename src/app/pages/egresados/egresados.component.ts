@@ -1,9 +1,9 @@
-import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { Component, OnInit, DestroyRef, HostListener, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SidebarComponent } from "../../components/sidebar/sidebar.component";
-import { EgresadosService, EgresadoDetalle, EgresadoPerfil } from './egresados.service';
+import { EgresadosService, EgresadoDetalle, EgresadoPerfil, ResumenEliminacion } from './egresados.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
 import { InclusionService } from '../inclusion/inclusion.service';
 import { Subscription } from 'rxjs';
@@ -20,6 +20,15 @@ export class EgresadosComponent implements OnInit {
   // Modal y toast
   modalVisible = false;
   egresadoPendiente: EgresadoDetalle | null = null;
+  resumen: ResumenEliminacion | null = null;
+  resumenCargando = false;
+  resumenError = '';
+  perdidasLista: string[] = [];
+  readonly PALABRA_CONFIRMACION = 'ELIMINAR';
+  confirmacionTexto = '';
+  eliminando = false;
+  errorEliminar = '';
+  private resumenSub?: Subscription;
   toastVisible = false;
   toastMensaje = '';
   toastError = false;
@@ -224,69 +233,154 @@ export class EgresadosComponent implements OnInit {
     return this.egresados.filter(e => e.autorizo_contacto).length;
   }
 
-  eliminarEgresado(id: number): void {
-    const egresado = this.egresados.find(e => e.id_egresado === id) ?? null;
-    this.egresadoPendiente = egresado;
-    this.modalVisible = true;
+  /** Recarga la lista sin pasar por el estado de carga de la pantalla (conserva los filtros). */
+  private recargarLista(): void {
+    this.egresadosService.getEgresadosDetalle().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (data) => {
+        this.egresados = this.ordenarRecientesPrimero(data);
+        this.cargarOpciones(this.egresados);
+        this.aplicarFiltros();
+      },
+      error: () => { }
+    });
   }
 
-  egresadoEliminadoTemporal: EgresadoDetalle | null = null;
+  /** Quita la fila y recalcula lo que depende del total (métricas, selects, conteo de la cabecera). */
+  private quitarFila(id: number): void {
+    this.egresados = this.egresados.filter(e => e.id_egresado !== id);
+    this.cargarOpciones(this.egresados);
+    this.aplicarFiltros();
+    if (this.perfilSeleccionado?.id_egresado === id) this.cerrarPerfil();
+  }
+
+  // ── Eliminar egresado ──
+  eliminarEgresado(id: number): void {
+    const egresado = this.egresados.find(e => e.id_egresado === id) ?? null;
+    if (!egresado) return;
+    this.egresadoPendiente = egresado;
+    this.confirmacionTexto = '';
+    this.errorEliminar = '';
+    this.modalVisible = true;
+    this.cargarResumen();
+  }
+
+  cargarResumen(): void {
+    const egresado = this.egresadoPendiente;
+    if (!egresado) return;
+
+    this.resumenSub?.unsubscribe();
+    this.resumen = null;
+    this.perdidasLista = [];
+    this.resumenError = '';
+    this.resumenCargando = true;
+
+    this.resumenSub = this.egresadosService.getResumenEliminacion(egresado.id_egresado).subscribe({
+      next: (res) => {
+        this.resumen = res;
+        this.perdidasLista = this.armarPerdidas(res);
+        this.resumenCargando = false;
+      },
+      error: (err) => {
+        this.resumenCargando = false;
+        if (err?.status === 404) {
+          // Otro administrador lo borró: la lista en pantalla está desactualizada
+          this.cancelarEliminar();
+          this.mostrarToast(`${egresado.nombre_completo} ya no existe: otro administrador lo eliminó.`, true);
+          this.recargarLista();
+          return;
+        }
+        this.resumenError = err?.status === 403
+          ? 'No tienes permiso para eliminar egresados.'
+          : 'No se pudo cargar la información de este egresado. Sin ella no es posible eliminarlo.';
+      }
+    });
+  }
+
+  /** Solo lo que es mayor a cero: lo que no tiene, no se menciona. */
+  private armarPerdidas(res: ResumenEliminacion): string[] {
+    const p = res.perdidas;
+    const filas: [number, string, string][] = [
+      [p.habilidades, 'habilidad a reforzar', 'habilidades a reforzar'],
+      [p.colaboraciones, 'interés de colaboración', 'intereses de colaboración'],
+      [p.certificaciones, 'certificación', 'certificaciones'],
+      [p.estudios, 'estudio posterior', 'estudios posteriores'],
+      [p.emprendimientos, 'emprendimiento', 'emprendimientos'],
+      [p.proyectos_sociales, 'proyecto social', 'proyectos sociales'],
+    ];
+    return filas
+      .filter(([n]) => n > 0)
+      .map(([n, singular, plural]) => `${n} ${n === 1 ? singular : plural}`);
+  }
+
+  get incluyeTextoLibre(): boolean {
+    const p = this.resumen?.perdidas;
+    return !!p && (p.habilidades > 0 || p.colaboraciones > 0);
+  }
+
+  get empresaCatalogo(): string {
+    const e = this.resumen?.avisos.empresa_catalogo;
+    if (!e) return '';
+    return typeof e === 'string' ? e : (e.nombre ?? '');
+  }
+
+  /** Coincidencia exacta, en mayúsculas. Solo se perdonan los espacios de los extremos. */
+  get confirmacionValida(): boolean {
+    return this.confirmacionTexto.trim() === this.PALABRA_CONFIRMACION;
+  }
+
+  get puedeEliminar(): boolean {
+    return !!this.resumen && !this.resumenCargando && !this.eliminando && this.confirmacionValida;
+  }
 
   confirmarEliminar(): void {
-    if (!this.egresadoPendiente) return;
+    if (!this.puedeEliminar || !this.egresadoPendiente) return;
 
     const egresado = this.egresadoPendiente;
     const id = egresado.id_egresado;
+    this.eliminando = true;
+    this.errorEliminar = '';
 
-    this.egresadoEliminadoTemporal = egresado;
-    this.egresados = this.egresados.filter(e => e.id_egresado !== id);
-    this.aplicarFiltros();
-    this.modalVisible = false;
-    this.egresadoPendiente = null;
-
-    clearTimeout(this.toastTimer);
-    this.toastMensaje = `${egresado.nombre_completo} fue eliminado`;
-    this.toastError = false;
-    this.toastVisible = true;
-
-    this.toastTimer = setTimeout(() => {
-      this.egresadosService.deleteEgresado(id).subscribe({
-        next: () => {
-          this.logAccion('eliminar_egresado', `Eliminó egresado: ${egresado.nombre_completo}`, 'egresados');
-          this.egresadoEliminadoTemporal = null;
-          this.toastVisible = false;
-        },
-        error: () => {
-          if (this.egresadoEliminadoTemporal) {
-            this.egresados = this.ordenarRecientesPrimero(
-              [...this.egresados, this.egresadoEliminadoTemporal]
-            );
-            this.aplicarFiltros();
-            this.egresadoEliminadoTemporal = null;
-          }
-          this.mostrarToast('Error al eliminar. Intenta de nuevo.', true);
+    // La fila se quita solo cuando el servidor confirma. La bitácora la escribe la API.
+    this.egresadosService.deleteEgresado(id).subscribe({
+      next: () => {
+        this.eliminando = false;
+        this.cancelarEliminar();
+        this.quitarFila(id);
+        this.mostrarToast(`${egresado.nombre_completo} fue eliminado.`, false);
+      },
+      error: (err) => {
+        this.eliminando = false;
+        if (err?.status === 404) {
+          this.cancelarEliminar();
+          this.quitarFila(id);
+          this.mostrarToast(`${egresado.nombre_completo} ya había sido eliminado por otro administrador.`, false);
+        } else if (err?.status === 403) {
+          this.errorEliminar = 'No tienes permiso para eliminar egresados. No se borró nada.';
+        } else if (err?.status >= 500) {
+          this.errorEliminar = `El servidor falló y no se borró nada: ${egresado.nombre_completo} sigue existiendo. Puedes intentarlo de nuevo.`;
+        } else {
+          this.errorEliminar = 'No hubo respuesta del servidor, así que no se sabe si se borró. Cierra y revisa la lista antes de reintentar.';
         }
-      });
-    }, 10000);
-  }
-
-  deshacerEliminar(): void {
-    clearTimeout(this.toastTimer);
-
-    if (this.egresadoEliminadoTemporal) {
-      this.egresados = this.ordenarRecientesPrimero(
-        [...this.egresados, this.egresadoEliminadoTemporal]
-      );
-      this.aplicarFiltros();
-      this.egresadoEliminadoTemporal = null;
-    }
-
-    this.toastVisible = false;
+      }
+    });
   }
 
   cancelarEliminar(): void {
+    if (this.eliminando) return;
+    this.resumenSub?.unsubscribe();
     this.modalVisible = false;
     this.egresadoPendiente = null;
+    this.resumen = null;
+    this.perdidasLista = [];
+    this.resumenCargando = false;
+    this.resumenError = '';
+    this.errorEliminar = '';
+    this.confirmacionTexto = '';
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.modalVisible) this.cancelarEliminar();
   }
 
   mostrarToast(mensaje: string, esError: boolean): void {

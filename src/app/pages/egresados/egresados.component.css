@@ -881,22 +881,361 @@ tr:last-child td {
   line-height: 1.4;
 }
 
-.toast-btn {
-  background: rgba(255, 255, 255, 0.12);
-  border: 0.5px solid rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-  font-size: 12.5px;
-  font-weight: 500;
-  cursor: pointer;
-  padding: 5px 12px;
-  border-radius: 6px;
-  flex-shrink: 0;
-  transition: background 0.15s;
-  white-space: nowrap;
+/* ── Modal eliminar egresado ── */
+.del-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: calc(100% - 32px);
+  max-width: 1000px;
+  max-height: calc(100vh - 32px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.2s ease;
 }
 
-.toast-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+.del-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 24px 12px;
+  border-bottom: 0.5px solid #e5e7eb;
+}
+
+.del-head-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fee2e2;
+  color: #b91c1c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.del-head-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.del-title {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.del-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.del-close:hover {
+  background: #f3f4f6;
+}
+
+.del-close svg {
+  width: 12px;
+  height: 12px;
+}
+
+.del-body {
+  padding: 16px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Dos columnas: quién es | qué se pierde + avisos. Se apilan en pantallas angostas */
+.del-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: 16px 28px;
+  align-items: start;
+}
+
+.del-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.del-col.del-section {
+  gap: 8px;
+}
+
+.del-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 28px 0;
+  color: #6b7280;
+  font-size: 13px;
+  text-align: center;
+}
+
+.del-state p {
+  margin: 0;
+}
+
+.del-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.del-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+/* Quién es: holgado, para notar si se eligió la fila equivocada */
+.del-nombre {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.del-datos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 20px;
+  margin: 6px 0 0;
+  padding: 16px;
+  background: #f9fafb;
+  border: 0.5px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.del-dato-full {
+  grid-column: 1 / -1;
+}
+
+.del-dato dt {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 3px;
+}
+
+.del-dato dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.del-texto {
+  margin: 0;
+  font-size: 13.5px;
+  color: #374151;
+  line-height: 1.55;
+}
+
+.del-perdidas {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13.5px;
+  color: #111827;
+  line-height: 1.7;
+  columns: 2;
+  column-gap: 36px;
+}
+
+.del-perdidas li {
+  break-inside: avoid;
+}
+
+.del-nota {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.del-sensibles {
+  color: #991b1b;
+  font-weight: 500;
+}
+
+.del-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.del-alert svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.del-alert p {
+  margin: 0;
+}
+
+.del-alert-warn {
+  background: #fffbeb;
+  border: 0.5px solid #fcd34d;
+  color: #78350f;
+}
+
+.del-alert-info {
+  background: #eff6ff;
+  border: 0.5px solid #bfdbfe;
+  color: #1e3a8a;
+}
+
+.del-alert-error {
+  background: #fef2f2;
+  border: 0.5px solid #fecaca;
+  color: #991b1b;
+}
+
+.del-link {
+  margin-top: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.del-confirm {
+  padding-top: 14px;
+  border-top: 0.5px solid #e5e7eb;
+}
+
+.del-confirm-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.del-confirm-row .del-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.del-permanente {
+  margin: 0;
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.55;
+}
+
+.del-confirm-label {
+  font-size: 13px;
+  color: #111827;
+}
+
+.del-confirm-label strong {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.del-input {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #111827;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.del-input:focus {
+  outline: none;
+  border-color: #b91c1c;
+  box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.15);
+}
+
+.del-input:disabled {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.del-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 24px 14px;
+  border-top: 0.5px solid #e5e7eb;
+}
+
+.del-foot button {
+  flex: 0 0 auto;
+  min-width: 190px;
+  padding: 10px 20px;
+}
+
+.del-close:focus-visible,
+.del-link:focus-visible,
+.del-foot button:focus-visible {
+  outline: 2px solid #b91c1c;
+  outline-offset: 2px;
+}
+
+@media (max-width: 860px) {
+  .del-cols {
+    grid-template-columns: 1fr;
+  }
+
+  .del-confirm-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .del-foot button {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .del-datos {
+    grid-template-columns: 1fr;
+  }
+
+  .del-perdidas {
+    columns: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .del-modal {
+    animation: none;
+  }
 }
 
 /* ── Drawer overlay ── */

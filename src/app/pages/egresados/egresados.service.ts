@@ -90,6 +90,36 @@ export interface EgresadoPerfil extends EgresadoDetalle {
   proyectos_sociales: ProyectoSocial[];
 }
 
+/** Respuesta de GET /egresados/:id/resumen-eliminacion (solo admin). */
+export interface ResumenEliminacion {
+  egresado: {
+    id_egresado: number;
+    nombre_completo: string;
+    /** Puede venir null o con el texto 'Desconocido' */
+    numero_control: string | null;
+    carrera: string | null;
+    anio_egreso: number | null;
+    /** null cuando no tiene empleo registrado */
+    empresa: string | null;
+    situacion_laboral: string | null;
+  };
+  /** Los conteos ya vienen como number. Habilidades y colaboraciones incluyen el texto libre. */
+  perdidas: {
+    habilidades: number;
+    colaboraciones: number;
+    certificaciones: number;
+    estudios: number;
+    emprendimientos: number;
+    proyectos_sociales: number;
+    datos_sensibles: boolean;
+  };
+  avisos: {
+    en_par_duplicado_pendiente: boolean;
+    /** Empresa del catálogo a la que está ligado; null si no aplica */
+    empresa_catalogo: string | { nombre: string } | null;
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -105,6 +135,10 @@ export class EgresadosService {
 
   getPerfilEgresado(id: number): Observable<EgresadoPerfil> {
     return this.http.get<EgresadoPerfil>(`${this.apiUrl}/egresados/${id}/perfil`);
+  }
+
+  getResumenEliminacion(id: number): Observable<ResumenEliminacion> {
+    return this.http.get<ResumenEliminacion>(`${this.apiUrl}/egresados/${id}/resumen-eliminacion`);
   }
 
   deleteEgresado(id: number): Observable<any> {
