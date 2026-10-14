@@ -61,16 +61,37 @@ export interface InclusionResumenDatos {
 }
 
 // 2. /inclusion/discapacidad-por-dominio
+// Solo se guardan los dominios marcados, con severidad real (poca, mucha, no puedo).
+// Todos los porcentajes son sobre `consintieron`: quien consintió y no marcó nada
+// declaró no tener dificultades, y cuenta en el denominador.
+// Aquí los conteos ya llegan como number (null = oculto por umbral).
 export interface GradoDiscapacidad {
   grado: string;
   descripcion: string;
-  total: ConteoRaw;
+  total: number | null;
+  porcentaje: number | null;
 }
 
 export interface DominioDiscapacidad {
   dominio: string;
   pregunta: string;
+  /** Personas que marcaron el dominio con cualquier grado */
+  total: number | null;
+  porcentaje: number | null;
   grados: GradoDiscapacidad[];
+}
+
+/** Texto libre de la opción "Otra", agrupado. Sin umbral: nunca dice a quién pertenece. */
+export interface DiscapacidadOtro {
+  descripcion: string;
+  total: number;
+}
+
+/** Envoltorio común más el denominador y los textos de "Otra" */
+export interface DiscapacidadPorDominioResponse extends InclusionResponse<DominioDiscapacidad[]> {
+  /** Egresados que consintieron: denominador de todos los porcentajes de la sección */
+  consintieron: number;
+  discapacidad_otro: DiscapacidadOtro[];
 }
 
 // 3. /inclusion/por-carrera
@@ -145,8 +166,8 @@ export class InclusionService {
     return this.http.get<InclusionResponse<InclusionResumenDatos>>(`${this.apiUrl}/resumen`);
   }
 
-  getDiscapacidadPorDominio(): Observable<InclusionResponse<DominioDiscapacidad[]>> {
-    return this.http.get<InclusionResponse<DominioDiscapacidad[]>>(`${this.apiUrl}/discapacidad-por-dominio`);
+  getDiscapacidadPorDominio(): Observable<DiscapacidadPorDominioResponse> {
+    return this.http.get<DiscapacidadPorDominioResponse>(`${this.apiUrl}/discapacidad-por-dominio`);
   }
 
   getPorCarrera(): Observable<InclusionResponse<InclusionCarrera[]>> {

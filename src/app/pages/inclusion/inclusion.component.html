@@ -103,6 +103,12 @@
       </span>
     </ng-template>
 
+    <!-- Conteo con su porcentaje debajo; si el conteo está oculto, el porcentaje también -->
+    <ng-template #conteoPct let-v let-pct="pct">
+      <ng-container *ngTemplateOutlet="conteo; context: { $implicit: v }"></ng-container>
+      <span class="celda-pct" *ngIf="v !== null && pct !== null">{{ formatoPct(pct) }}</span>
+    </ng-template>
+
     <!-- Valor + pie de una tarjeta KPI -->
     <ng-template #kpiValor let-v let-sub="sub">
       <span class="kpi-value" [class.kpi-value-oculto]="v === null">
@@ -267,7 +273,12 @@
           <div class="chart-header">
             <div>
               <h3 class="chart-title">Grado de dificultad por dominio</h3>
-              <p class="chart-sub">Personas por grado en cada dominio. Los segmentos ocultos no se dibujan.</p>
+              <p class="chart-sub">
+                Personas que marcaron cada dominio, por grado. Los porcentajes son sobre los
+                <strong>{{ consintieronDiscapacidad | number }}</strong> egresados que consintieron;
+                quien no marcó un dominio declaró no tener dificultad en él.
+                Los segmentos ocultos no se dibujan.
+              </p>
             </div>
             <span class="chart-badge badge-cyan">Barras apiladas</span>
           </div>
@@ -299,19 +310,56 @@
                 <thead>
                   <tr>
                     <th scope="col">Dominio</th>
+                    <th scope="col">Lo marcaron</th>
                     <th scope="col" *ngFor="let g of gradosGrafica">{{ g.descripcion }}</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr *ngFor="let d of dominios; trackBy: trackByDominio">
                     <th scope="row" class="td-carrera" [title]="d.pregunta">{{ d.pregunta }}</th>
+                    <td class="td-num td-total" [class.td-oculto]="d.total === null">
+                      <ng-container *ngTemplateOutlet="conteoPct; context: { $implicit: d.total, pct: d.porcentaje }"></ng-container>
+                    </td>
                     <td class="td-num" *ngFor="let g of gradosGrafica" [class.td-oculto]="totalGrado(d, g.grado) === null">
-                      <ng-container *ngTemplateOutlet="conteo; context: { $implicit: totalGrado(d, g.grado) }"></ng-container>
+                      <ng-container *ngTemplateOutlet="conteoPct; context: { $implicit: totalGrado(d, g.grado), pct: porcentajeGrado(d, g.grado) }"></ng-container>
                     </td>
                   </tr>
                 </tbody>
               </table>
+              <p class="tabla-nota">
+                Porcentajes sobre los {{ consintieronDiscapacidad | number }} egresados que consintieron.
+                Si una fila tiene una celda oculta, su total «Lo marcaron» también se oculta: restando
+                las demás celdas se podría deducir la oculta.
+              </p>
             </div>
+          </div>
+
+          <!-- Dificultades escritas en "Otra": lo que los dominios no cubren -->
+          <div class="lenguas-card otra-card">
+            <h4 class="lenguas-title">Otras dificultades declaradas</h4>
+            <p class="otra-sub">
+              Texto libre de la opción «Otra». No entra en la gráfica ni en el conteo de
+              «Con discapacidad», porque no tiene grado.
+            </p>
+            <div class="table-wrap" *ngIf="discapacidadOtro.length; else sinOtra">
+              <table class="tit-table otra-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Dificultad descrita</th>
+                    <th scope="col">Egresados</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let o of discapacidadOtro; trackBy: trackByOtro">
+                    <th scope="row" class="td-otra">{{ o.descripcion }}</th>
+                    <td class="td-num">{{ o.total | number }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <ng-template #sinOtra>
+              <p class="otra-vacio">Nadie ha descrito una dificultad en «Otra».</p>
+            </ng-template>
           </div>
         </div>
       </div>

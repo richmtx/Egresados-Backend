@@ -10,7 +10,7 @@ import {
 import { UsuariosService } from '../usuarios/usuarios.service';
 import {
   InclusionService, Conteo, aConteo,
-  DominioDiscapacidad, InclusionCarrera, InclusionAnio, InclusionResumenDatos,
+  DominioDiscapacidad, DiscapacidadOtro, InclusionCarrera, InclusionAnio, InclusionResumenDatos,
   CoberturaInclusion, PreguntaIdentidad, LenguaIndigena,
 } from './inclusion.service';
 
@@ -30,11 +30,16 @@ interface GradoVista {
   grado: string;
   descripcion: string;
   total: Conteo;
+  /** Sobre los que consintieron; null si el conteo está oculto */
+  porcentaje: number | null;
 }
 
 interface DominioVista {
   dominio: string;
   pregunta: string;
+  /** Personas que marcaron el dominio con cualquier grado */
+  total: Conteo;
+  porcentaje: number | null;
   grados: GradoVista[];
 }
 
@@ -85,11 +90,9 @@ const NOTA_POR_DEFECTO =
 
 /** Paleta por gravedad, alineada a los semáforos de titulación */
 const COLORES_GRADO: Record<string, string> = {
-  sin_dificultad: '#639922',
   poca_dificultad: '#EF9F27',
   mucha_dificultad: '#F97316',
   no_puedo: '#E24B4A',
-  no_declara: '#9CA3AF',
 };
 const COLOR_GRADO_DEFECTO = '#7F77DD';
 
@@ -124,6 +127,10 @@ export class InclusionComponent implements OnInit {
   // Datos mapeados
   resumen: ResumenVista | null = null;
   dominios: DominioVista[] = [];
+  /** Egresados que consintieron: denominador de los porcentajes de discapacidad */
+  consintieronDiscapacidad = 0;
+  /** Textos libres de "Otra", de mayor a menor conteo (ya vienen ordenados) */
+  discapacidadOtro: DiscapacidadOtro[] = [];
   filasCarrera: FilaInclusion[] = [];
   filasAnio: FilaInclusion[] = [];
 
@@ -272,6 +279,8 @@ export class InclusionComponent implements OnInit {
 
         this.resumen = this.mapearResumen(resumen.datos);
         this.dominios = this.mapearDominios(dominios.datos ?? []);
+        this.consintieronDiscapacidad = dominios.consintieron ?? 0;
+        this.discapacidadOtro = dominios.discapacidad_otro ?? [];
         this.filasCarrera = this.mapearCarreras(carreras.datos ?? []);
         this.filasAnio = this.mapearAnios(anios.datos ?? []);
         this.preguntasIdentidad = this.mapearIdentidad(identidad.datos ?? []);
@@ -340,16 +349,33 @@ export class InclusionComponent implements OnInit {
       });
   }
 
+  /**
+   * Los dominios y grados son exactamente los que manda la API (solo dominios activos y
+   * grados con severidad real); aquí no se filtra nada por clave.
+   * Los conteos ya vienen como number: solo se normaliza undefined a null (oculto).
+   *
+   * Supresión complementaria: si alguna celda de la fila está oculta, también se oculta
+   * el total "Lo marcaron" (y su %). Si no, total − celdas visibles revelaría la celda
+   * oculta (p. ej. 7 − 0 − 6 = 1). El dato de la API es correcto; lo que filtraría es
+   * mostrarlo junto a las celdas.
+   */
   private mapearDominios(datos: DominioDiscapacidad[]): DominioVista[] {
-    return datos.map(d => ({
-      dominio: d.dominio,
-      pregunta: d.pregunta,
-      grados: d.grados.map(g => ({
+    return datos.map(d => {
+      const grados = d.grados.map(g => ({
         grado: g.grado,
         descripcion: g.descripcion,
-        total: aConteo(g.total),
-      })),
-    }));
+        total: g.total ?? null,
+        porcentaje: g.porcentaje ?? null,
+      }));
+      const hayCeldaOculta = grados.some(g => g.total === null);
+      return {
+        dominio: d.dominio,
+        pregunta: d.pregunta,
+        total: hayCeldaOculta ? null : d.total ?? null,
+        porcentaje: hayCeldaOculta ? null : d.porcentaje ?? null,
+        grados,
+      };
+    });
   }
 
   private mapearCarreras(datos: InclusionCarrera[]): FilaInclusion[] {
@@ -420,16 +446,18 @@ export class InclusionComponent implements OnInit {
     this.dominioChart = { ...this.dominioChart };
   }
 
-  /** Tooltip por dominio: lista los 5 grados y marca los ocultos, sin inventar valores */
+  /** Tooltip por dominio: lista los grados con su % sobre los que consintieron; marca los ocultos */
   private tooltipDominio(idx: number): string {
     const dom = this.dominios[idx];
     if (!dom) return '';
 
     const filas = this.gradosGrafica.map((g, i) => {
       const v = this.celdas[i]?.[idx] ?? null;
+      const p = this.porcentajeGrado(dom, g.grado);
       const valor = v === null
         ? `<span style="color:#9ca3af;">Oculto (&lt;${this.umbral})</span>`
-        : `<strong style="color:#111827;">${v}</strong>`;
+        : `<strong style="color:#111827;">${v}</strong>` +
+          (p === null ? '' : ` <span style="color:#6b7280;">(${this.formatoPct(p)})</span>`);
       return `
         <div style="display:flex; align-items:center; gap:7px; margin-bottom:4px;">
           <span style="display:inline-block; width:10px; height:10px; border-radius:50%;
@@ -444,12 +472,33 @@ export class InclusionComponent implements OnInit {
         background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.12);">
         <div style="font-weight:600; margin-bottom:8px; color:#111827;">${esc(dom.pregunta)}</div>
         ${filas}
+        <div style="margin-top:8px; padding-top:6px; border-top:1px solid #f3f4f6; color:#6b7280; font-size:12px;">
+          ${this.textoTotalDominio(dom)}
+        </div>
       </div>`;
+  }
+
+  private textoTotalDominio(dom: DominioVista): string {
+    const base = `de ${this.consintieronDiscapacidad.toLocaleString('es-MX')} que consintieron`;
+    // Oculto por umbral o porque permitiría deducir una celda oculta
+    if (dom.total === null) return `Lo marcaron: oculto por protección de datos, ${base}`;
+    const p = dom.porcentaje === null ? '' : ` (${this.formatoPct(dom.porcentaje)})`;
+    return `Lo marcaron <strong style="color:#111827;">${dom.total}</strong>${p} ${base}`;
+  }
+
+  /** Porcentaje con un decimal, como lo calcula la API */
+  formatoPct(p: number): string {
+    return `${p.toLocaleString('es-MX', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
   }
 
   /** Conteo de un grado dentro de un dominio; ausente u oculto => null (nunca 0) */
   totalGrado(d: DominioVista, grado: string): Conteo {
     return d.grados.find(g => g.grado === grado)?.total ?? null;
+  }
+
+  /** Porcentaje de un grado dentro de un dominio, sobre los que consintieron */
+  porcentajeGrado(d: DominioVista, grado: string): number | null {
+    return d.grados.find(g => g.grado === grado)?.porcentaje ?? null;
   }
 
   // Gráfica: identidad cultural
@@ -571,4 +620,5 @@ export class InclusionComponent implements OnInit {
   trackByFila = (_: number, f: FilaInclusion) => f.etiqueta;
   trackByPregunta = (_: number, p: PreguntaVista) => p.preguntaClave;
   trackByLengua = (_: number, l: LenguaVista) => l.lengua;
+  trackByOtro = (_: number, o: DiscapacidadOtro) => o.descripcion;
 }

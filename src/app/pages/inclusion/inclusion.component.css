@@ -606,6 +606,53 @@
     max-width: 360px;
 }
 
+/* Porcentaje bajo el conteo en la tabla de discapacidad */
+.celda-pct {
+    display: block;
+    font-size: 11px;
+    color: #6b7280;
+    font-variant-numeric: tabular-nums;
+}
+
+.tit-table td.td-total {
+    font-weight: 600;
+}
+
+.tabla-nota {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 8px 0 0;
+}
+
+/* Dificultades escritas en "Otra" */
+.otra-sub {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 0 0 8px;
+    max-width: 65ch;
+}
+
+.otra-table {
+    width: auto;
+    min-width: 0;
+    max-width: 560px;
+}
+
+.tit-table th.td-otra {
+    font-weight: 400;
+    color: #111827;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.45;
+}
+
+.otra-vacio {
+    font-size: 12.5px;
+    color: #6b7280;
+    margin: 0;
+}
+
 /* Cobertura temporal: décadas de egreso */
 .decada-grid {
     display: grid;
